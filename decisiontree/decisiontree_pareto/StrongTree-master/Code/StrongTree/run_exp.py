@@ -8,9 +8,6 @@ import csv
 from datetime import datetime
 
 depths = [2, 3, 4]
-datasets = ['monk1_enc.csv', 'monk2_enc.csv', 'monk3_enc.csv', 'car_evaluation_enc.csv',
-            'balance-scale_enc.csv', 'kr-vs-kp_enc.csv', 'house-votes-84_enc.csv', 'tic-tac-toe_enc.csv',
-            'breast-cancer_enc.csv', 'hayes-roth_enc.csv', 'spect_enc.csv', 'soybean-small_enc.csv']
 samples = [1, 2, 3, 4]
 _lambdas = [round(0.1 * k, 1) for k in range(10)]
 

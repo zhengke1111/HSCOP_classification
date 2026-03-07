@@ -1,4 +1,4 @@
-from binary import callback_data_binary
+import callback_data_binary
 import gurobipy as grb
 import time 
 

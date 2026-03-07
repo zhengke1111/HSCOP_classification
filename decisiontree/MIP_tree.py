@@ -1,8 +1,8 @@
-from decisiontree import utils
-from decisiontree import PIP_iterations_tree
-from decisiontree import full_mip_tree
-from decisiontree import callback_data_tree
-from decisiontree import PIP_unconstrained_iterations_tree
+import utils
+import PIP_iterations_tree
+import full_mip_tree
+import callback_data_tree
+import PIP_unconstrained_iterations_tree
 import numpy as np
 import random
 import csv

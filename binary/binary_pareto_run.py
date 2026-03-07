@@ -1,5 +1,5 @@
-from binary import MIP_binary
-from binary import utils
+import MIP_binary
+import utils
 from datetime import datetime
 from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LogisticRegression, RidgeClassifier, Perceptron

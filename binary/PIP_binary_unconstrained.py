@@ -1,6 +1,6 @@
 
-from binary import MIP_binary_callback
-from binary import callback_data_binary
+import MIP_binary_callback
+import callback_data_binary
 from gurobipy import GRB
 import gurobipy as gp
 import numpy as np

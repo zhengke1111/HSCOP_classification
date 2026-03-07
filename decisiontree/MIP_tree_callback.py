@@ -1,6 +1,6 @@
 import gurobipy as grb
 import time
-from decisiontree import callback_data_tree
+import callback_data_tree
 
 def mip_tree_callback(model, where):
     """ callback function for MIP including PIP and full_MIP(if necesary), mainly used to record the solver log and control terminating time

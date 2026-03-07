@@ -1,2 +1,0 @@
-run,type,beta_p,shrinkage_iter,pip_iter,integers,integer_rate,objective_value,bestbd,optimality_gap,w,b,vio_asm_equal_0,vio_asm_open_interval,vio_feasibilitytol,z_integrality_vio
-1,full_mip,0.96,,,5714,1,0.837941897094855,0.9980419437912066,0.19106342247764257,"[26.17799952306578, -23.994214362342973, 0.0, -21.508271400741307, -27.607976807923535, 0.0, -0.7115379059264093]",-8.07279504807532,0,0,0,0

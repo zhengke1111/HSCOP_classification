@@ -1,11 +1,3 @@
-'''
-Author: zhengke 1604367740@qq.com
-Date: 2024-11-22 06:31:51
-LastEditors: zhengke 1604367740@qq.com
-LastEditTime: 2024-12-05 10:05:24
-FilePath: /AHC_max_accuracy/decisiontree/full_mip_tree.py
-Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
-'''
 import gurobipy as gp
 from gurobipy import GRB
 import numpy as np
@@ -15,9 +7,9 @@ import pandas as pd
 import csv
 import os
 from collections import Counter
-from decisiontree import utils
-from decisiontree import MIP_tree_callback
-from decisiontree import callback_data_tree
+import utils
+import MIP_tree_callback
+import callback_data_tree
 
 def full_mip_tree(model, data, start, settings, stop_rule, file_path):
 

@@ -1,5 +1,5 @@
-from decisiontree import MIP_tree
-from decisiontree import utils
+import MIP_tree
+import utils
 from datetime import datetime
 from collections import Counter
 import gurobipy as gp

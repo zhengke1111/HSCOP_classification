@@ -1,5 +1,5 @@
-from binary import PIP_binary
-from binary import utils
+import PIP_binary
+import utils
 import csv
 
 

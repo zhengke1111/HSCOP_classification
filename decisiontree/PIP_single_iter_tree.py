@@ -6,9 +6,9 @@ import pandas as pd
 import csv
 import os
 from collections import Counter
-from decisiontree import callback_data_tree
-from decisiontree import MIP_tree_callback
-from decisiontree import utils
+import callback_data_tree
+import MIP_tree_callback
+import utils
 
 
 def pip_single_iter_tree(model, data, start, settings, file_path):

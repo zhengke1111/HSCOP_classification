@@ -1,7 +1,7 @@
-from binary import utils
-from binary import PIP_binary_iterations
-from binary import PIP_binary_unconstrained_iterations
-from binary import Full_MIP_binary
+import utils
+import PIP_binary_iterations
+import PIP_binary_unconstrained_iterations
+import Full_MIP_binary
 import numpy as np
 import random
 import csv

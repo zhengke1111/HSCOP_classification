@@ -1,5 +1,5 @@
 from gurobipy import GRB
-from binary import MIP_binary_callback, callback_data_binary
+import MIP_binary_callback, callback_data_binary
 import os, numpy as np, pandas as pd, gurobipy as gp
 
 
