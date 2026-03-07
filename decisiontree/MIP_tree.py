@@ -1,6 +1,6 @@
 import utils
 import PIP_iterations_tree
-import full_mip_tree
+import Full_MIP_tree
 import callback_data_tree
 import PIP_unconstrained_iterations_tree
 import numpy as np
@@ -139,7 +139,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         result_sub3dir = result_sub2dir + '/full_mip'
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
-        objective_function_term, solution, counts_result, execution_time  = full_mip_tree.full_mip_tree(model, data, start, settings, stop_rule, file_path)
+        objective_function_term, solution, counts_result, execution_time  = Full_MIP_tree.full_mip_tree(model, data, start, settings, stop_rule, file_path)
         train_result, test_result, train_constraint_gap, test_constraint_gap, test_train_gap = utils.train_test_results(X_train, y_train, X_test, y_test, solution, D, J, beta_p, class_restricted)
         with open(file_path['details_csv'], mode='a', newline='') as details:
             writer = csv.writer(details)

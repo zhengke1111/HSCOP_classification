@@ -57,7 +57,6 @@ def binary(dataset='rice', data_splits = None, beta_p_threshold=None):
     details_csv = f'{result_subdir}/'+ f'{dataset}_result_' + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
     with open(details_csv, mode='a', newline='') as details:
         writer = csv.writer(details)
-        # The following terms are explained in README.md
         writer.writerow(['run', 'type', 'beta_p', 'shrinkage_iter', 'pip_iter', 'integers', 'integer_rate','objective_value', 'bestbd','optimality_gap', 'w','b','vio_asm_equal_0', 
                          'vio_asm_open_interval','vio_feasibilitytol', 'z_integrality_vio'])
 

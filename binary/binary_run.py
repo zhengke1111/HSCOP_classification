@@ -35,7 +35,6 @@ def binary_constraint(dataset='rice', data_splits = None, beta_p=None):
     # Header of result_csv
     with open(result_csv, mode='a', newline='') as all_result:
         writer = csv.writer(all_result)
-        # The following terms are explained in README.md
         writer.writerow(['run', 'type', 'beta_p', 'objective_value', 'bestbd', 'optimality_gap', 'time', 'w','b', 'gamma_in_obj', 'train_acc_margin',
                          'train_accuracy', 'train_precision', 'train_recall','test_acc_margin','test_accuracy', 'test_precision','test_recall',
                          'violations_assumption_1', 'violations_assumption_2','violations_feasibilitytol', 'z_integrality_vio'])
@@ -83,7 +82,7 @@ def binary_constraint(dataset='rice', data_splits = None, beta_p=None):
         # 4: 'fixed',           \varepsilon-fixed PIP
         # 5: 'shrinkage',       \varepsilon-shrinkage PIP
         # 6: 'unconstrained'    PIP without precision constraint (for pareto comparison)
-        for method in range(1,6):
+        for method in range(1,7):
             start_copy = copy.deepcopy(start)
             settings = {'method': method, 'epsilon':1e-4, 'epsilon_nu': 1e-1, 'beta_p':beta_p, 'rho': 1e4, 'feasibilitytol': feasibility_tol, 'callback_type': 0}
             stop_rule = {'timelimit': 3600, 'base_rate': base_rate, 'feasible_rate': feasible_rate, 'pip_max_rate': pip_max_rate, 'unchanged_iters':3, 'max_iteration': 10, 'max_outer_iter': 4}
@@ -102,6 +101,5 @@ def binary_run():
             data_splits[run] = utils.split_data(X, y, random_state = 42 + run)
         for beta_p in beta_p_dict[dataset]:
             binary_constraint(dataset = dataset, data_splits = data_splits, beta_p = beta_p)
-
 
 binary_run()

@@ -54,7 +54,6 @@ def decisiontree_constraint(dataset='blsc', data_splits = None, beta_p=None, D=2
     details_csv = f'{result_subdir}/'+ f'{dataset}_result_' + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
     with open(details_csv, mode='a', newline='') as details:
         writer = csv.writer(details)
-        # The following terms are explained in README.md
         writer.writerow(['run', 'type', 'tau_0', 'beta_p','shrinkage_iter', 'piece', 'pip_iter', 'integer_rate', 'integers', 'objective_value', 'optimality_gap',
                         'final_improvement_time','time','train','test', 'test_constraint_gap',
                         'vio_asm_equal_0', 'vio_asm_interval','vio_feasibilitytol',
@@ -126,7 +125,7 @@ def decisiontree_constraint(dataset='blsc', data_splits = None, beta_p=None, D=2
         # 6: 'simplified_arbitrary4_shrinkage'      \varepsilon-shrinkage-arbitrary4
         # 7: 'simplified_arbitrary1_shrinkage'      \varepsilon-shrinkage-arbitrary1
         # 8: 'unconstrained'                        Unconstrained PIP
-        for method in range(1,8):
+        for method in range(1,9):
             start_copy = copy.deepcopy(start)
             settings = {'method': method, 'epsilon':1e-4, 'epsilon_nu': 1e-1, 'beta_p':beta_p, 'D': D, 'enhanced_size': 4, 'rho': 1e4, 'feasibilitytol': feasibility_tol,
                         'regularizer':regularizer, 'tau_0':best_tau_0, 'tune': False}
