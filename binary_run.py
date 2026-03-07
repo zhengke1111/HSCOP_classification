@@ -16,12 +16,12 @@ model.setParam('FeasibilityTol', feasibility_tol)
 
 
 # =========== Settings to Solve Binary Classification Problem with Precision Constraint ==========
-def binary_constraint(dataset='blsc', data_splits = None, beta_p=None):
+def binary_constraint(dataset='rice', data_splits = None, beta_p=None):
     """
     Settings and output for binary classification problem with precision constraint
 
     Args:
-        dataset (str, optional): Abbreviation of dataset name. Defaults to 'blsc'.
+        dataset (str, optional): Abbreviation of dataset name. Defaults to 'rice'.
         data_splits (dict, optional): Dictionary to store the split data. Defaults to None.
         beta_p (float, optional): Precision (lower) threshold to be meet. Defaults to None.
     """

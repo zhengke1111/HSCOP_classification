@@ -64,7 +64,7 @@ def ensure_train_test_files(
 
 
 #path1 = 'D:\Sicco\Dropbox\Dropbox\INFORMS-J-Optimization\dataset-cg-paper'
-path1 = '/home/zhengke/AHC_max_accuracy/decisiontree_pareto/binoct-master/data_sets_aaaipaper/'
+path1 = 'decisiontree/decisiontree_pareto/binoct-master/dataset/'
 current_datetime = datetime.now()    
 output_filename = path1 + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
 with open(output_filename, mode='a', newline='') as all_result:

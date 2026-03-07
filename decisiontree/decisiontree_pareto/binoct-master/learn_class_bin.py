@@ -2187,7 +2187,7 @@ def evaluate_solution(
     num_nodes, solution_values, num_features,
     ifile, tfile,
     pos_label,
-    base_path="/home/zhengke/AHC_max_accuracy/decisiontree_pareto/binoct-master/data_sets_aaaipaper/"
+    base_path= 'decisiontree/decisiontree_pareto/binoct-master/dataset/'
 ):
     train_path = base_path + ifile
     test_path  = base_path + tfile

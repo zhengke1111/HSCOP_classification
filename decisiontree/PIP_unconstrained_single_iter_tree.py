@@ -13,23 +13,19 @@ from decisiontree import utils
 
 def pip_unconstrained_single_iter_tree(model, data, start, settings, file_path):
     """
-    :param lbd:
-    :param model:
-    :param obj_cons_num: 
-    :param X_train: 
-    :param y_train: 
-    :param w_start: 
-    :param b_start
-    :param z_plus_start: 
-    :param z_minus_start: 
-    :param epsilon: 
-    :param gamma: 
-    :param M: 
-    :param rho: 
-    :param beta_p: 
-    :param dirname: 
-    :return: 
+    A single PIP iteration in PIP method to solve the decision tree classification problem without precision constraint
+
+    Args:
+        model (dict): Gurobi parameter settings, including {Name, 'MIPFocus', 'IntegralityFocus', 'Threads', 'NumericFocus', 'FeasibilityTol'}
+        data (dict): Data splits, {X_train, y_train, X_test, y_test} split by some random seeds we set
+        start (dict): Initial solution from the last iteration
+        settings (dict): Settings of PIP
+        file_path (dict): File path to store the output
+
+    Returns:
+        Tuple(dict, dict, dict): objective_function_term, solution, counts_result 
     """
+    #   Below are similar to the function pip_single_iter_tree in PIP_single_iter_tree.py
     X_train, y_train, class_restricted = data['X_train'], data['y_train'], data['class_restricted']
     a_start, b_start, c_start, z_plus_0_start = start['a'], start['b'], start['c'], start['z_plus_0']
     L_start = None
@@ -43,16 +39,14 @@ def pip_unconstrained_single_iter_tree(model, data, start, settings, file_path):
         shrinkage_iter = file_path['shrinkage_iter']
     if method in [4,6]:
         piece_index = file_path['piece_index']
-    # temporary variables for debug
     random.seed(42)
-    # samples
-    p = X_train.shape[1]  # dimension
+
+    p = X_train.shape[1]                        # dimension
     total_class_num = len(Counter(y_train))
-    J = range(1, total_class_num+1)  # classes
-    I = class_restricted  # class restricted
+    J = range(1, total_class_num+1)             # classes
+    I = class_restricted                        # class restricted
     class_index = {cls: np.where(y_train == cls)[0] for cls in J}  # use to select samples of certain class
 
-    ###############################
     model = model.copy()
     N = X_train.shape[0]
     a = {}
@@ -89,19 +83,6 @@ def pip_unconstrained_single_iter_tree(model, data, start, settings, file_path):
             model.addConstrs((a[k][i]>=-tau_1*(1-u[k][i])) for i in range(p))
             model.addConstrs((-a[k][i]>=-tau_1*(1-u[k][i])) for i in range(p))
             model.addConstr(gp.quicksum((1-u[k][i]) for i in range(p))<=tau_0)
-
-    if regularizer == 'soft_l0':
-        # TODO
-        varrho = settings['varrho']
-        tau_0 = settings['tau_0']
-        u={}
-        v={}
-        for k in range(2**D-1):
-            u[k] = model.addVars(p, vtype=GRB.BINARY, name='u_'+str(k))
-            v[k] = model.addVar(lb=0, vtype=GRB.CONTINUOUS, name='v_'+str(k))
-            model.addConstrs((a[k][i]>=-tau_1*(1-u[k][i])) for i in range(p))
-            model.addConstrs((-a[k][i]>=-tau_1*(1-u[k][i])) for i in range(p))
-            model.addConstr(gp.quicksum((1-u[k][i]) for i in range(p))<=tau_0+v[k])
 
     key_z_plus_0 = [(s, t) for s in range(N) for t in range(2**D)]
     z_plus_0 = model.addVars(key_z_plus_0, vtype=GRB.BINARY, name='z_plus_0')
@@ -145,8 +126,6 @@ def pip_unconstrained_single_iter_tree(model, data, start, settings, file_path):
         model.addConstr(1 == gp.quicksum(c[j, t] for j in J)) 
 
     obj = 1/N*gp.quicksum(L[t] for t in range(2**D)) 
-    if regularizer == 'soft_l0': 
-        obj = 1/N*gp.quicksum(L[t] for t in range(2**D)) - varrho/N*gp.quicksum(v[k] for k in range(2**D-1))
     model.addConstr(obj <= 1, "manual_upper_bound")
     model.setObjective(obj,GRB.MAXIMIZE)
     model.update()
@@ -169,23 +148,12 @@ def pip_unconstrained_single_iter_tree(model, data, start, settings, file_path):
     if method == 6:
         postfix = f'shrinkage_iter_{shrinkage_iter}_piece_{piece_index}_pip_iter_{pip_iter}'
     model.setParam('LogFile', os.path.join(result_sub3dir + '/Logfile', f'log_{postfix}.txt'))
-    # os.makedirs(result_sub3dir + '/Model', exist_ok=True)
-    # model.write(result_sub3dir + '/Model' + f'/model_{postfix}.lp')
 
     callback_data_tree.log_data=[]
-    callback_data_tree.time_for_finding_feasible_solution = 0
     model._vars = model.getVars()
     model.optimize(MIP_tree_callback.mip_tree_callback)
-    log_data_list = callback_data_tree.log_data
-    log_df = pd.DataFrame(log_data_list)
-    time_for_finding_feasible_solution = callback_data_tree.time_for_finding_feasible_solution
     objective_value = model.objVal
     runtime = model.Runtime
-
-    try:
-        last_row = log_df.iloc[-1]
-    except IndexError:
-        last_row = {'BestBd': model.objVal}
 
     try:
         optimality_gap = model.MIPGap
@@ -254,7 +222,6 @@ def pip_unconstrained_single_iter_tree(model, data, start, settings, file_path):
             lhs_feas = min([sum(solution_a[k][i]*X_train[s][i] for i in range(p)) - solution_b[k] - 1 for k in A_R[t]] + [-sum(solution_a[k][i]*X_train[s][i] for i in range(p)) + solution_b[k] - 1 for k in A_L[t]])
             if 0 > lhs_feas >= -feasibility_tol:
                 violations_feasibilitytol += 1
-
 
     vio_feasibilitytol_indicator = False
     log_path = result_sub3dir + '/Logfile/'+f'log_{postfix}.txt'

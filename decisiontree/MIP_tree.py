@@ -1,62 +1,139 @@
-'''
-Author: zhengke 1604367740@qq.com
-Date: 2024-11-22 06:31:51
-LastEditors: zhengke 1604367740@qq.com
-LastEditTime: 2024-12-05 10:02:56
-FilePath: /AHC_max_accuracy/decisiontree/full_mip_tree.py
-Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
-'''
-import gurobipy as gp
-from gurobipy import GRB
-import numpy as np
-import random
-import pandas as pd
-import csv
-import os
 from decisiontree import utils
 from decisiontree import PIP_iterations_tree
 from decisiontree import full_mip_tree
 from decisiontree import callback_data_tree
 from decisiontree import PIP_unconstrained_iterations_tree
+import numpy as np
+import random
+import csv
+import os
 import time
-# from decisiontree import full_MIP_tree_callback
-# from decisiontree import call_back_data
-
-
 
 
 def mip_tree(model, data, start, settings, stop_rule, file_path):
     """
-    :param lbd:
-    :param model:
-    :param obj_cons_num: 
-    :param X_train: 
-    :param y_train: 
-    :param w_start: 
-    :param b_start: 
-    :param z_plus_start: 
-    :param z_minus_start: 
-    :param epsilon: 
-    :param gamma_0: 
-    :param M: 
-    :param rho: 
-    :param beta_p: 
-    :param dirname: 
-    :return: 
+    Run a tree-based MIP/PIP procedure under a specified solution method and record the resulting train/test performance.
+
+    This function serves as the main driver for solving a decision-tree-based optimization model under one of several supported methods, including the
+    full MIP formulation, various fixed or shrinkage PIP schemes, simplified piecewise methods, and the unconstrained variant.
+
+    Depending on the selected method in `settings['method']`, the function:
+    - prepares the corresponding result directory,
+    - configures callback time limits,
+    - optionally performs multiple outer shrinkage iterations,
+    - optionally generates candidate pieces or random pieces,
+    - calls the appropriate solver routine,
+    - evaluates the obtained solution on both training and test sets,
+    - writes detailed experiment results to CSV files.
+
+    Supported methods:
+        1. `full_mip`
+            Solve the full mixed-integer programming formulation.
+        2. `base_fixed`
+            Run the epsilon-fixed PIP method.
+        3. `base_shrinkage`
+            Run the epsilon-shrinkage PIP method, where epsilon is reduced geometrically across outer iterations.
+        4. `simplified_arbitrary4_fixed`
+            Run the simplified epsilon-fixed method with 4 arbitrarily selected generated candidate pieces.
+        5. `simplified_arbitrary1_fixed`
+            Run the simplified epsilon-fixed method with 1 arbitrarily selected piece.
+        6. `simplified_arbitrary4_shrinkage`
+            Run the simplified epsilon-shrinkage method with 4 arbitrarily selected generated candidate pieces at each outer iteration.
+        7. `simplified_arbitrary1_shrinkage`
+            Run the simplified epsilon-shrinkage method with 1 arbitrarily selected piece at each outer iteration.
+        8. `unconstrained`
+            Run the unconstrained (without precision constraint) PIP formulation.
+
+    Args:
+        model:
+            A base optimization model. The function creates an internal copy via `model.copy()` before solving.
+
+        data:
+            A dictionary containing the dataset and related information. It is expected to contain at least:
+            - `X_train`: training feature matrix,
+            - `y_train`: training labels,
+            - `X_test`: test feature matrix,
+            - `y_test`: test labels,
+            - `class_restricted`: restricted class set used in the precision constraints.
+
+        start:
+            A dictionary specifying the warm-start or initial solution information. Depending on the method, it may contain:
+            - `objective_value`, `a`, `b`, `c`.
+
+        settings:
+            A dictionary of method-specific settings. It is expected to contain entries such as:
+            - `method`: integer code specifying the solution method,
+            - `epsilon`: current epsilon value,
+            - `epsilon_nu`: initial epsilon value for shrinkage schemes,
+            - `beta_p`: class-specific precision threshold,
+            - `D`: tree depth,
+            - `tune`: whether the run is for tuning,
+            - `tau_0`: tuning/regularization parameter,
+            - `regularizer`,
+            - `selected_piece` (set internally for some methods).
+
+        stop_rule:
+            A dictionary containing stopping-rule parameters, including:
+            - `base_rate`,
+            - `max_outer_iter`.
+
+        file_path:
+            A dictionary of paths and run metadata. It is expected to include
+            items such as:
+            - `result_sub2dir`,
+            - `result_csv`,
+            - `details_csv`,
+            - `dataset`,
+            - `run`.
+
+            The function also updates this dictionary internally with entries
+            such as:
+            - `result_sub3dir`,
+            - `shrinkage_iter`,
+            - `piece_index`.
+
+    Returns:
+        If `settings['tune']` is `False`, the function does not explicitly return a value.
+
+        If `settings['tune']` is `True`, the function returns:
+            tuple:
+                - `train_result['frac']`: training performance summary,
+                - `test_result['frac']`: test performance summary.
+
+    Side Effects:
+        - Creates result subdirectories if they do not already exist.
+        - Modifies parts of `settings`, `start`, and `file_path` in place.
+        - Updates callback time limits through `callback_data_tree.timelimit`.
+        - Writes experiment summaries to CSV files.
+        - Calls method-specific solver routines such as
+          `full_mip_tree.full_mip_tree`,
+          `PIP_iterations_tree.pip_iterations`, and
+          `PIP_unconstrained_iterations_tree.pip_unconstrained_iterations`.
+
+    Notes:
+        - For shrinkage-based methods, epsilon is repeatedly updated by multiplying it by `0.1` after each outer iteration.
+        - For piecewise simplified methods, candidate pieces are generated from the current iterate and the best objective value is retained.
+        - The final solution is always evaluated on both the training and test sets using `utils.train_test_results(...)`.
+        - In the unconstrained case, both `epsilon` and `beta_p` are set to `None`.
     """
     X_train, y_train, X_test, y_test, class_restricted = data['X_train'], data['y_train'], data['X_test'], data['y_test'], data['class_restricted']
-    a_start, b_start, c_start = start['a'], start['b'], start['c']
     method, epsilon, beta_p, D, enhanced_size = settings['method'], settings['epsilon'], settings['beta_p'], settings['D'], settings['enhanced_size']
     base_rate = stop_rule['base_rate']
     result_sub2dir, result_csv, run = file_path['result_sub2dir'], file_path['result_csv'], file_path['run']
-    file_path['shrinkage_iter'] = None
-    file_path['piece_index'] = None
-    multi_piece_list = None
+    file_path['shrinkage_iter'], file_path['piece_index'], multi_piece_list = None, None, None
     random.seed(42)
     J = list(set(y_train))
-    
     model = model.copy()
     method_list = ['full_mip', 'base_fixed', 'base_shrinkage', 'simplified_arbitrary4_fixed', 'simplified_arbitrary1_fixed', 'simplified_arbitrary4_shrinkage', 'simplified_arbitrary1_shrinkage', 'unconstrained']
+    # There are totally 8 methods: 
+    # 1: 'full_mip'                             Full MIP
+    # 2: 'base_fixed'                           \varepsilon-fixed
+    # 3: 'base_shrinkage'                       \varepsilon-shrinkage
+    # 4: 'simplified_arbitrary4_fixed'          \varepsilon-fixed-arbitrary4
+    # 5: 'simplified_arbitrary1_fixed'          \varepsilon-fixed-arbitrary1
+    # 6: 'simplified_arbitrary4_shrinkage'      \varepsilon-shrinkage-arbitrary4
+    # 7: 'simplified_arbitrary1_shrinkage'      \varepsilon-shrinkage-arbitrary1
+    # 8: 'unconstrained'                        Unconstrained PIP
 
     if method == 1:  # 'full_mip'
         result_sub3dir = result_sub2dir + '/full_mip'
@@ -134,9 +211,6 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
             if settings['regularizer'] == 'hard_l0':
                 tau_0 = settings['tau_0']
                 result_sub3dir = result_sub2dir + f'/tune/tau0_{tau_0}'
-            if settings['regularizer'] == 'soft_l0':
-                varrho_index = settings['varrho_index']
-                result_sub3dir = result_sub2dir + f'/tune/varrho_{varrho_index}'
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         start['objective_value'] = -np.inf
@@ -164,7 +238,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
             record_time_piece = []
             actual_time_piece = []
             time_start_generate_M = time.time()
-            M_set_index, multi_piece = utils.generate_M(X_train, iter_start['a'], iter_start['b'], D, epsilon, base_rate)
+            M_set_index, multi_piece = utils.generate_M(X_train, iter_start['a'], iter_start['b'], D, epsilon, base_rate, enhanced_size)
             multi_piece_list[f'iter_{iteration}'] = multi_piece
             candidate_M_set_index = utils.generate_combinations(M_set_index)
             time_end_generate_M = time.time()
@@ -241,7 +315,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         with open(result_csv, mode='a', newline='') as all_result:
             writer = csv.writer(all_result)
             # The last 4 columns is applicable for the case that there is only one element in class_restricted
-            writer.writerow([file_path['dataset'], D, run, method_list[method-1], settings['tau_0'], settings['varrho'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], objective_function_term['optimality_gap'], 
+            writer.writerow([file_path['dataset'], D, run, method_list[method-1], settings['tau_0'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], objective_function_term['optimality_gap'], 
                             record_time, actual_time, multi_piece_list, next(iter(objective_function_term['gamma'].values())) if objective_function_term['gamma'] is not None else None, 
                             objective_function_term['z_frac'], objective_function_term['z_counts'], train_result['frac'],train_constraint_gap, train_result['counts'], 
                             test_result['frac'], test_constraint_gap, test_result['counts'],
@@ -253,7 +327,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
     else:
         with open(result_csv, mode='a', newline='') as all_result:
             writer = csv.writer(all_result)
-            writer.writerow([file_path['dataset'], D, run, 'tune', settings['tau_0'], settings['varrho'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], objective_function_term['optimality_gap'], 
+            writer.writerow([file_path['dataset'], D, run, 'tune', settings['tau_0'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], objective_function_term['optimality_gap'], 
                             record_time, actual_time, multi_piece_list, next(iter(objective_function_term['gamma'].values())) if objective_function_term['gamma'] is not None else None, 
                             objective_function_term['z_frac'], objective_function_term['z_counts'], train_result['frac'],train_constraint_gap, train_result['counts'], 
                             test_result['frac'], test_constraint_gap, test_result['counts'],
@@ -263,7 +337,3 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
                             counts_result['z_integrality_vio'],
                             train_result['frac']['acc'], test_result['frac']['acc'], train_result['frac'][f'prec{class_restricted[0]}'], test_result['frac'][f'prec{class_restricted[0]}']])
         return train_result['frac'], test_result['frac']
-
-
-                    
-    
