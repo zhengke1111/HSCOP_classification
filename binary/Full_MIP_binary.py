@@ -9,6 +9,21 @@ import os
 
 
 def full_mip_binary(model, data, start, settings, stop_rule, file_path):
+    """
+    A Full MILP to solve the binary classification problem with precision constraint
+
+    Args:
+        model (dict): Gurobi parameter settings, including {Name, 'MIPFocus', 'IntegralityFocus', 'Threads', 'FeasibilityTol'}
+        data (dict): Data splits, {X_train, y_train, X_test, y_test} split by some random seeds we set
+        start (dict): Initial solution from the last iteration
+        settings (dict): Settings of PIP
+        stop_rule: Timelimit
+        file_path (dict): File path to store the output
+
+    Returns:
+        Tuple(dict, dict, dict): objective_function_term, solution, counts_result 
+    """
+    # Below are similar to the function pip_binary in PIP_binary.py
     model = model.copy()
     X_train, y_train = data['X_train'], data['y_train']
     w_start, b_start = start['w'], start['b']
@@ -87,12 +102,12 @@ def full_mip_binary(model, data, start, settings, stop_rule, file_path):
     callback_data_binary.time_for_finding_feasible_solution = 0
     callback_data_binary.log_data=[]
     
-    if callback_type == 0:
+    if callback_type == 0:                                                  # Default callback mechanism, for Full MIP (Final)
         model.optimize(MIP_binary_callback.full_mip_callback)
-    elif callback_type == 1:
-        model.optimize(MIP_binary_callback.full_mip_callback1)
-    else:
-        model.optimize(MIP_binary_callback.full_mip_callback2)
+    elif callback_type == 1:                                                # Callback mechanism for Early MIP (T300)
+        model.optimize(MIP_binary_callback.full_mip_callback_t300)
+    else:                                                                   # Callback mechanism for Early MIP (T600)
+        model.optimize(MIP_binary_callback.full_mip_callback_t600)
     log_data_list = callback_data_binary.log_data
     log_df = pd.DataFrame(log_data_list)
     last_row = log_df.iloc[-1]
@@ -100,10 +115,10 @@ def full_mip_binary(model, data, start, settings, stop_rule, file_path):
     if len(log_df)>0:
         last_row = log_df.iloc[-1]
         if model.objVal<=0:
-            final_improvement_time = model.Runtime
+            final_improvement_time = model.Runtime                          # If infeasible after termination, record the final improvement time as the actual run time
             final_improvement_gap = model.MIPGap
         else:
-            final_improvement_time = last_row['final_improvement_time']
+            final_improvement_time = last_row['final_improvement_time']     # If feasible after termination, record the final improvement time as the last row of final improvement time
             final_improvement_gap = last_row['final_improvement_gap']
         runtime = model.Runtime
     else:
@@ -120,6 +135,7 @@ def full_mip_binary(model, data, start, settings, stop_rule, file_path):
     solution_w = [w[p].X for p in range(dim)]
     solution_b = b.X
 
+    # The following "violations_assumption_1, violations_assumption_2, violations_feasibility_tol", See PIP_binary.py
     violations_assumption_1 = 0
     violations_assumption_2 = 0
     violations_feasibilitytol = {'phi^+_0':0,'phi^+':0,'phi^-':0}
@@ -177,7 +193,8 @@ def full_mip_binary(model, data, start, settings, stop_rule, file_path):
     violations_feasibilitytol = violations_feasibilitytol['phi^+_0'] + violations_feasibilitytol['phi^+'] + violations_feasibilitytol['phi^-']
     counts_result = {
         'num_integer_vars': num_integer_vars,
-        'violations_assumption_1': violations_assumption_1, 'violations_assumption_2': violations_assumption_2, 
+        'violations_assumption_1': violations_assumption_1, 
+        'violations_assumption_2': violations_assumption_2, 
         'violations_feasibilitytol': violations_feasibilitytol,
         'number_of_integers': num_integer_vars,
         'z_integrality_vio': z_integrality_vio

@@ -26,7 +26,8 @@ model.setParam('FeasibilityTol', feasibility_tol)
 
 # =========== Settings to Solve Binary Classification Problem with or without Precision Constraint ==========
 def binary(dataset='blsc', data_splits = None, beta_p_threshold=None):
-    """Settings and output for binary classification problem with or without precision constraint
+    """
+    Settings and output for binary classification problem with or without precision constraint
 
     Args:
         dataset (str, optional): Abbreviation of dataset name. Defaults to 'blsc'.

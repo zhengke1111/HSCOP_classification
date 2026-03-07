@@ -6,7 +6,8 @@ import pandas as pd
 
 
 def heaviside_closed(lb, x):
-    """Calculate the value of Heaviside function \mathbf{1}_{[lb,\infty)}(x)
+    """
+    Calculate the value of Heaviside function \mathbf{1}_{[lb,\infty)}(x)
 
     Args:
         lb (float): the left endpoint of the interval of the Heaviside function
@@ -22,7 +23,8 @@ def heaviside_closed(lb, x):
 
 
 def heaviside_open(lb, x):
-    """Calculate the value of Heaviside function \mathbf{1}_{(lb,\infty)}(x)
+    """
+    Calculate the value of Heaviside function \mathbf{1}_{(lb,\infty)}(x)
 
     Args:
         lb (float): the left endpoint of the interval of the Heaviside function
@@ -38,15 +40,28 @@ def heaviside_open(lb, x):
 
 
 def calculate_gamma(X_train, y_train, weights, bias, beta_p, epsilon):
+    """
+    Compute the violation amount \gamma and the initial solutions of binary variables z^+_0, z^+, z^- 
+    Used in precision constrained problem
+
+    Args:
+        X_train (ndarray): training set: X
+        y_train (ndarray): training set: y
+        weights (ndarray): parameter w in classification score w^\top X+b
+        bias (float): parameter b in classification score w^\top X+b
+        beta_p (float): precision lower bound
+        epsilon (float): epsilon
+
+    Returns:
+        tuple[int, dict, dict, dict]: gamma,  z_plus_0_start, z_plus_start, z_minus_start
+                                      \gamma, z^+_0,          z^+,          z^-
+    """
     positive_index = np.where(y_train == 1)[0].tolist()
     negative_index = np.where(y_train == -1)[0].tolist()
     sum_tp = sum(heaviside_closed(0, np.dot(weights, X_train[s]) + bias) for s in positive_index)  
     sum_dm = sum(heaviside_closed(0, np.dot(weights, X_train[s]) + bias) for s in positive_index) + sum(heaviside_open(-epsilon, np.dot(weights, X_train[s]) + bias) for s in negative_index)
     gamma = max(0, - (sum_tp - beta_p * sum_dm))
-    
-    z_plus_0_start = {}
-    z_plus_start = {}
-    z_minus_start = {}
+    z_plus_0_start, z_plus_start, z_minus_start = {}, {}, {}
 
     for s in positive_index:
         z_plus_0_start[s] = heaviside_closed(0, np.dot(weights, X_train[s]) + bias - 1)
@@ -58,6 +73,19 @@ def calculate_gamma(X_train, y_train, weights, bias, beta_p, epsilon):
 
 
 def calculate_z(X_train, y_train, weights, bias):
+    """
+    Compute the initial solution of binary variable z^+_0
+    Used in unconstrained problem, in which there are only z^+_0, no z^+, z^- and precision constraint violation \gamma
+
+    Args:
+        X_train (ndarray): training set: X
+        y_train (ndarray): training set: y
+        weights (ndarray): parameter w in classification score w^\top X+b
+        bias (float): parameter b in classification score w^\top X+b
+
+    Returns:
+        dict: z_plus_0_start (intial solution of z^+_0)
+    """
     positive_index = np.where(y_train == 1)[0].tolist()
     negative_index = np.where(y_train == -1)[0].tolist()
     
@@ -73,6 +101,31 @@ def calculate_z(X_train, y_train, weights, bias):
 
 
 def calculate_delta(X_train, y_train, weight, bias, epsilon, base_rate):
+    """
+    The index sets {\cal J}_{0;<}, {\cal J}_{0;>}, {\cal J}_{0;0} and {\cal J}_{1;<}, {\cal J}_{1;>}, {\cal J}_{1;0} are determined by the value
+    of \phi(w,b):
+
+        {\cal J}_{0;<} = \{ s | \phi_{0s}(w, b) < -\delta_2{0} \}
+        {\cal J}_{0;>} = \{ s | \phi_{0s}(w, b) > \delta_1{0} \}
+        {\cal J}_{0;0} = \{ s | -\delta_2{0} \le \phi_{0s}(w, b) \le \delta_1{0} \}
+
+        {\cal J}_{1;<} = \{ s | \phi_{1s}(w, b) < -\delta_2{1} \}
+        {\cal J}_{1;>} = \{ s | \phi_{1s}(w, b) > \delta_1{1} \}
+        {\cal J}_{1;0} = \{ s | -\delta_2{1} \le \phi_{1s}(w, b) \le \delta_1{1} \}
+
+    The function calculate_delta is to calculate those \delta_1 and \delta_2 by the quantiles of \phi.
+
+    Args:
+        X_train (ndarray): training set: X
+        y_train (ndarray): training set: y
+        weights (ndarray): parameter w(weight) in classification score = X @ weight + bias,
+        bias (float): parameter b(bias) in classification score = X @ weight + bias,
+        epsilon (float): epsilon
+        base_rate (float): integer rate for In-between set {\cal J}_{0;0} and {\cal J}_{1;0}
+
+    Returns:
+        tuple[dict[int, int], dict[int, int]]: tuple[delta_1{0: \delta_1{0}, 1: \delta_1{1}}, delta_2{0: \delta_2{0}, 1: \delta_2{1}}]
+    """
     value_ge = {0:[], 1:[]}
     value_le = {0:[], 1:[]}
     delta_1 = {0:1, 1:1}
@@ -136,6 +189,23 @@ def calculate_delta(X_train, y_train, weight, bias, epsilon, base_rate):
 
 
 def calculate_delta_unconstrained(X_train, y_train, weight, bias, base_rate):
+    """
+    Similar to the function "calculate_delta", this function "calculate_delta_unconstrained" is used for 
+    unconstrained problem, only \delta_1{0} and \delta_2{0} need to be calculated, for 
+        {\cal J}_{0;<} = \{ s | \phi_{0s}(w, b) < -\delta_2{0} \}
+        {\cal J}_{0;>} = \{ s | \phi_{0s}(w, b) > \delta_1{0} \}
+        {\cal J}_{0;0} = \{ s | -\delta_2{0} \le \phi_{0s}(w, b) \le \delta_1{0} \}
+
+    Args:
+        X_train (ndarray): training set: X
+        y_train (ndarray): training set: y
+        weights (ndarray): parameter w in classification score w^\top X+b
+        bias (float): parameter b in classification score w^\top X+b
+        base_rate (float): integer rate for In-between set {\cal J}_{0;0} and {\cal J}_{1;0}
+
+    Returns:
+        tuple[dict[int, int], dict[int, int]]: tuple[delta_1{0: \delta_1{0}}, delta_2{0: \delta_2{0}}]
+    """
     value_ge = {0:[]}
     value_le = {0:[]}
     delta_1 = {0:1}
@@ -177,7 +247,55 @@ def calculate_delta_unconstrained(X_train, y_train, weight, bias, base_rate):
         delta_2[0] = -np.min(value_le[0])
     return delta_1, delta_2
 
-def evaluate_binary(X, y, weight, bias):  # X, y, w obtained by PIP, b obtained by PIP
+
+def evaluate_binary(X, y, weight, bias):  # X, y, w, b obtained by PIP
+    """
+    Evaluate the performance of a binary linear classifier.
+
+    This function computes predictions for a binary classification problem
+    using a linear decision rule of the form
+
+        score = X @ weight + bias,
+
+    where samples with nonnegative score are classified as `1` and samples
+    with negative score are classified as `-1`.
+
+    In addition to standard classification metrics, the function also evaluates
+    how many samples satisfy the margin condition
+
+        y * (X @ weight + bias) - 1 >= 0,
+
+    which indicates that the sample is correctly classified and lies outside
+    or on the unit margin.
+
+    Args:
+        X: A 2D NumPy array of shape `(n_samples, n_features)` containing the
+            feature vectors.
+
+        y: A 1D NumPy array of shape `(n_samples,)` containing the true class
+            labels, assumed to take values in `{-1, 1}`.
+
+        weight: A 1D NumPy array of shape `(n_features,)` representing the
+            coefficient vector of the linear classifier.
+
+        bias: A scalar representing the intercept term of the linear classifier.
+
+    Returns:
+        dict: A dictionary containing the following evaluation metrics:
+            - `recall`: recall for the positive class,
+            - `precision`: precision for the positive class,
+            - `accuracy`: overall classification accuracy,
+            - `acc_margin`: proportion of samples satisfying the margin
+              condition `y * (X @ weight + bias) >= 1`.
+
+    Notes:
+        - Predicted labels are in `{-1, 1}`.
+        - The function internally converts the true labels from `{-1, 1}` to
+          `{0, 1}` when computing confusion-matrix-based statistics.
+        - `acc_margin` is stricter than ordinary accuracy, since it requires
+          not only correct classification but also satisfaction of the unit
+          margin condition.
+    """
     # Calculate predictions
     scores = np.dot(X, weight) + bias
     predictions = np.zeros_like(y)  # Initialize predictions array
@@ -203,28 +321,28 @@ def evaluate_binary(X, y, weight, bias):  # X, y, w obtained by PIP, b obtained 
     recall = TP / (TP + FN) if (TP + FN) > 0 else 0.0
     accuracy = (TP + TN) / len(y)
     accuracy_out_of_margin = nm_margin / len(y)
-
-
     real_result = {'recall': recall, 'precision': precision, 'accuracy': accuracy, 'acc_margin': accuracy_out_of_margin}
 
     return real_result
 
 
 def train_lr_model(X_train, y_train, n_iters=100):
+    """
+    General the initial solution of MIP / PIP
+
+    Args:
+        X_train (ndarray): training set: X
+        y_train (ndarray): training set: y
+        n_iters (int, optional): iterations of LogisticRegression. Defaults to 100.
+
+    Returns:
+        dict[str, Any]: initial w and b
+    """
     # Create and train linear classifier
     clf = LogisticRegression(max_iter=n_iters, C=1)
-    clf.fit(X_train, y_train)
-    # Predictions
-    y_pred_train = clf.predict(X_train)
-    w = clf.coef_[0]
-    b = clf.intercept_[0]
-    decision_values = X_train @ w + b
-    y_train_01 = 2*y_train-1
-    outside_margin = (y_train_01 * decision_values) > 1
-    outside_margin_ratio = np.mean(outside_margin)
+    clf.fit(X_train, y_train) 
     # Calculate metrics and store split results
     result = {'w': clf.coef_[0], 'b': clf.intercept_[0]}
-
     return result
 
 
@@ -311,14 +429,9 @@ def sample_data(dataset=None, random_seed=None, positive_size=None, negative_siz
 
 
 def split_data(X, y, random_state = 42):
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.25, stratify=y, random_state=random_state
-    )
-
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, stratify = y, random_state = random_state)
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
-    
     data_splits = {'X_train': X_train, 'y_train': y_train, 'X_test': X_test, 'y_test': y_test}
-
     return data_splits

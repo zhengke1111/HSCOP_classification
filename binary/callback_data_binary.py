@@ -4,5 +4,5 @@ timelimit=30
 full_mip_timelimit = 3600
 time_for_finding_feasible_solution = 0
 full_mip_for_feasible = False
-full_mip_timelimit1 = 300
-full_mip_timelimit2 = 600
+full_mip_timelimit_t300 = 300
+full_mip_timelimit_t600 = 600

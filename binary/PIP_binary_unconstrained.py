@@ -147,6 +147,7 @@ def pip_binary_unconstrained(model, data, start, settings, file_path):
 
     os.makedirs(result_sub3dir + '/Solution', exist_ok=True)
     with open(result_sub3dir + '/Solution/' + f'solution_{postfix}.txt', 'a') as f:
+        # The following "violations_assumption_1, violations_assumption_2, violations_feasibility_tol", See PIP_binary.py
         violations_assumption_1 = 0
         violations_assumption_2 = 0
         violations_feasibilitytol = {'phi^+_0':0}

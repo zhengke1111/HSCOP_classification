@@ -1,12 +1,11 @@
-import numpy as np
-import pandas as pd
-import time
-
 from decisiontree import utils
 from sklearn.model_selection import train_test_split, ParameterGrid
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, classification_report, precision_score
+import numpy as np
+import pandas as pd
+import time
 
 
 def split_data(X, y, random_state=42):
