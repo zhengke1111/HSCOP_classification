@@ -57,3 +57,10 @@ The content of this repository is as follows:
     - `MIP_tree.py`: set input and output paths and formats for various methods. 
     - `MIP_tree_callback.py`: `callback` mechanism for solving MIP problems built in `PIP_single_iter_tree.py`. The parameter used in `MIP_tree_callback.py` are stored in `callback_data_tree.py`.
     - `utils.py`: utility file to store some commonly used functions in this project. 
+
+    ## Notes
+    - In the results files on datasets `blsc` and `ctmc` of `BinOCT` and `StrongTree` in `decisiontree_pareto`, the class that has a precision constraint is class `0`, but in the results files of `PIP`, the class that has a precision constraint is class `1`, they are actually **the same** class, which is class `0` in the dataset, but in `decisiontree_run.py`, we shifted the class by 1 with 
+        ```Python
+        y = y.values + 1
+        ``` 
+        to align with $j\in [J]\triangleq \{1,2,\dots,J\}$.
