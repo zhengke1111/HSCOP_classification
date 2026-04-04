@@ -75,6 +75,7 @@ with open(output_filename, mode='a', newline='') as all_result:
 
 
 # === Precision constraint configuration ===
+# For C-BinOCT, set USE_PRECISION = True, for U-BinOCT, set USE_PRECISION = False    
 USE_PRECISION      = True   # True = enforce precision constraint, False = ignore
 MIN_PRED_POS       = 1      # minimum number of predicted positives
 POS_LABEL          = 0      # label value of the positive class in your dataset
@@ -100,6 +101,7 @@ for depth in range(2,5):
                 threshold_dict = {2: [0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66, 0.68, 0.70, 0.72], 
                             3: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82], 
                             4: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82]}
+                
             for precision in threshold_dict[depth]:
                 input_filename = train_file
                 lcb.use_precision_constraint  = 1 if USE_PRECISION else 0
