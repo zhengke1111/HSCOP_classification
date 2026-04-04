@@ -63,24 +63,24 @@ def ensure_train_test_files(
     return train_file, test_file
 
 
-#path1 = 'D:\Sicco\Dropbox\Dropbox\INFORMS-J-Optimization\dataset-cg-paper'
 path1 = 'decisiontree/decisiontree_pareto/binoct-master/dataset/'
+path2 = 'decisiontree/decisiontree_pareto/binoct-master/results/'
 current_datetime = datetime.now()    
-output_filename = path1 + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
+output_filename = path2 + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
 with open(output_filename, mode='a', newline='') as all_result:
     writer = csv.writer(all_result)
-    writer.writerow(['method', 'dataset', 'run', 'depth', 'restricted_class', 'beta_p', 'objective_value', 'optimality_gap', 'time', 'gamma', 
+    writer.writerow(['dataset', 'depth', 'split', 'method', 'restricted_class', 'beta_p', 'objective_value', 'optimality_gap', 'time', 'gamma', 
                     'train_acc','test_acc','train_prec','test_prec'])
 #for filename in os.listdir(path2):
 
+
 # === Precision constraint configuration ===
 USE_PRECISION      = True   # True = enforce precision constraint, False = ignore
-# precision      = 0.75    # required training precision for positive class
 MIN_PRED_POS       = 1      # minimum number of predicted positives
 POS_LABEL          = 0      # label value of the positive class in your dataset
 
-# path1 = sys.argv[1]
-dataset_list = ['ctmc']
+
+dataset_list = ['blsc', 'ctmc']
 for depth in range(2,5):
     for dataset in dataset_list:
         for run in range(1,5):
@@ -92,10 +92,14 @@ for depth in range(2,5):
                 test_size=0.25,
                 label_col='target' 
             )
-            # for precision in [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97]:
-            threshold_dict = {2: [0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66, 0.68, 0.70, 0.72], 
-                          3: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82], 
-                          4: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82]}
+            if dataset == 'blsc':
+                threshold_dict = {2: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
+                                   3: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
+                                   4: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97]}
+            if dataset == 'ctmc':
+                threshold_dict = {2: [0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66, 0.68, 0.70, 0.72], 
+                            3: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82], 
+                            4: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82]}
             for precision in threshold_dict[depth]:
                 input_filename = train_file
                 lcb.use_precision_constraint  = 1 if USE_PRECISION else 0
@@ -104,9 +108,6 @@ for depth in range(2,5):
                 lcb.positive_label            = POS_LABEL
 
                 lcb.main(["-f", input_filename, "-y", output_filename, "-z", dataset, "-d", depth, "-u", run, "-t", 3600, "-p", 600])
-
-
-
 
 
 

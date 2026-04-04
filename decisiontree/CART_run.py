@@ -101,7 +101,7 @@ def class_precision(y_true, y_pred, cls):
 
 
 def cart_run():
-    dataset_list = ['ctmc']
+    dataset_list = ['wine', 'nwth', 'htds', 'dmtl', 'blsc', 'ctmc', 'ceva', 'fish']
     restricted_class = 1
 
     results = []
@@ -149,11 +149,11 @@ def cart_run():
 
                 # record one row
                 row = {
-                    "method": "CART",
                     "dataset": dataset,
-                    "run": run,
                     "depth": max_depth,
-                    "restricted_class": restricted_class,
+                    "split": run,
+                    "method": "CART",
+                    "restricted_class": None,
 
                     "criterion": best_params.get("criterion"),
                     "min_samples_split": best_params.get("min_samples_split"),
@@ -187,8 +187,7 @@ def cart_run():
 
     df = pd.DataFrame(results)
 
-    # You can customize filename
-    out_path = "decisiontree/results/cart_results.csv"
+    out_path = "decisiontree/results/CART_results.csv"
     df.to_csv(out_path, index=False)
 
     print(f"\nSaved results to: {out_path}")

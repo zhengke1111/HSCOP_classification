@@ -6,6 +6,7 @@ import gurobipy as gp
 import csv
 import os
 import numpy as np
+import pandas as pd
 import copy
 import math
 import random
@@ -23,7 +24,7 @@ model.Params.LazyConstraints = 1
 
 
 # =========== Settings to Solve Decision Tree Problem with Precision Constraint ==========
-def decisiontree_constraint(dataset='blsc', data_splits = None, beta_p=None, D=2):
+def decisiontree_constraint(dataset='blsc', data_splits = None, beta_p=None, D=2, pareto = False):
     """
     Settings and output for decision tree classification problem with precision constraint
 
@@ -83,23 +84,24 @@ def decisiontree_constraint(dataset='blsc', data_splits = None, beta_p=None, D=2
         N = X_train.shape[0]
         p = X_train.shape[1]
 
-        if p>5:                                                     # When the dimension of features p>5
-            regularizer = 'hard_l0'                                 # Set \tau_0 as the max number of features
-            tau_lb = max(2,math.ceil(p/2)-3)                        # Upper bound: \lceil p/2 \rceil +3
-            tau_ub = min(p,math.ceil(p/2)+3)                        # Lower bound: \lceil p/2 \rceil -3
-            timestamp = time.time()
-            random.seed(timestamp)                                  # Random seeds depend on the realtime timestamp
-            best_tau_0 =  random.choice(range(tau_lb, tau_ub + 1))  # Randomly select \tau_0 \in [\lceil p/2 \rceil -3, \lceil p/2 \rceil +3]
-            random.seed()
+        if p>5:                                                         # When the dimension of features p>5
+            regularizer = 'hard_l0'                                     # Set \tau_0 as the max number of features
+            if pareto == False:                                                 
+                tau_lb = max(2,math.ceil(p/2)-3)                        # Upper bound: \lceil p/2 \rceil +3
+                tau_ub = min(p,math.ceil(p/2)+3)                        # Lower bound: \lceil p/2 \rceil -3
+                timestamp = time.time()
+                random.seed(timestamp)                                  # Random seeds depend on the realtime timestamp
+                best_tau_0 =  random.choice(range(tau_lb, tau_ub + 1))  # Randomly select \tau_0 \in [\lceil p/2 \rceil -3, \lceil p/2 \rceil +3]
+                random.seed()
 
             # ========== When we run pareto comparison, we keep the number of features of constrained PIP (C-PIP) the same as unconstrained PIP (U-PIP) ==========
-            # regularizer = 'hard_l0'
-            # df=pd.read_csv(f"decisiontree/results/{dataset}_unconstrained.csv")
-            # df["dataset"] = df["dataset"].astype(str)
-            # df["depth"]   = df["depth"].astype(int)
-            # df["run"]     = df["run"].astype(int)
-            # tau_map = df.set_index(["dataset", "depth", "run"])["tau_0"].to_dict()
-            # best_tau_0 = tau_map[(dataset, D, run)]
+            if pareto == True:
+                df=pd.read_csv(f"decisiontree/results/{dataset}_U-PIP.csv")
+                df["dataset"] = df["dataset"].astype(str)
+                df["depth"]   = df["depth"].astype(int)
+                df["run"]     = df["run"].astype(int)
+                tau_map = df.set_index(["dataset", "depth", "split"])["tau_0"].to_dict()
+                best_tau_0 = tau_map[(dataset, D, run)]
             
         else:                                                       # When the dimension of features p\le 5
             regularizer = 'none'
@@ -139,7 +141,7 @@ with open(result_csv, mode='a', newline='') as all_result:
                     'train_acc','test_acc','train_prec','test_prec'])
 
 
-def decisiontree_run():
+def decisiontree_run(pareto = False):
     """
     Run constrained decision tree experiments over multiple datasets and tree depths.
 
@@ -194,34 +196,37 @@ def decisiontree_run():
                 initial_train_results = utils.evaluate_tree(X_train, y_train, initial_solution['a'], initial_solution['b'], initial_solution['c'], D)
                 initial_train[run] = initial_train_results['frac']
             
-            prec_values = [initial_train[run][f'prec{key_beta}'] for run in initial_train]
+            if pareto == False:
+                prec_values = [initial_train[run][f'prec{key_beta}'] for run in initial_train]
+                if -1 in prec_values:
+                    threshold = (np.ceil(np.mean(y == 1)*100)/100).item()
+                elif all(p == 1 for p in prec_values):
+                    threshold = 1
+                elif 1 in prec_values:
+                    threshold = (np.ceil(max(p for p in prec_values if p != 1)*100)/100).item()
+                else:
+                    threshold = (np.ceil(max(prec_values)*100)/100).item()
 
-            if -1 in prec_values:
-                threshold = (np.ceil(np.mean(y == 1)*100)/100).item()
-            elif all(p == 1 for p in prec_values):
-                threshold = 1
-            elif 1 in prec_values:
-                threshold = (np.ceil(max(p for p in prec_values if p != 1)*100)/100).item()
-            else:
-                threshold = (np.ceil(max(prec_values)*100)/100).item()
-
-            beta_p = {key_beta: threshold}
-            decisiontree_constraint(dataset=dataset, data_splits=data_splits, beta_p=beta_p, D=D)
-                
-            # ========== Grid thresholds for pareto comparison ==========
-            # # For blsc dataset
-            # threshold_dict = {2: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
-            #                   3: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
-            #                   4: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97]}
-
-            # # For ctmc dataset
-            # threshold_dict = {2: [0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66, 0.68, 0.70, 0.72], 
-            #                   3: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82], 
-            #                   4: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82]}
+                beta_p = {key_beta: threshold}
+                decisiontree_constraint(dataset=dataset, data_splits=data_splits, beta_p=beta_p, D=D)
             
-            # for threshold in threshold_dict[D]:
-            #     beta_p = {key_beta: threshold}
-            #     decisiontree_constraint(dataset=dataset, data_splits=data_splits, beta_p=beta_p, D=D)
+            # ========== Grid thresholds for pareto comparison ==========
+            if pareto == True:
+                # For blsc dataset
+                if dataset == 'blsc':
+                    threshold_dict = {2: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
+                                    3: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
+                                    4: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97]}
+
+                # For ctmc dataset
+                if dataset == 'ctmc':
+                    threshold_dict = {2: [0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66, 0.68, 0.70, 0.72], 
+                                    3: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82], 
+                                    4: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82]}
+                
+            for threshold in threshold_dict[D]:
+                beta_p = {key_beta: threshold}
+                decisiontree_constraint(dataset=dataset, data_splits=data_splits, beta_p=beta_p, D=D, pareto = pareto)
 
 
-decisiontree_run()
+decisiontree_run(pareto=False)

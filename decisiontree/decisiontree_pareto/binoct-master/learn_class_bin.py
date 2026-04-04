@@ -2776,7 +2776,7 @@ def main(argv):
     gap = solution_information['gap']
     time = solution_information['time']
     gamma = solution_values[VARS["gamma"]] if precision_min is not None else None
-    writer.writerow([method, dataset, run, inputdepth, positive_label, precision_min, obj, gap, time, gamma, results['train_acc'], results['test_acc'], results['train_precision_pos'], results['test_precision_pos']])
+    writer.writerow([dataset, inputdepth, run, method, positive_label, precision_min, obj, gap, time, gamma, results['train_acc'], results['test_acc'], results['train_precision_pos'], results['test_precision_pos']])
    
 ###################################################################################################################
    # Print to a file and run this file to get the results, we need to split the train set and the test set by ourselves
