@@ -63,7 +63,7 @@ def main(argv):
             mode = arg
 
     start_time = time.time()
-    data_path = '/decisiontree/decisiontree_pareto/StrongTree-master/DataSets/'
+    data_path = os.getcwd() + '/decisiontree/decisiontree_pareto/StrongTree-master/DataSets/'
     data = pd.read_csv(data_path + input_file)
     '''Name of the column in the dataset representing the class label.
     In the datasets we have, we assume the label is target. Please change this value at your need'''
@@ -200,24 +200,24 @@ def main(argv):
         dataset = input_file.removesuffix(".csv")
         if mode == "classification":
             results_writer.writerow(
-                [approach_name, dataset, input_sample, train_len, depth, restricted_label, precision_C, _lambda, 
-                 time_limit, primal.model.getAttr("Status"), primal.model.getAttr("ObjVal"), gamma_value, primal.model.getAttr("Runtime"), primal.model.getAttr("MIPGap") * 100, 
+                [dataset, depth, input_sample, train_len, approach_name, restricted_label, precision_C, _lambda, 
+                 time_limit, primal.model.getAttr("Status"), primal.model.getAttr("ObjVal"), gamma_value, primal.model.getAttr("Runtime"), primal.model.getAttr("MIPGap"), 
                  train_acc, calibration_acc, test_acc, train_prec, calibration_prec, test_prec,
                  primal.model.getAttr("NodeCount"), 
                  primal.model._total_callback_time_integer, primal.model._total_callback_time_integer_success,
                  primal.model._callback_counter_integer, primal.model._callback_counter_integer_success])
-        elif mode == "regression":
-            results_writer.writerow(
-                [approach_name, dataset, train_len, depth, _lambda, time_limit,
-                 primal.model.getAttr("Status"),
-                 primal.model.getAttr("ObjVal"), train_mae, train_mse, train_r_squared,
-                 primal.model.getAttr("MIPGap") * 100, primal.model.getAttr("NodeCount"), primal.model.getAttr("Runtime"),
-                 primal.model._total_callback_time_integer, primal.model._total_callback_time_integer_success,
-                 primal.model._callback_counter_integer, primal.model._callback_counter_integer_success,
-                 test_mae, calibration_mae,
-                 test_mse, calibration_mse,
-                 test_r_squared, calibration_r2,
-                 input_sample])
+        # elif mode == "regression":
+        #     results_writer.writerow(
+        #         [approach_name, dataset, train_len, depth, _lambda, time_limit,
+        #          primal.model.getAttr("Status"),
+        #          primal.model.getAttr("ObjVal"), train_mae, train_mse, train_r_squared,
+        #          primal.model.getAttr("MIPGap") * 100, primal.model.getAttr("NodeCount"), primal.model.getAttr("Runtime"),
+        #          primal.model._total_callback_time_integer, primal.model._total_callback_time_integer_success,
+        #          primal.model._callback_counter_integer, primal.model._callback_counter_integer_success,
+        #          test_mae, calibration_mae,
+        #          test_mse, calibration_mse,
+        #          test_r_squared, calibration_r2,
+        #          input_sample])
 
 
 if __name__ == "__main__":

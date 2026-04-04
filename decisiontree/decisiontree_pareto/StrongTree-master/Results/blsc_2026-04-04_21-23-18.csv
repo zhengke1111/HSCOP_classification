@@ -1,0 +1,3 @@
+dataset,depth,split,nrow,method,restricted_class,beta_p,lambda,time_limit,status,obj_value,gamma,time,gap,train_acc,eval_acc,test_acc,train_prec,eval_prec,test_prec,node_count,cb_time_int,cb_time_int_suc,cb_counter_int,cb_counter_int_suc
+"blsc",2,1,468,"FlowOCT",0,0.88,0.8,3600,2,-40.20000000000076,0.0,147.7864420413971,0.0,0.5876068376068376,0.5961538461538461,0.5987261146496815,0.9,0.9565217391304348,0.8333333333333334,1373.0,0,0,0,0
+"blsc",2,1,468,"FlowOCT",0,0.89,0.8,3600,11,-1000050.4,1.0,4.725292921066284,0.999985800715644,0.46153846153846156,0.46153846153846156,0.4585987261146497,-1,-1,-1,1.0,0,0,0,0

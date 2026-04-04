@@ -327,8 +327,8 @@ def main(argv):
         dataset = input_file.removesuffix(".csv")
         if mode == "classification":
             results_writer.writerow(
-                [approach_name, dataset, input_sample, train_len, depth, restricted_label, None, _lambda, 
-                 time_limit, master.model.getAttr("Status"), master.model.getAttr("ObjVal"), None, master.model.getAttr("Runtime"), master.model.getAttr("MIPGap") * 100, 
+                [dataset, depth, input_sample, train_len, approach_name, restricted_label, None, _lambda, 
+                 time_limit, master.model.getAttr("Status"), master.model.getAttr("ObjVal"), None, master.model.getAttr("Runtime"), master.model.getAttr("MIPGap"), 
                  train_acc, calibration_acc, test_acc, train_prec, calibration_prec, test_prec,
                  master.model.getAttr("NodeCount"), 
                  master.model._total_callback_time_integer, master.model._total_callback_time_integer_success,
@@ -340,18 +340,18 @@ def main(argv):
             #      master.model._total_callback_time_integer, master.model._total_callback_time_integer_success,
             #      master.model._callback_counter_integer, master.model._callback_counter_integer_success,
             #      test_acc, calibration_acc, input_sample])
-        elif mode == "regression":
-            results_writer.writerow(
-                [approach_name, dataset, train_len, depth, _lambda, time_limit,
-                 master.model.getAttr("Status"),
-                 master.model.getAttr("ObjVal"), train_mae, train_mse, train_r_squared,
-                 master.model.getAttr("MIPGap") * 100, master.model.getAttr("NodeCount"), master.model.getAttr("Runtime"),
-                 master.model._total_callback_time_integer, master.model._total_callback_time_integer_success,
-                 master.model._callback_counter_integer, master.model._callback_counter_integer_success,
-                 test_mae, calibration_mae,
-                 test_mse, calibration_mse,
-                 test_r_squared, calibration_r2,
-                 input_sample])
+        # elif mode == "regression":
+        #     results_writer.writerow(
+        #         [dataset, depth, train_len, _lambda, approach_name, time_limit,
+        #          master.model.getAttr("Status"),
+        #          master.model.getAttr("ObjVal"), train_mae, train_mse, train_r_squared,
+        #          master.model.getAttr("MIPGap") , master.model.getAttr("NodeCount"), master.model.getAttr("Runtime"),
+        #          master.model._total_callback_time_integer, master.model._total_callback_time_integer_success,
+        #          master.model._callback_counter_integer, master.model._callback_counter_integer_success,
+        #          test_mae, calibration_mae,
+        #          test_mse, calibration_mse,
+        #          test_r_squared, calibration_r2,
+        #          input_sample])
 
     sys.stdout = original_stdout
 
