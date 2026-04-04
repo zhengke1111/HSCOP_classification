@@ -1,0 +1,44 @@
+
+Gurobi 11.0.3 (linux64) logging started Sat Apr  4 14:40:06 2026
+
+Set parameter LogFile to value "decisiontree/results/depth2/wine_2026-04-04_14-39-12/splits_3/full_mip/Logfile/log_file.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 3921 rows, 3353 columns and 50697 nonzeros
+Model fingerprint: 0x2246edbb
+Model has 532 general constraints
+Variable types: 1706 continuous, 1647 integer (1647 binary)
+Coefficient statistics:
+  Matrix range     [2e-03, 1e+04]
+  Objective range  [8e-03, 1e+04]
+  Bounds range     [1e+00, 4e+02]
+  RHS range        [1e-04, 8e+02]
+
+User MIP start produced solution with objective -10799.1 (0.01s)
+Loaded user MIP start with objective -10799.1
+
+Presolve added 528 rows and 1064 columns
+Presolve time: 0.04s
+Presolved: 4449 rows, 4417 columns, 52837 nonzeros
+Presolved model has 1064 SOS constraint(s)
+Variable types: 1706 continuous, 2711 integer (2711 binary)
+
+Root relaxation: interrupted, 223 iterations, 0.03 seconds (0.03 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0          -    0      -10799.090    4.00000   100%     -    0s
+
+Explored 1 nodes (223 simplex iterations) in 0.11 seconds (0.10 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: -10799.1 
+
+Solve interrupted
+Best objective -1.079909022556e+04, best bound 4.000000000000e+00, gap 100.0370%
+
+User-callback calls 201, time in user-callback 0.01 sec

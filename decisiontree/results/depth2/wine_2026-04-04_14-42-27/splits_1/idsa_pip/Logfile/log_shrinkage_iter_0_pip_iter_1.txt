@@ -1,0 +1,45 @@
+
+Gurobi 11.0.3 (linux64) logging started Sat Apr  4 14:43:05 2026
+
+Set parameter LogFile to value "decisiontree/results/depth2/wine_2026-04-04_14-42-27/splits_1/idsa_pip/Logfile/log_shrinkage_iter_0_pip_iter_1.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 1789 rows, 786 columns and 24343 nonzeros
+Model fingerprint: 0xfc1d4d9e
+Variable types: 94 continuous, 692 integer (692 binary)
+Coefficient statistics:
+  Matrix range     [4e-03, 1e+04]
+  Objective range  [8e-03, 1e+04]
+  Bounds range     [1e+00, 4e+02]
+  RHS range        [1e-09, 8e+02]
+
+User MIP start produced solution with objective 0.977444 (0.01s)
+Loaded user MIP start with objective 0.977444
+
+Presolve removed 265 rows and 2 columns
+Presolve time: 0.02s
+Presolved: 1524 rows, 784 columns, 20701 nonzeros
+Variable types: 93 continuous, 691 integer (691 binary)
+
+Root relaxation: objective 1.000000e+00, 259 iterations, 0.02 seconds (0.02 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    4    0.97744    1.00000  2.31%     -    0s
+H    0     0                       0.9924812    1.00000  0.76%     -    0s
+     0     2    1.00000    0    4    0.99248    1.00000  0.76%     -    0s
+*   96    68              10       1.0000000    1.00000  0.00%   126    0s
+
+Explored 127 nodes (23413 simplex iterations) in 0.97 seconds (1.19 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 3: 1 0.992481 0.977444 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 1.000000000000e+00, best bound 1.000000000000e+00, gap 0.0000%
+
+User-callback calls 732, time in user-callback 0.02 sec

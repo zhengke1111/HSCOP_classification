@@ -1,8 +1,7 @@
 import utils
-import PIP_iterations_tree
+import decisiontree.PIP_tree_control_termination as PIP_tree_control_termination
 import Full_MIP_tree
 import callback_data_tree
-import PIP_unconstrained_iterations_tree
 import numpy as np
 import random
 import csv
@@ -84,7 +83,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
             - `result_csv`,
             - `details_csv`,
             - `dataset`,
-            - `run`.
+            - `split`.
 
             The function also updates this dictionary internally with entries
             such as:
@@ -107,7 +106,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         - Writes experiment summaries to CSV files.
         - Calls method-specific solver routines such as
           `full_mip_tree.full_mip_tree`,
-          `PIP_iterations_tree.pip_iterations`, and
+          `PIP_tree_control_termination.pip_tree_control_termination`, and
           `PIP_unconstrained_iterations_tree.pip_unconstrained_iterations`.
 
     Notes:
@@ -119,23 +118,26 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
     X_train, y_train, X_test, y_test, class_restricted = data['X_train'], data['y_train'], data['X_test'], data['y_test'], data['class_restricted']
     method, epsilon, beta_p, D, enhanced_size = settings['method'], settings['epsilon'], settings['beta_p'], settings['D'], settings['enhanced_size']
     base_rate = stop_rule['base_rate']
-    result_sub2dir, result_csv, run = file_path['result_sub2dir'], file_path['result_csv'], file_path['run']
+    result_sub2dir, result_csv = file_path['result_sub2dir'], file_path['result_csv']
     file_path['shrinkage_iter'], file_path['piece_index'], multi_piece_list = None, None, None
+    actual_time = None
+    optimality_gap = None
     random.seed(42)
     J = list(set(y_train))
     model = model.copy()
-    method_list = ['full_mip', 'base_fixed', 'base_shrinkage', 'simplified_arbitrary4_fixed', 'simplified_arbitrary1_fixed', 'simplified_arbitrary4_shrinkage', 'simplified_arbitrary1_shrinkage', 'unconstrained']
+    method_list = ['Full MIP', 'F-PIP', 'ISA_PIP', 'FD4-PIP', 'FD-PIP', 'IDSA4-PIP', 'IDSA-PIP', 'U-PIP']
+    
     # There are totally 8 methods: 
-    # 1: 'full_mip'                             Full MIP
-    # 2: 'base_fixed'                           \varepsilon-fixed
-    # 3: 'base_shrinkage'                       \varepsilon-shrinkage
-    # 4: 'simplified_arbitrary4_fixed'          \varepsilon-fixed-arbitrary4
-    # 5: 'simplified_arbitrary1_fixed'          \varepsilon-fixed-arbitrary1
-    # 6: 'simplified_arbitrary4_shrinkage'      \varepsilon-shrinkage-arbitrary4
-    # 7: 'simplified_arbitrary1_shrinkage'      \varepsilon-shrinkage-arbitrary1
-    # 8: 'unconstrained'                        Unconstrained PIP
+    # 1: 'Full MIP'                             Full MIP
+    # 2: 'F-PIP'                                \varepsilon-fixed
+    # 3: 'ISA-PIP'                              \varepsilon-shrinkage
+    # 4: 'FD4-PIP'                              \varepsilon-fixed-arbitrary4
+    # 5: 'FD-PIP'                               \varepsilon-fixed-arbitrary1
+    # 6: 'IDSA4-PIP'                            \varepsilon-shrinkage-arbitrary4
+    # 7: 'IDSA-PIP'                             \varepsilon-shrinkage-arbitrary1
+    # 8: 'U-PIP'                                Unconstrained PIP
 
-    if method == 1:  # 'full_mip'
+    if method == 1:  # 'Full MIP'  
         result_sub3dir = result_sub2dir + '/full_mip'
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
@@ -143,7 +145,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         train_result, test_result, train_constraint_gap, test_constraint_gap, test_train_gap = utils.train_test_results(X_train, y_train, X_test, y_test, solution, D, J, beta_p, class_restricted)
         with open(file_path['details_csv'], mode='a', newline='') as details:
             writer = csv.writer(details)
-            writer.writerow([file_path['run'], method_list[method-1], None, None, beta_p, None, None, None, 1, counts_result['num_integer_vars'], objective_function_term['objective_value'], objective_function_term['optimality_gap'], 
+            writer.writerow([file_path['split'], method_list[method-1], None, None, beta_p, None, None, None, 1, counts_result['num_integer_vars'], objective_function_term['objective_value'], objective_function_term['optimality_gap'], 
                              objective_function_term['final_improvement_time'], objective_function_term['actual_time'], 
                              train_result['frac'], test_result['frac'], test_constraint_gap,
                             counts_result['violations_assumption_1'], counts_result['violations_assumption_2'],counts_result['violations_feasibilitytol'], 
@@ -151,21 +153,22 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
                             counts_result['z_integrality_vio']])
         record_time = execution_time
         actual_time = objective_function_term['actual_time']
+        optimality_gap = objective_function_term['optimality_gap']
         
     
-    if method == 2:  # 'base_fixed'
-        result_sub3dir = result_sub2dir + '/base_fixed'
+    if method == 2:  # 'F-PIP'
+        result_sub3dir = result_sub2dir + '/f_pip'
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         callback_data_tree.timelimit = 100
         selected_piece = None
         settings['selected_piece'] = None
         start['objective_value'] = -np.inf
-        objective_function_term, solution, counts_result, record_time, actual_time = PIP_iterations_tree.pip_iterations(model, data, start, settings, stop_rule, file_path)
+        objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, start, settings, stop_rule, file_path)
         
 
-    if method == 3:  # 'base_shrinkage'
-        result_sub3dir = result_sub2dir + '/base_shrinkage'
+    if method == 3:  # 'ISA-PIP'
+        result_sub3dir = result_sub2dir + '/isa_pip'
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         callback_data_tree.timelimit = 100
@@ -177,36 +180,33 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         iter_start = start
         iter_start['objective_value'] = -np.inf
         record_time_iteration = []
-        actual_time_iteration = []
         
         for iteration in range(max_outer_iter):
             file_path['shrinkage_iter'] = iteration
-            objective_function_term, solution, counts_result, record_time, actual_time = PIP_iterations_tree.pip_iterations(model, data, iter_start, settings, stop_rule, file_path)
+            objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, iter_start, settings, stop_rule, file_path)
             record_time_iteration.append(record_time)
-            actual_time_iteration.append(actual_time)
             iter_start['objective_value'] = solution['objective_value']
             iter_start['a'], iter_start['b'], iter_start['c'] = solution['a'], solution['b'], solution['c']
             settings['epsilon'] = 0.1 * settings['epsilon']
             epsilon = settings['epsilon']
         
         record_time = sum(record_time_iteration)
-        actual_time = sum(actual_time_iteration)
 
 
-    if method == 4:  # 'simplified_arbitrary4_fixed'
+    if method == 4:  # 'FD4-PIP'
         callback_data_tree.timelimit = 30
-        result_sub3dir = result_sub2dir + '/simplified_arbitrary4_fixed'
+        result_sub3dir = result_sub2dir + '/fd4_pip'
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         start['objective_value'] = -np.inf
-        objective_function_term, solution, counts_result, record_time, actual_time = PIP_iterations_tree.pip_iterations(model, data, start, settings, stop_rule, file_path)
+        objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, start, settings, stop_rule, file_path)
         multi_piece_list = counts_result['multi_piece_list']
 
 
-    if method == 5:  # 'simplified_arbitrary1_fixed'
+    if method == 5:  # 'FD-PIP'
         callback_data_tree.timelimit = 30
         if settings['tune'] == False:
-            result_sub3dir = result_sub2dir + '/simplified_arbitrary1_fixed'
+            result_sub3dir = result_sub2dir + '/fd_pip'
         else:
             if settings['regularizer'] == 'hard_l0':
                 tau_0 = settings['tau_0']
@@ -214,12 +214,12 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         start['objective_value'] = -np.inf
-        objective_function_term, solution, counts_result, record_time, actual_time = PIP_iterations_tree.pip_iterations(model, data, start, settings, stop_rule, file_path)
+        objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, start, settings, stop_rule, file_path)
         
 
-    if method == 6:  #  'simplified_arbitrary4_shrinkage'
+    if method == 6:  #  'IDSA4-PIP'
         callback_data_tree.timelimit = 30
-        result_sub3dir = result_sub2dir + '/simplified_arbitrary4_shrinkage'
+        result_sub3dir = result_sub2dir + '/idsa4_pip'
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         max_outer_iter = stop_rule['max_outer_iter']
@@ -229,14 +229,12 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         settings['epsilon'] = settings['epsilon_nu']
         epsilon = settings['epsilon']
         record_time_iteration = []
-        actual_time_iteration = []
         max_objective = -np.inf
         multi_piece_list = {}
 
         for iteration in range(max_outer_iter):
             file_path['shrinkage_iter'] = iteration
             record_time_piece = []
-            actual_time_piece = []
             time_start_generate_M = time.time()
             M_set_index, multi_piece = utils.generate_M(X_train, iter_start['a'], iter_start['b'], D, epsilon, base_rate, enhanced_size)
             multi_piece_list[f'iter_{iteration}'] = multi_piece
@@ -248,27 +246,23 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
                 piece_index += 1
                 file_path['piece_index'] = piece_index
                 settings['selected_piece'] = selected_piece
-                objective_function_term, solution, counts_result, record_time, actual_time = PIP_iterations_tree.pip_iterations(model, data, iter_start, settings, stop_rule, file_path)
+                objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, iter_start, settings, stop_rule, file_path)
                 record_time_piece.append(record_time)
-                actual_time_piece.append(actual_time)
                 if solution['objective_value'] >= max_objective:
                     max_objective = solution['objective_value']
                     best_objective_function_term, best_solution, best_counts_result = objective_function_term, solution, counts_result
             objective_function_term, solution, counts_result = best_objective_function_term, best_solution, best_counts_result
             record_time_iteration.append(sum(record_time_piece))
-            actual_time_iteration.append(sum(actual_time_piece)+time_generate_M)
             iter_start['objective_value'] = solution['objective_value']
             iter_start['a'], iter_start['b'], iter_start['c'] = solution['a'], solution['b'], solution['c']
             settings['epsilon'] = 0.1 * settings['epsilon']
             epsilon = settings['epsilon']
-    
         record_time = sum(record_time_iteration)
-        actual_time = sum(actual_time_iteration)
 
 
-    if method == 7:  # 'simplified_arbitrary1_shrinkage'
+    if method == 7:  # 'IDSA-PIP'
         callback_data_tree.timelimit = 30
-        result_sub3dir = result_sub2dir + '/simplified_arbitrary1_shrinkage'
+        result_sub3dir = result_sub2dir + '/idsa_pip'
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         max_outer_iter = stop_rule['max_outer_iter']
@@ -278,7 +272,6 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         settings['epsilon'] = settings['epsilon_nu']
         epsilon = settings['epsilon']
         record_time_iteration = []
-        actual_time_iteration = []
         max_objective = -np.inf
 
         for iteration in range(max_outer_iter):
@@ -288,26 +281,24 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
             time_end_generate_M = time.time()
             time_generate_M = time_end_generate_M - time_start_generate_M
             settings['selected_piece'] = selected_piece
-            objective_function_term, solution, counts_result, record_time, actual_time = PIP_iterations_tree.pip_iterations(model, data, iter_start, settings, stop_rule, file_path)
+            objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, iter_start, settings, stop_rule, file_path)
             record_time_iteration.append(record_time)
-            actual_time_iteration.append(actual_time+time_generate_M)
             iter_start['objective_value'] = solution['objective_value']
             iter_start['a'], iter_start['b'], iter_start['c'] = solution['a'], solution['b'], solution['c']
             settings['epsilon'] = 0.1 * settings['epsilon']
             epsilon = settings['epsilon']
         
         record_time = sum(record_time_iteration)
-        actual_time = sum(actual_time_iteration)
     
 
-    if method == 8: # unconstrained
-        result_sub3dir = result_sub2dir + '/unconstrained'
+    if method == 8: # 'U-PIP'
+        result_sub3dir = result_sub2dir + '/u_pip'
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         callback_data_tree.timelimit = 30
         start['objective_value'] = -np.inf
         epsilon, beta_p, settings['epsilon'], settings['beta_p'] = None, None, None, None
-        objective_function_term, solution, counts_result, record_time, actual_time = PIP_unconstrained_iterations_tree.pip_unconstrained_iterations(model, data, start, settings, stop_rule, file_path)
+        objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_unconstrained_tree_control_termination(model, data, start, settings, stop_rule, file_path)
 
     train_result, test_result, train_constraint_gap, test_constraint_gap, test_train_gap = utils.train_test_results(X_train, y_train, X_test, y_test, solution, D, J, beta_p, class_restricted)
 
@@ -315,25 +306,13 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         with open(result_csv, mode='a', newline='') as all_result:
             writer = csv.writer(all_result)
             # The last 4 columns is applicable for the case that there is only one element in class_restricted
-            writer.writerow([file_path['dataset'], D, run, method_list[method-1], settings['tau_0'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], objective_function_term['optimality_gap'], 
-                            record_time, actual_time, multi_piece_list, next(iter(objective_function_term['gamma'].values())) if objective_function_term['gamma'] is not None else None, 
-                            objective_function_term['z_frac'], objective_function_term['z_counts'], train_result['frac'],train_constraint_gap, train_result['counts'], 
-                            test_result['frac'], test_constraint_gap, test_result['counts'],
-                            test_train_gap,
-                            counts_result['violations_assumption_1'], counts_result['violations_assumption_2'],counts_result['violations_feasibilitytol'], 
-                            counts_result['violations_assumption_1_rate'], counts_result['violations_assumption_2_rate'],counts_result['violations_feasibilitytol_rate'],
-                            counts_result['z_integrality_vio'],
+            writer.writerow([file_path['dataset'], D, file_path['split'], method_list[method-1], settings['tau_0'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], optimality_gap, 
+                            record_time, actual_time, next(iter(objective_function_term['gamma'].values())) if objective_function_term['gamma'] is not None else None, 
                             train_result['frac']['acc'], test_result['frac']['acc'], train_result['frac'][f'prec{class_restricted[0]}'], test_result['frac'][f'prec{class_restricted[0]}']])
     else:
         with open(result_csv, mode='a', newline='') as all_result:
             writer = csv.writer(all_result)
-            writer.writerow([file_path['dataset'], D, run, 'tune', settings['tau_0'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], objective_function_term['optimality_gap'], 
-                            record_time, actual_time, multi_piece_list, next(iter(objective_function_term['gamma'].values())) if objective_function_term['gamma'] is not None else None, 
-                            objective_function_term['z_frac'], objective_function_term['z_counts'], train_result['frac'],train_constraint_gap, train_result['counts'], 
-                            test_result['frac'], test_constraint_gap, test_result['counts'],
-                            test_train_gap,
-                            counts_result['violations_assumption_1'], counts_result['violations_assumption_2'],counts_result['violations_feasibilitytol'], 
-                            counts_result['violations_assumption_1_rate'], counts_result['violations_assumption_2_rate'],counts_result['violations_feasibilitytol_rate'],
-                            counts_result['z_integrality_vio'],
+            writer.writerow([file_path['dataset'], D, file_path['split'], 'tune', settings['tau_0'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], optimality_gap, 
+                            record_time, actual_time, next(iter(objective_function_term['gamma'].values())) if objective_function_term['gamma'] is not None else None, 
                             train_result['frac']['acc'], test_result['frac']['acc'], train_result['frac'][f'prec{class_restricted[0]}'], test_result['frac'][f'prec{class_restricted[0]}']])
         return train_result['frac'], test_result['frac']

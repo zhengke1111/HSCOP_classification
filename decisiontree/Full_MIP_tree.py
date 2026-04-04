@@ -71,19 +71,6 @@ def full_mip_tree(model, data, start, settings, stop_rule, file_path):
             model.addConstrs((-a[k][i]>=-tau_1*(1-u[k][i])) for i in range(p))
             model.addConstr(gp.quicksum((1-u[k][i]) for i in range(p))<=tau_0)
 
-    if regularizer == 'soft_l0':
-        # TODO
-        varrho = settings['varrho']
-        tau_0 = settings['tau_0']
-        u={}
-        v={}
-        for k in range(2**D-1):
-            u[k] = model.addVars(p, vtype=GRB.BINARY, name='u_'+str(k))
-            v[k] = model.addVar(lb=0, vtype=GRB.CONTINUOUS, name='v_'+str(k))
-            model.addConstrs((a[k][i]>=-tau_1*(1-u[k][i])) for i in range(p))
-            model.addConstrs((-a[k][i]>=-tau_1*(1-u[k][i])) for i in range(p))
-            model.addConstr(gp.quicksum((1-u[k][i]) for i in range(p))<=tau_0+v[k])
-
     key_z_plus_0 = [(s, t) for s in range(N) for t in range(2**D)]
     z_plus_0 = model.addVars(key_z_plus_0, vtype=GRB.BINARY, name='z_plus_0')
     if z_plus_0_start is not None:
@@ -184,9 +171,7 @@ def full_mip_tree(model, data, start, settings, stop_rule, file_path):
     model.addConstrs((phi_max[s, t] -feasibility_tol>= -M_z*(1-z_minus[s, t])) for s in range(N) for t in range(2**D))
 
     obj = 1/N*gp.quicksum(L[t] for t in range(2**D)) - rho*gp.quicksum(gamma[j] for j in I)
-    if regularizer == 'soft_l0': 
-        obj = 1/N*gp.quicksum(L[t] for t in range(2**D)) - rho*gp.quicksum(gamma[j] for j in I) - varrho/N*gp.quicksum(v[k] for k in range(2**D-1))
-
+    
     model.addConstr(obj <= 1, "manual_upper_bound")
     model.setObjective(obj,GRB.MAXIMIZE)
     model.setParam("Timelimit", timelimit)
