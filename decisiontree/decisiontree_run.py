@@ -75,6 +75,9 @@ def decisiontree_constraint(dataset='blsc', method_list = [1,7], data_splits = N
                 base_rate = 5
             else: 
                 base_rate = 10
+        
+        if dataset == 'blsc' and method_list == [8]:  # For U-PIP, there are fewer integer variables, the initial integer ratio can be increased
+            base_rate = 20
 
         # Extract training and test sets
         X_train = data_splits[run]['X_train']
