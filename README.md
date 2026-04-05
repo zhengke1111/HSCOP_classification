@@ -51,7 +51,7 @@ The content of this repository is as follows:
 
     - `decisiontree_run.py`: **run** this script to reproduce results of `Full MIP` and `IDSA-PIP`(`C-PIP`) and `U-PIP`.  
         
-    - `CART_run.py`: **run** this script to reproduce results of `CART`, and the results will be stored in `decisiontree/results/CART_results.csv`. 
+    - `CART_run.py`: **run** this script to reproduce results of `CART`.
 
     - `PIP_tree_solve_partial_problem.py`: build and solve an MIP for a single PIP partial problem in a tree-based classification problem. 
 
@@ -64,7 +64,9 @@ The content of this repository is as follows:
     - `utils.py`: utility file to store some commonly used functions in this project. 
 
 ## Usage 
-- `decisiontree_run.py`: 
+### Tree-based classification `decisiontree`
+- `decisiontree_run.py`: run it to produce the results of `Full MIP`,   `IDSA-PIP`(`C-PIP`) and `U-PIP`.
+
     - At the bottom of this file, we can adjust the following parameters in the function `decisiontree_run`:
         - `dataset_list`: a list of names of datasets to train decision tree classifier.
         
@@ -101,11 +103,22 @@ The content of this repository is as follows:
             if method == 7:  # 'IDSA-PIP'
                 callback_data_tree.mip_timelimit = 600
             ```
+- `decisiontree_pareto/binoct-master/run_exp.py`: run it to produce the results of `U-BinOCT` and `C-BinOCT`.
+
+- `decisiontree_pareto/StrongTree-master/Code/StrongTree/run_exp.py`: run it to produce the results of `BendersOCT` and `FlowOCT`. 
+    ```Python
+    for dataset in ['blsc', 'ctmc']:
+        validation(dataset)                                 # For validate \lambda
+        run_strongOCT(result_dir, dataset, 'BendersOCT')    # With \lambda, run BendersOCT
+        run_strongOCT(result_dir, dataset, 'FlowOCT')       # With \lambda, run FlowOCT
+    ```
+
+- `CART_run.py`: run it to produce the results of `CART`. The results will be stored in `decisiontree/results/CART_results.csv`. 
 
 
 ## Notes
-- In the results files on datasets `blsc` and `ctmc` of `BinOCT` and `StrongTree` in `decisiontree_pareto`, the class that has a precision constraint is class `0`, but in the results files of `PIP`, the class that has a precision constraint is class `1`, they are actually **the same** class, which is class `0` in the dataset, but in `decisiontree_run.py`, we shifted the class by 1 with 
+- For `C-PIP`, in `decisiontree_pareto_blsc_results.csv`, the column `restricted_class`=`0`, but in `decisiontree/results/decisiontree_pareto_raw_output/blsc/C-PIP.csv`, the column  `key_beta_p`=`1`, they are actually **the same** class, which is class `0` in the dataset `decisiontree/dataset/balance_scale.csv`, but in `decisiontree_run.py`, we shifted the class by 1 with 
     ```Python
     y = y.values + 1
     ``` 
-    to align with $j\in [J]\triangleq \{1,2,\dots,J\}$.
+    to align with $j\in [J]\triangleq \{1,2,\dots,J\}$, i.e., `key_beta_p`= `restricted_class`+1.

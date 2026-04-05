@@ -81,7 +81,7 @@ def main(argv):
         _lambda) + '_c_' + str(calibration)
     out_put_path = os.getcwd() + '/decisiontree/decisiontree_pareto/StrongTree-master/Results/'
     # Using logger we log the output of the console in a text file
-    sys.stdout = logger(out_put_path + out_put_name + '.txt')
+    # sys.stdout = logger(out_put_path + out_put_name + '.txt')
 
     ##########################################################
     # data splitting

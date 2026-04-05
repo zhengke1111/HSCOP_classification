@@ -7,7 +7,8 @@ import numpy as np
 
 def pip_tree_control_termination(model, data, start, settings, stop_rule, file_path):
     """
-    PIP iterations in PIP method to solve the decision tree classification problem with precision constraint
+    Determine whether to continue or stop, and, if continuing, decide whether to enlarge or shrink the in-between sets ${\cal J}$. 
+    For tree-based classification problem with precision constraint. 
 
     Args:
         model (dict): Gurobi parameter settings, including {Name, 'MIPFocus', 'IntegralityFocus', 'Threads', 'NumericFocus', 'FeasibilityTol'}
@@ -118,7 +119,8 @@ def pip_tree_control_termination(model, data, start, settings, stop_rule, file_p
 
 def pip_unconstrained_tree_control_termination(model, data, start, settings, stop_rule, file_path):
     """
-    PIP iterations in PIP method to solve the decision tree classification problem without precision constraint
+    Determine whether to continue or stop, and, if continuing, decide whether to enlarge or shrink the in-between sets ${\cal J}$. 
+    For tree-based classification problem without precision constraint. 
 
     Args:
         model (dict): Gurobi parameter settings, including {Name, 'MIPFocus', 'IntegralityFocus', 'Threads', 'NumericFocus', 'FeasibilityTol'}

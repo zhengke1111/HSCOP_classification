@@ -13,7 +13,7 @@ import utils
 
 def pip_tree_solve_partial_problem(model, data, start, settings, file_path):
     """
-    A single PIP iteration in PIP method to solve the decision tree classification problem with precision constraint
+    Build and solve an MIP for a single PIP partial problem in a tree-based classification problem with precision constraint. 
 
     Args:
         model (dict): Gurobi parameter settings, including {Name, 'MIPFocus', 'IntegralityFocus', 'Threads', 'NumericFocus', 'FeasibilityTol'}
@@ -482,7 +482,7 @@ def pip_tree_solve_partial_problem(model, data, start, settings, file_path):
 
 def pip_unconstrained_tree_solve_partial_problem(model, data, start, settings, file_path):
     """
-    A single PIP iteration in PIP method to solve the decision tree classification problem without precision constraint
+    Build and solve an MIP for a single PIP partial problem in a tree-based classification problem without precision constraint. 
 
     Args:
         model (dict): Gurobi parameter settings, including {Name, 'MIPFocus', 'IntegralityFocus', 'Threads', 'NumericFocus', 'FeasibilityTol'}

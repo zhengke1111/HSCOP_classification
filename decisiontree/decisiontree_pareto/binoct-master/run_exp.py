@@ -75,8 +75,6 @@ with open(output_filename, mode='a', newline='') as all_result:
 
 
 # === Precision constraint configuration ===
-# For C-BinOCT, set USE_PRECISION = True, for U-BinOCT, set USE_PRECISION = False    
-USE_PRECISION      = True   # True = enforce precision constraint, False = ignore
 MIN_PRED_POS       = 1      # minimum number of predicted positives
 POS_LABEL          = 0      # label value of the positive class in your dataset
 
@@ -104,33 +102,25 @@ for depth in range(2,5):
                 
             for precision in threshold_dict[depth]:
                 input_filename = train_file
-                lcb.use_precision_constraint  = 1 if USE_PRECISION else 0
-                lcb.precision_min             = precision if USE_PRECISION else None
+                # For C-BinOCT, set lcb.use_precision_constraint  = 1, for U-BinOCT, set lcb.use_precision_constraint  = 0    
+                # =================================== C-BinOCT =====================================================================            
+                lcb.use_precision_constraint  = 1
+                lcb.precision_min             = precision 
                 lcb.min_predicted_positives   = MIN_PRED_POS
                 lcb.positive_label            = POS_LABEL
 
                 lcb.main(["-f", input_filename, "-y", output_filename, "-z", dataset, "-d", depth, "-u", run, "-t", 3600, "-p", 600])
 
+            # =================================== U-BinOCT =====================================================================
+            lcb.use_precision_constraint  = 0
+            lcb.precision_min             = None
+            lcb.min_predicted_positives   = MIN_PRED_POS
+            lcb.positive_label            = POS_LABEL
+            lcb.main(["-f", input_filename, "-y", output_filename, "-z", dataset, "-d", depth, "-u", run, "-t", 3600, "-p", 600])
 
 
 
 
 
-# for filename in glob.glob(os.path.join(path1, '*train.csv')):
-#     print(filename)
-#      #lcb.main(["-f",filename, "-d", 1, "-t", 900, "-p", 300])
 
-#     #for depth in range(1,5):
-#     #lcb.main(["-f",filename, "-d", depth, "-t", 600, "-p", 150])
 
-#     # === configure precision constraint for this run ===
-#     lcb.use_precision_constraint  = 1 if USE_PRECISION else 0
-#     lcb.precision_min             = PRECISION_MIN
-#     lcb.min_predicted_positives   = MIN_PRED_POS
-#     lcb.positive_label            = POS_LABEL
-
-#     lcb.main(["-f",filename, "-d", 2, "-t", 3600, "-p", 600])
-
-    #for depth in range(1,5):
-    #lcb.main(["-f",filename, "-d", 4, "-t", 600, "-p", 150, "-x", 20, "-s", 1])
-    #lcb.main(["-f",filename, "-d", depth, "-t", 600, "-p", 150, "-x", 10, "-s", 1])

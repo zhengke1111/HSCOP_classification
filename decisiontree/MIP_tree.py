@@ -26,23 +26,18 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
     - writes detailed experiment results to CSV files.
 
     Supported methods:
-        1. `full_mip`
-            Solve the full mixed-integer programming formulation.
-        2. `base_fixed`
-            Run the epsilon-fixed PIP method.
-        3. `base_shrinkage`
-            Run the epsilon-shrinkage PIP method, where epsilon is reduced geometrically across outer iterations.
-        4. `simplified_arbitrary4_fixed`
-            Run the simplified epsilon-fixed method with 4 arbitrarily selected generated candidate pieces.
-        5. `simplified_arbitrary1_fixed`
-            Run the simplified epsilon-fixed method with 1 arbitrarily selected piece.
-        6. `simplified_arbitrary4_shrinkage`
-            Run the simplified epsilon-shrinkage method with 4 arbitrarily selected generated candidate pieces at each outer iteration.
-        7. `simplified_arbitrary1_shrinkage`
-            Run the simplified epsilon-shrinkage method with 1 arbitrarily selected piece at each outer iteration.
-        8. `unconstrained`
-            Run the unconstrained (without precision constraint) PIP formulation.
+    - 1: 'Full MIP'                             Solve the full mixed-integer programming formulation.
+    - 2: 'F-PIP'                                With a fixed varepsilon, run the PIP method in Appendix B: Details of the PIP method, without the decomposition of inner PA functions
+    - 3: 'ISA-PIP'                              A variant of Algorithm II, in which inner loop computation by PIP algorithm, without the decomposition of inner PA functions
+    - 4: 'FD4-PIP'                              A variant of 'F-PIP', with the decomposition of inner PA functions, not for all pairs (k,\ell) but arbitrarily select at most 4 of them
+    - 5: 'FD-PIP'                               A variant of 'F-PIP', with the decomposition of inner PA functions, not for all pairs (k,\ell) but arbitrarily select 1 of them
+    - 6: 'IDSA4-PIP'                            A variant of Algorithm II, in which inner loop computation by PIP algorithm, with the decomposition of inner PA functions,
+                                                not for all pairs (k,\ell) but arbitrarily select at most 4 of them
+    - 7: 'IDSA-PIP'                             A variant of Algorithm II, in which inner loop computation by PIP algorithm, with the decomposition of inner PA functions,
+                                                not for all pairs (k,\ell) but arbitrarily select 1 of them
+    - 8: 'U-PIP'                                Use PIP method to solve the tree-based classification problem without precision constraint, similar to 'FD-PIP'
 
+    
     Args:
         model:
             A base optimization model. The function creates an internal copy via `model.copy()` before solving.
@@ -115,6 +110,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         - The final solution is always evaluated on both the training and test sets using `utils.train_test_results(...)`.
         - In the unconstrained case, both `epsilon` and `beta_p` are set to `None`.
     """
+
     X_train, y_train, X_test, y_test, class_restricted = data['X_train'], data['y_train'], data['X_test'], data['y_test'], data['class_restricted']
     method, epsilon, beta_p, D, enhanced_size = settings['method'], settings['epsilon'], settings['beta_p'], settings['D'], settings['enhanced_size']
     base_rate = stop_rule['base_rate']
@@ -126,16 +122,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
     J = list(set(y_train))
     model = model.copy()
     method_list = ['Full MIP', 'F-PIP', 'ISA_PIP', 'FD4-PIP', 'FD-PIP', 'IDSA4-PIP', 'IDSA-PIP', 'U-PIP']
-    
-    # There are totally 8 methods: 
-    # 1: 'Full MIP'                             Full MIP
-    # 2: 'F-PIP'                                \varepsilon-fixed
-    # 3: 'ISA-PIP'                              \varepsilon-shrinkage
-    # 4: 'FD4-PIP'                              \varepsilon-fixed-arbitrary4
-    # 5: 'FD-PIP'                               \varepsilon-fixed-arbitrary1
-    # 6: 'IDSA4-PIP'                            \varepsilon-shrinkage-arbitrary4
-    # 7: 'IDSA-PIP'                             \varepsilon-shrinkage-arbitrary1
-    # 8: 'U-PIP'                                Unconstrained PIP
+
 
     if method == 1:  # 'Full MIP'  
         result_sub3dir = result_sub2dir + '/full_mip'

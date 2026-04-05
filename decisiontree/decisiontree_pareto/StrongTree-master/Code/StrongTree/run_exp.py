@@ -25,10 +25,17 @@ with open(result_csv, mode='a', newline='') as all_result:
 
 # ===================================== BendersOCT (Train on training set, validate on validation set) =====================================================
 def validation(dataset):
+    validation_result_csv = f'{result_dir}/'+ dataset +'_validation.csv'
+    with open(validation_result_csv, mode='a', newline='') as all_result:
+        writer = csv.writer(all_result)
+        writer.writerow(['dataset', 'depth', 'split', 'nrow', 'method', 'restricted_class', 'beta_p', 'lambda', 
+                        'time_limit', 'status', 'obj_value', 'gamma', 'time', 'gap',
+                        'train_acc', 'eval_acc','test_acc', 'train_prec', 'eval_prec','test_prec',
+                        'node_count','cb_time_int','cb_time_int_suc','cb_counter_int','cb_counter_int_suc'])
     for depth in depths:
         for sample in samples:
             for _lambda in _lambdas:
-                BendersOCTReplication.main(["-f", dataset +'.csv', "-o", dataset +'_validation.csv', "-d", depth, "-t", 3600, "-l", _lambda, "-i", sample, "-c", 1, "-r", 0])
+                BendersOCTReplication.main(["-f", dataset +'.csv', "-o", validation_result_csv, "-d", depth, "-t", 3600, "-l", _lambda, "-i", sample, "-c", 1, "-r", 0])
     # Rename the result file as f'{dataset}_' + 'validation.csv'
 
 
@@ -65,11 +72,11 @@ def select_lambda_from_validation(validation_csv_path: str, seed: int | None = N
 
 def run_strongOCT(result_dir, dataset, method = 'BendersOCT'):
     validation_csv = result_dir + "/" + dataset + "_validation.csv"
-    tuned_lambda_map = select_lambda_from_validation(validation_csv, seed=None)
+    tuned_lambda_map = select_lambda_from_validation(validation_csv, seed = None)
 
     for depth in depths:
         for sample in samples:
-            tuned_lambda = tuned_lambda_map.get((dataset, depth, sample), 42)
+            tuned_lambda = tuned_lambda_map.get((dataset, depth, sample))
             if tuned_lambda is None:
                 print(f"[WARN] No tuned lambda for (dataset={dataset}, depth={depth}, sample={sample}). Fallback to 0.0")
                 tuned_lambda = 0.0
@@ -88,6 +95,6 @@ def run_strongOCT(result_dir, dataset, method = 'BendersOCT'):
                     FlowOCTReplication.main(["-f", dataset +'.csv', "-o", result_csv, "-d", depth, "-t", 3600, "-l", tuned_lambda, "-i", sample, "-c", 0, "-p", precision, "-r", 0])
                     
 for dataset in ['blsc', 'ctmc']:
-    # validation(dataset)
+    validation(dataset)
     run_strongOCT(result_dir, dataset, 'BendersOCT')
     run_strongOCT(result_dir, dataset, 'FlowOCT')
