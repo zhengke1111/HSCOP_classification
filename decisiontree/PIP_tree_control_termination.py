@@ -1,4 +1,4 @@
-import decisiontree.PIP_tree_solve_partial_problem as PIP_tree_solve_partial_problem
+import PIP_tree_solve_partial_problem as PIP_tree_solve_partial_problem
 import utils
 import csv
 import time
@@ -19,7 +19,7 @@ def pip_tree_control_termination(model, data, start, settings, stop_rule, file_p
     """
     X_train, y_train, X_test, y_test, class_restricted = data['X_train'], data['y_train'], data['X_test'], data['y_test'], data['class_restricted']
     method, epsilon, beta_p, D, enhanced_size = settings['method'], settings['epsilon'], settings['beta_p'], settings['D'], settings['enhanced_size']
-    base_rate, pip_max_rate, unchanged_iters, max_iteration = stop_rule['base_rate'],  stop_rule['pip_max_rate'], stop_rule['unchanged_iters'], stop_rule['max_iteration']
+    base_rate, pip_max_rate, expansion_rate, unchanged_iters, max_iteration = stop_rule['base_rate'],  stop_rule['pip_max_rate'], stop_rule['expansion_rate'], stop_rule['unchanged_iters'], stop_rule['max_iteration']
     details_csv = file_path['details_csv']
     record_time = []
     iter_unchanged = 0
@@ -81,7 +81,7 @@ def pip_tree_control_termination(model, data, start, settings, stop_rule, file_p
             start['eta'], start['zeta'], start['L'] = utils.calculate_eta_zeta_L(X_train, y_train, start['c'], D, start['z_plus_0'], start['z_plus'], start['z_minus'])
             settings['delta_1'], settings['delta_2'] = utils.calculate_delta(X_train=X_train, a=start['a'], b=start['b'], D=D, selected_piece=settings['selected_piece'], epsilon=epsilon, base_rate=integer_rate)
             
-            objective_function_term, solution, counts_result = PIP_tree_solve_partial_problem.pip_single_iter_tree(model, data, start, settings, file_path)
+            objective_function_term, solution, counts_result = PIP_tree_solve_partial_problem.pip_tree_solve_partial_problem(model, data, start, settings, file_path)
             record_time.append(objective_function_term['runtime'])
 
             train_result, test_result, train_constraint_gap, test_constraint_gap, test_train_gap = utils.train_test_results(X_train, y_train, X_test, y_test, solution, D, J, beta_p, class_restricted)
@@ -99,11 +99,11 @@ def pip_tree_control_termination(model, data, start, settings, stop_rule, file_p
     
         if objective_value - objective_value_old <= 1e-5:           # Objective value remains unchanged
             iter_unchanged += 1
-            integer_rate = min(pip_max_rate, integer_rate + 10)     # Enlarge the In-between index set
+            integer_rate = min(pip_max_rate, integer_rate + expansion_rate)     # Enlarge the In-between index set
             
         else:                                                       # Objective value increases
             iter_unchanged = 0
-            integer_rate = max(base_rate, integer_rate - 10)        # Shrink the In-between index set
+            integer_rate = max(base_rate, integer_rate - expansion_rate)        # Shrink the In-between index set
 
         if iter_unchanged >= unchanged_iters:                       # Reach \tilde{\mu}_{max}
             max_iteration = iteration + 1
@@ -131,7 +131,7 @@ def pip_unconstrained_tree_control_termination(model, data, start, settings, sto
     # Below are similar to the function pip_iterations in PIP_iterations_tree.py
     X_train, y_train, X_test, y_test, class_restricted = data['X_train'], data['y_train'], data['X_test'], data['y_test'], data['class_restricted']
     method, D = settings['method'], settings['D']
-    base_rate, pip_max_rate, unchanged_iters, max_iteration = stop_rule['base_rate'],  stop_rule['pip_max_rate'], stop_rule['unchanged_iters'], stop_rule['max_iteration']
+    base_rate, pip_max_rate, expansion_rate, unchanged_iters, max_iteration = stop_rule['base_rate'],  stop_rule['pip_max_rate'], stop_rule['expansion_rate'], stop_rule['unchanged_iters'], stop_rule['max_iteration']
     details_csv = file_path['details_csv']
     record_time = []
     iter_unchanged = 0
@@ -167,11 +167,11 @@ def pip_unconstrained_tree_control_termination(model, data, start, settings, sto
 
         if objective_value - objective_value_old <= 1e-5:
             iter_unchanged += 1
-            integer_rate = min(pip_max_rate, integer_rate + 10)
+            integer_rate = min(pip_max_rate, integer_rate + expansion_rate)
             
         else:
             iter_unchanged = 0
-            integer_rate = max(base_rate, integer_rate - 10)
+            integer_rate = max(base_rate, integer_rate - expansion_rate)
 
         if iter_unchanged >= unchanged_iters:
             max_iteration = iteration + 1

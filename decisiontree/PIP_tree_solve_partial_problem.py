@@ -276,10 +276,7 @@ def pip_tree_solve_partial_problem(model, data, start, settings, file_path):
     model.update()
     num_integer_vars = sum(1 for v in model.getVars() if v.vType == gp.GRB.BINARY)
 
-    if method in [2,3]:
-        model.setParam("Timelimit", 600)
-    else:
-        model.setParam("Timelimit", 300)
+    model.setParam("Timelimit", callback_data_tree.mip_timelimit)
 
     os.makedirs(result_sub3dir + '/Logfile', exist_ok=True)
     if method == 2:
@@ -603,10 +600,7 @@ def pip_unconstrained_tree_solve_partial_problem(model, data, start, settings, f
     model.update()
     num_integer_vars = sum(1 for v in model.getVars() if v.vType == gp.GRB.BINARY)
 
-    if method in [2,3]:
-        model.setParam("Timelimit", 600)
-    else:
-        model.setParam("Timelimit", 300)
+    model.setParam("Timelimit", callback_data_tree.mip_timelimit)
 
     os.makedirs(result_sub3dir + '/Logfile', exist_ok=True)
     if method == 2 or method == 8:

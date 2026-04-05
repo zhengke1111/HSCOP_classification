@@ -1,5 +1,5 @@
 import utils
-import decisiontree.PIP_tree_control_termination as PIP_tree_control_termination
+import PIP_tree_control_termination as PIP_tree_control_termination
 import Full_MIP_tree
 import callback_data_tree
 import numpy as np
@@ -306,13 +306,13 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         with open(result_csv, mode='a', newline='') as all_result:
             writer = csv.writer(all_result)
             # The last 4 columns is applicable for the case that there is only one element in class_restricted
-            writer.writerow([file_path['dataset'], D, file_path['split'], method_list[method-1], settings['tau_0'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], optimality_gap, 
+            writer.writerow([file_path['dataset'], D, file_path['split'], method_list[method-1], settings['tau_0'], next(iter(beta_p)) if beta_p is not None else None, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], optimality_gap, 
                             record_time, actual_time, next(iter(objective_function_term['gamma'].values())) if objective_function_term['gamma'] is not None else None, 
                             train_result['frac']['acc'], test_result['frac']['acc'], train_result['frac'][f'prec{class_restricted[0]}'], test_result['frac'][f'prec{class_restricted[0]}']])
     else:
         with open(result_csv, mode='a', newline='') as all_result:
             writer = csv.writer(all_result)
-            writer.writerow([file_path['dataset'], D, file_path['split'], 'tune', settings['tau_0'], next(iter(beta_p)) if beta_p is not None else class_restricted, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], optimality_gap, 
+            writer.writerow([file_path['dataset'], D, file_path['split'], 'tune', settings['tau_0'], next(iter(beta_p)) if beta_p is not None else None, next(iter(beta_p.values())) if beta_p is not None else None, objective_function_term['objective_value'], optimality_gap, 
                             record_time, actual_time, next(iter(objective_function_term['gamma'].values())) if objective_function_term['gamma'] is not None else None, 
                             train_result['frac']['acc'], test_result['frac']['acc'], train_result['frac'][f'prec{class_restricted[0]}'], test_result['frac'][f'prec{class_restricted[0]}']])
         return train_result['frac'], test_result['frac']

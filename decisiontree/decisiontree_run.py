@@ -24,7 +24,7 @@ model.Params.LazyConstraints = 1
 
 
 # =========== Settings to Solve Decision Tree Problem with Precision Constraint ==========
-def decisiontree_constraint(dataset='blsc', data_splits = None, beta_p=None, D=2, pareto = False):
+def decisiontree_constraint(dataset='blsc', method_list = [1,7], data_splits = None, beta_p=None, D=2, pareto = False, reuse_tau_0 = True):
     """
     Settings and output for decision tree classification problem with precision constraint
 
@@ -86,20 +86,36 @@ def decisiontree_constraint(dataset='blsc', data_splits = None, beta_p=None, D=2
 
         if p>5:                                                         # When the dimension of features p>5
             regularizer = 'hard_l0'                                     # Set \tau_0 as the max number of features
-            if pareto == False:                                                 
-                tau_lb = max(2,math.ceil(p/2)-3)                        # Upper bound: \lceil p/2 \rceil +3
-                tau_ub = min(p,math.ceil(p/2)+3)                        # Lower bound: \lceil p/2 \rceil -3
-                timestamp = time.time()
-                random.seed(timestamp)                                  # Random seeds depend on the realtime timestamp
-                best_tau_0 =  random.choice(range(tau_lb, tau_ub + 1))  # Randomly select \tau_0 \in [\lceil p/2 \rceil -3, \lceil p/2 \rceil +3]
-                random.seed()
+            if pareto == False or (pareto == True and method_list == [8]):     
+                if reuse_tau_0 == False:                                            
+                    tau_lb = max(2,math.ceil(p/2)-3)                        # Upper bound: \lceil p/2 \rceil +3
+                    tau_ub = min(p,math.ceil(p/2)+3)                        # Lower bound: \lceil p/2 \rceil -3
+                    timestamp = time.time()
+                    random.seed(timestamp)                                  # Random seeds depend on the realtime timestamp
+                    best_tau_0 =  random.choice(range(tau_lb, tau_ub + 1))  # Randomly select \tau_0 \in [\lceil p/2 \rceil -3, \lceil p/2 \rceil +3]
+                    random.seed()
+                else:
+                    if pareto == False:
+                        df = pd.read_csv(f"decisiontree/dataset/decisiontree_tau_0.csv")
+                        df["dataset"] = df["dataset"].astype(str)
+                        df["depth"]   = df["depth"].astype(int)
+                        df["split"]     = df["split"].astype(int)
+                        tau_map = df.set_index(["dataset", "depth", "split"])["tau_0"].to_dict()
+                        best_tau_0 = tau_map[(dataset, D, run)]
+                    else:
+                        df = pd.read_csv(f"decisiontree/dataset/decisiontree_pareto_tau_0.csv")
+                        df["dataset"] = df["dataset"].astype(str)
+                        df["depth"]   = df["depth"].astype(int)
+                        df["split"]     = df["split"].astype(int)
+                        tau_map = df.set_index(["dataset", "depth", "split"])["tau_0"].to_dict()
+                        best_tau_0 = tau_map[(dataset, D, run)]
 
             # ========== When we run pareto comparison, we keep the number of features of constrained PIP (C-PIP) the same as unconstrained PIP (U-PIP) ==========
-            if pareto == True:
-                df=pd.read_csv(f"decisiontree/results/{dataset}_U-PIP.csv")
+            if pareto == True and method_list == [7]:
+                df = pd.read_csv(f"decisiontree/dataset/decisiontree_pareto_tau_0.csv")
                 df["dataset"] = df["dataset"].astype(str)
                 df["depth"]   = df["depth"].astype(int)
-                df["run"]     = df["run"].astype(int)
+                df["split"]     = df["split"].astype(int)
                 tau_map = df.set_index(["dataset", "depth", "split"])["tau_0"].to_dict()
                 best_tau_0 = tau_map[(dataset, D, run)]
             
@@ -120,28 +136,26 @@ def decisiontree_constraint(dataset='blsc', data_splits = None, beta_p=None, D=2
         # 7: 'IDSA-PIP'                             \varepsilon-shrinkage-arbitrary1
         # 8: 'U-PIP'                                Unconstrained PIP
 
-        for method in range(7,8):
+        for method in method_list:
             start_copy = copy.deepcopy(start)
             settings = {'method': method, 'epsilon':1e-4, 'epsilon_nu': 1e-1, 'beta_p':beta_p, 'D': D, 'enhanced_size': 4, 'rho': 1e4, 'feasibilitytol': feasibility_tol,
                         'regularizer': regularizer, 'tau_0': best_tau_0, 'tune': False}
-            stop_rule = {'timelimit': 3600, 'base_rate': base_rate, 'pip_max_rate': 60, 'unchanged_iters':3, 'max_iteration': 10, 'max_outer_iter': 4}
+            stop_rule = {'timelimit': 3600, 'base_rate': base_rate, 'pip_max_rate': 60, 'expansion_rate': 10, 'unchanged_iters':3, 'max_iteration': 10, 'max_outer_iter': 4}
             file_path = {'dataset': dataset, 'result_csv': result_csv, 'details_csv': details_csv, 'result_dir': result_dir, 'result_sub2dir': result_sub2dir, 'split': run}
             MIP_tree.mip_tree(model, data, start_copy, settings, stop_rule, file_path)
 
 
-# Abbreviation of dataset name
-dataset_list = ['wine', 'nwth', 'htds', 'dmtl', 'blsc', 'ctmc', 'ceva', 'fish']
 
 # ========== If run grid thresholds for drawing pareto curve, integrate the results under different beta_p into one result_csv ==========
 current_datetime = datetime.now()
-result_csv = f'decisiontree/results/'+ f'result_' + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
+result_csv = f'decisiontree/results/'+ f'decisiontree_results_' + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
 with open(result_csv, mode='a', newline='') as all_result:
     writer = csv.writer(all_result)
     writer.writerow(['dataset', 'depth', 'split', 'method', 'tau_0', 'key_beta_p', 'beta_p', 'objective_value', 'optimality_gap (Full MIP)', 'time', 'actual_time (Full MIP)', 'gamma', 
                     'train_acc','test_acc','train_prec','test_prec'])
 
 
-def decisiontree_run(pareto = False):
+def decisiontree_run(dataset_list, method_list = [1,7], pareto = False, reuse_tau_0=True):
     """
     Run constrained decision tree experiments over multiple datasets and tree depths.
 
@@ -208,25 +222,37 @@ def decisiontree_run(pareto = False):
                     threshold = (np.ceil(max(prec_values)*100)/100).item()
 
                 beta_p = {key_beta: threshold}
-                decisiontree_constraint(dataset=dataset, data_splits=data_splits, beta_p=beta_p, D=D)
+                decisiontree_constraint(dataset=dataset, method_list = method_list, data_splits=data_splits, beta_p=beta_p, D=D, pareto = pareto, reuse_tau_0=reuse_tau_0)
             
             # ========== Grid thresholds for pareto comparison ==========
             if pareto == True:
-                # For blsc dataset
-                if dataset == 'blsc':
-                    threshold_dict = {2: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
-                                    3: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
-                                    4: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97]}
+                if method_list == [8]: 
+                    beta_p = {key_beta: None}
+                    decisiontree_constraint(dataset=dataset, method_list = [8], data_splits=data_splits, beta_p=beta_p, D=D, pareto = pareto, reuse_tau_0=reuse_tau_0)
+                if method_list == [7]:
+                    # For blsc dataset
+                    if dataset == 'blsc':
+                        threshold_dict = {2: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
+                                        3: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97], 
+                                        4: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97]}
 
-                # For ctmc dataset
-                if dataset == 'ctmc':
-                    threshold_dict = {2: [0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66, 0.68, 0.70, 0.72], 
-                                    3: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82], 
-                                    4: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82]}
-                
-            for threshold in threshold_dict[D]:
-                beta_p = {key_beta: threshold}
-                decisiontree_constraint(dataset=dataset, data_splits=data_splits, beta_p=beta_p, D=D, pareto = pareto)
+                    # For ctmc dataset
+                    if dataset == 'ctmc':
+                        threshold_dict = {2: [0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66, 0.68, 0.70, 0.72], 
+                                        3: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82], 
+                                        4: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82]}
+                    
+                    for threshold in threshold_dict[D]:
+                        beta_p = {key_beta: threshold}
+                        decisiontree_constraint(dataset=dataset, method_list = method_list, data_splits=data_splits, beta_p=beta_p, D=D, pareto = pareto, reuse_tau_0 = reuse_tau_0)
 
 
-decisiontree_run(pareto=False)
+# ============================== Tree-based classification, Full MIP and IDSA-PIP =======================
+dataset_list = ['wine', 'nwth', 'htds', 'dmtl', 'blsc', 'ctmc', 'ceva', 'fish']
+decisiontree_run(dataset_list = dataset_list, method_list = [1, 7], pareto = False, reuse_tau_0 = True)
+
+# ============================== Tree-based classification for pareto comparison, U-PIP =================
+decisiontree_run(dataset_list=['blsc', 'ctmc'], method_list = [8], pareto = True, reuse_tau_0 = True)
+
+# ============================== Tree-based classification for pareto comparison, C-PIP =================
+decisiontree_run(dataset_list=['blsc', 'ctmc'], method_list = [7], pareto = True, reuse_tau_0 = True)

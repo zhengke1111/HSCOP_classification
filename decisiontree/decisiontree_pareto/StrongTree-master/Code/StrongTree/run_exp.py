@@ -11,10 +11,10 @@ depths = [2, 3, 4]
 samples = [1, 2, 3, 4]
 _lambdas = [round(0.1 * k, 1) for k in range(10)]
 
-dataset = 'blsc'
+
 current_datetime = datetime.now()
 result_dir = os.getcwd() + '/decisiontree/decisiontree_pareto/StrongTree-master/Results'
-result_csv = f'{result_dir}/'+ f'{dataset}_' + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
+result_csv = f'{result_dir}/'+ f'results_' + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
 with open(result_csv, mode='a', newline='') as all_result:
     writer = csv.writer(all_result)
     writer.writerow(['dataset', 'depth', 'split', 'nrow', 'method', 'restricted_class', 'beta_p', 'lambda', 
@@ -24,11 +24,11 @@ with open(result_csv, mode='a', newline='') as all_result:
     
 
 # ===================================== BendersOCT (Train on training set, validate on validation set) =====================================================
-def validation(dataset, result_csv):
+def validation(dataset):
     for depth in depths:
         for sample in samples:
             for _lambda in _lambdas:
-                BendersOCTReplication.main(["-f", dataset +'.csv', "-o", result_csv, "-d", depth, "-t", 3600, "-l", _lambda, "-i", sample, "-c", 1, "-r", 0])
+                BendersOCTReplication.main(["-f", dataset +'.csv', "-o", dataset +'_validation.csv', "-d", depth, "-t", 3600, "-l", _lambda, "-i", sample, "-c", 1, "-r", 0])
     # Rename the result file as f'{dataset}_' + 'validation.csv'
 
 
@@ -87,5 +87,7 @@ def run_strongOCT(result_dir, dataset, method = 'BendersOCT'):
                 for precision in threshold_dict[depth]:
                     FlowOCTReplication.main(["-f", dataset +'.csv', "-o", result_csv, "-d", depth, "-t", 3600, "-l", tuned_lambda, "-i", sample, "-c", 0, "-p", precision, "-r", 0])
                     
-
-run_strongOCT(result_dir, dataset, 'FlowOCT')
+for dataset in ['blsc', 'ctmc']:
+    # validation(dataset)
+    run_strongOCT(result_dir, dataset, 'BendersOCT')
+    run_strongOCT(result_dir, dataset, 'FlowOCT')
