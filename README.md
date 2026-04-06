@@ -22,7 +22,23 @@ own valid license.
 ## Overview 
 The content of this repository is as follows:
 - `multiclass`  
-
+    - `dataset` includes the required six datasets
+    - `results` store the output results
+        - `our_results`: the original results files of what we present in article.  
+    - `algorithm.py`: Core algorithm class including
+      - `PIP` class: Solves one $\varepsilon$-approximation problem via the PIP-based $\varepsilon$-fixed algorithm, supporting two strategies: (1) solving one partial problem without PA‑decomposition in each iteration; (2) solving up to 4 randomly selected PA-decomposed partial problem in each iteration.
+      - `IterativeShrinkage` class: Solves the original problem by PIP-based $\varepsilon$-shrinkage algorithms. In each outer iteration, two strategies are adopted to solve $\varepsilon$-approximation subproblems: (1) Without PA-decomposition: directly solve the $\varepsilon$-approximation problem using the $\varepsilon$-fixed algorithm; (2) With PA-decomposition: first perform PA-decomposition, then randomly select up to 4 PA-decomposed partial problems, each solved individually via the $\varepsilon$-fixed algorithm.
+    - `callback.py`: callback mechanism for solving MIP problems built in `model.py`.
+    - `model.py`: Includes `Model` class for constructing and solving either partial or full $\varepsilon$-approximation problems: partial models are solved iteratively within the PIP algorithm, while the full problem is solved via the Full MIP method.
+    - `multi-class_pareto_run.py`: Trains classifiers (LogisticRegression, Linear SVM, Linear SVM_CS, Perceptron, Ridge Regression) in scikit-learn via cross-validation; results are saved to the `multi-class/results/multi-class_pareto_run` directory
+    - `multi-class_run.py`: Run this Python file to conduct experiments with precision-constrained multi-class classification algorithms. In `run_multi_class_classification_experiment()`, modify boolean values in `method` to select algorithms, adjust `start_sol` to set the initial solution, and tune `precision_threshold` to modify precision constraints. Select methods via:
+      - MIP: Full MIP approach
+      - F: $\varepsilon$-fixed 
+      - S: $\varepsilon$-shrinkage 
+      - F_Sim_A: $\varepsilon$-fixed arbitrary-1
+      - S_En_A_Out: $\varepsilon$-shrinkage arbitrary-1
+    - `parameter.py`: Centrally configures hyperparameters (e.g., gurobi settings, algorithm parameters), dataset paths and precomputed MIP warm start values.
+    - `utils.py`: utility file to store some commonly used functions in this project. 
 - `decisiontree`
 
     - `dataset` includes the required datasets

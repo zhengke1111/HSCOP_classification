@@ -1,0 +1,25 @@
+classifier,fold,train_accuracy,test_accuracy,fold_time_seconds,best_params,train_class_0_precision,test_class_0_precision,train_class_1_precision,test_class_1_precision,train_class_2_precision,test_class_2_precision
+LogisticRegression,1,0.837,0.845,4.292,"{'C': 0.1, 'max_iter': 5000, 'penalty': 'l1', 'solver': 'saga'}",1.0,0.0,0.851,0.854,0.603,0.682
+LogisticRegression,2,0.843,0.833,4.763,"{'C': 0.1, 'max_iter': 5000, 'penalty': 'l1', 'solver': 'saga'}",0.333,0.0,0.86,0.847,0.634,0.571
+LogisticRegression,3,0.847,0.838,3.838,"{'C': 0.1, 'max_iter': 5000, 'penalty': 'l1', 'solver': 'saga'}",0.333,0.0,0.853,0.855,0.737,0.593
+LogisticRegression,4,0.851,0.837,4.6,"{'C': 1, 'max_iter': 5000, 'penalty': 'l1', 'solver': 'saga'}",0.75,0.5,0.865,0.857,0.667,0.593
+LinearSVM,1,0.837,0.848,2.796,"{'C': 0.1, 'loss': 'squared_hinge', 'multi_class': 'ovr', 'penalty': 'l2'}",0.0,0.0,0.843,0.849,0.659,0.8
+LinearSVM,2,0.825,0.825,2.275,"{'C': 0.01, 'loss': 'hinge', 'multi_class': 'ovr', 'penalty': 'l2'}",0.0,0.0,0.825,0.825,0.0,0.0
+LinearSVM,3,0.839,0.825,2.585,"{'C': 0.1, 'loss': 'squared_hinge', 'multi_class': 'ovr', 'penalty': 'l2'}",0.0,0.0,0.841,0.839,0.758,0.467
+LinearSVM,4,0.839,0.832,1.682,"{'C': 0.1, 'loss': 'squared_hinge', 'multi_class': 'ovr', 'penalty': 'l2'}",0.0,0.0,0.845,0.832,0.69,0.8
+LinearSVM_CS,1,0.825,0.825,13.325,"{'C': 0.01, 'loss': 'squared_hinge'}",0.0,0.0,0.825,0.825,0.0,0.0
+LinearSVM_CS,2,0.825,0.825,14.963,"{'C': 0.01, 'loss': 'squared_hinge'}",0.0,0.0,0.825,0.825,0.0,0.0
+LinearSVM_CS,3,0.825,0.825,7.73,"{'C': 0.1, 'loss': 'squared_hinge'}",0.0,0.0,0.825,0.825,0.0,0.0
+LinearSVM_CS,4,0.825,0.825,6.964,"{'C': 0.01, 'loss': 'squared_hinge'}",0.0,0.0,0.825,0.825,0.0,0.0
+Perceptron,1,0.825,0.825,0.597,"{'alpha': 1, 'penalty': 'l2'}",0.0,0.0,0.825,0.825,0.0,0.0
+Perceptron,2,0.785,0.81,0.58,"{'alpha': 0.0001, 'penalty': 'l1'}",0.385,0.0,0.905,0.892,0.41,0.467
+Perceptron,3,0.807,0.8,0.58,"{'alpha': 0.0001, 'penalty': 'l1'}",0.105,0.0,0.878,0.877,0.472,0.438
+Perceptron,4,0.546,0.539,0.593,"{'alpha': 0.1, 'penalty': 'l1'}",0.037,0.024,0.926,0.921,0.0,0.0
+Ridge,1,0.829,0.843,0.236,{'alpha': 0.001},0.0,0.0,0.835,0.843,0.56,0.818
+Ridge,2,0.833,0.828,0.258,{'alpha': 10},0.0,0.0,0.838,0.832,0.655,0.571
+Ridge,3,0.829,0.828,0.178,{'alpha': 100},0.0,0.0,0.831,0.832,0.667,0.571
+Ridge,4,0.833,0.832,0.222,{'alpha': 10},0.0,0.0,0.837,0.832,0.655,0.8
+KNN,1,1.0,0.845,1.171,"{'n_neighbors': 7, 'p': 2, 'weights': 'distance'}",1.0,0.0,1.0,0.883,1.0,0.604
+KNN,2,1.0,0.855,1.129,"{'n_neighbors': 11, 'p': 2, 'weights': 'distance'}",1.0,0.0,1.0,0.88,1.0,0.643
+KNN,3,1.0,0.858,1.123,"{'n_neighbors': 7, 'p': 1, 'weights': 'distance'}",1.0,0.0,1.0,0.896,1.0,0.618
+KNN,4,1.0,0.882,1.121,"{'n_neighbors': 9, 'p': 1, 'weights': 'distance'}",1.0,0.0,1.0,0.892,1.0,0.795
