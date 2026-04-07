@@ -1,0 +1,23 @@
+Parameters for solving Multi-class classification on data set wine:
+{'data_set': 'wine',
+ 'epsilon': 1e-05,
+ 'method': {'Full MIP': True, 'IDSA-PIP': True, 'ISA-PIP': True, 'PIP': True},
+ 'model_param': {'FeasibilityTol': 1e-09,
+                 'IntegralityFocus': 1,
+                 'MIPFocus': 1,
+                 'NumericFocus': 0,
+                 'Seed': 42,
+                 'Threads': 4},
+ 'n_actual_samples': None,
+ 'n_splits': 4,
+ 'precision_thresholds': [{1: 0.85},
+                          {1: 0.85, 2: 0.65},
+                          {1: 0.9},
+                          {1: 0.9, 2: 0.65}],
+ 'sample_size': None}
+Algorithm parameters:
+{'iteration': {'max_iter': 10, 'unchanged_iter': 4},
+ 'ratio': {'base_ratio': 40,
+           'change_ratio': 10,
+           'max_ratio': 75,
+           'min_ratio': 30}}
