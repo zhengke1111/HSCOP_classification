@@ -20,7 +20,7 @@ def sample_data(data_set, sample_size=None):
     Load dataset and sample specified number of samples per class (stratified sampling)
 
     Args:
-        data_set (str): Name of dataset to load (e.g., 'red_wine', 'fish', 'vehicle')
+        data_set (str): Dataset name (e.g., 'wine', 'fish', 'vehi')
         sample_size (list/None): List of sample counts per class (None = use all samples)
 
     Returns:
@@ -29,17 +29,17 @@ def sample_data(data_set, sample_size=None):
             y_sampled (pd.DataFrame): Sampled label vector (single column 'Class')
     """
     # Map dataset name to file path
-    if data_set == 'red_wine':
+    if data_set == 'wine':
         data_path = RED_WINE_PATH
     elif data_set == 'fish':
         data_path = FISH_PATH
-    elif data_set == 'vehicle':
+    elif data_set == 'vehi':
         data_path = VEHICLE_PATH
-    elif data_set == 'robot_2':
+    elif data_set == 'robo':
         data_path = ROBOT_2_PATH
     elif data_set == 'wave':
         data_path = WAVE_PATH
-    elif data_set == 'segmentation':
+    elif data_set == 'segm':
         data_path = SEGMENTATION_PATH
     else:
         print(f"Error: Dataset '{data_set}' is not supported! Please add dataset information in parameter.py")
@@ -807,8 +807,8 @@ def write_single_result_partial_model(file, title, num_int, obj_value, execution
     Creates header row if file is empty, otherwise appends results to existing file.
 
     Args:
-        file_path (str): Path to output CSV file (absolute or relative).
-        experiment_title (str): Unique identifier for the experiment (e.g., "MIP").
+        file (str): Path to output CSV file (absolute or relative).
+        title (str): Unique identifier for the experiment (e.g., "MIP").
         num_int (int): Number of integer/binary variables in the model (for complexity tracking).
         obj_value (float/None): Optimized objective function value.
         execution_time (float/None): Total execution time in seconds.
@@ -840,14 +840,15 @@ def write_single_result_partial_model(file, title, num_int, obj_value, execution
 
 def write_single_integrated_result(integrated_csv, title, execution_time, model_time, final_improvement_time, obj_val,
                                    train_acc_margined, train_acc, train_precision, train_recall, test_acc_margined,
-                                   test_acc, test_precision, test_recall, precision_in_constr, opt_gap, num_kl, W, b):
+                                   test_acc, test_precision, test_recall, precision_in_constr, opt_gap, num_kl, W, b,
+                                   precision_threshold=None, fold=None):
     """
     Write integrated classification results (training + test metrics) to a CSV file for cross-method comparison.
-    Handles both MIP and PIP-based algorithm results with specialized time metric handling for MIP models.
+    Handles both Full MIP and PIP-based algorithm results with specialized time metric handling for Full MIP models.
 
     Args:
         integrated_csv (str): Path to integrated results CSV file (absolute or relative).
-        experiment_title (str): Unique experiment identifier (e.g., MIP).
+        title (str): Unique experiment identifier (e.g., 'Full MIP', 'PIP', 'ISA-PIP', 'IDSA-PIP').
         execution_time (float/None): Total algorithm execution time in seconds.
         model_time (float/None): Gurobi solver runtime in seconds.
         final_improvement_time (float/None): Time of last objective improvement for MIP models.
@@ -865,115 +866,88 @@ def write_single_integrated_result(integrated_csv, title, execution_time, model_
         num_kl (int/None): Number of piece combinations (None if not applicable).
         W (dict): Optimized weight dictionary (key = (class, feature), value = weight).
         b (dict): Optimized bias dictionary (key = class, value = bias).
+        precision_threshold (dict/None): Precision threshold for constrained classes.
+        fold(int): Fold number.
 
     Returns:
         None: Writes integrated results to CSV file and returns nothing.
     """
     fieldnames = [
-        'Experiment', 'execution_time', 'model_time', 'obj_value',
-        'train_accuracy', 'train_prec_constr', 'test_accuracy', 'test_prec_constr',
+        'Precision_threshold', 'Fold', 'method', 'obj', 'time',
+        'train_accuracy', 'test_accuracy',
         'train_precision', 'test_precision',
-        'train_acc_margined', 'test_acc_margined',
-        'train_recall', 'test_recall', 'precision_in_constr', 'gap', 'num_kl', 'W', 'b',
-        # 'violation_approximation', 'violation_feasible_tol',
+        'train_recall', 'test_recall',
     ]
-    if title == 'MIP':
-        # For MIP: use final improvement time as model time, solver time as execution time
-        model_time_ = np.round(final_improvement_time) if final_improvement_time is not None else None
-        execution_time_ = np.round(model_time) if model_time is not None else None
+    if title == 'Full MIP':
+        # For MIP: use final improvement time as time
+        time_ = np.round(final_improvement_time) if final_improvement_time is not None else None
     else:
-        # For PIP-based algorithms: use standard time metrics
-        model_time_ = np.round(model_time) if model_time is not None else None
-        execution_time_ = np.round(execution_time) if execution_time is not None else None
+        # For PIP-based algorithms: use model solver time
+        time_ = np.round(model_time) if model_time is not None else None
 
-    # Filter precision metrics to only constrained classes (if constraint precision exists)
-    if precision_in_constr is not None:
-        constr = precision_in_constr.keys()
-        train_prec_constr = {key: train_precision[key] for key in constr if key in train_precision}
-        test_prec_constr = {key: test_precision[key] for key in constr if key in test_precision}
-    else:
-        train_prec_constr = None
-        test_prec_constr = None
     with open(integrated_csv, mode='a', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         if f.tell() == 0:
             writer.writeheader()
         row = {
-            'Experiment': title,
-            'execution_time': execution_time_,
-            'obj_value': np.round(obj_val, 3) if obj_val is not None else None,
-            'model_time': model_time_,
+            'Precision_threshold': precision_threshold,
+            'Fold': fold,
+            'method': title,
+            'obj': np.round(obj_val, 3) if obj_val is not None else None,
+            'time': time_,
             'train_accuracy': np.round(train_acc, 3) if train_acc is not None else None,
             'test_accuracy': np.round(test_acc, 3) if test_acc is not None else None,
-            'train_prec_constr': train_prec_constr,
-            'test_prec_constr': test_prec_constr,
             'train_precision': train_precision if train_precision is not None else None,
             'test_precision': test_precision if test_precision is not None else None,
             'train_recall': train_recall if train_recall is not None else None,
             'test_recall': test_recall if test_recall is not None else None,
-            'train_acc_margined': np.round(train_acc_margined, 3) if train_acc_margined is not None else None,
-            'test_acc_margined': np.round(test_acc_margined, 3) if test_acc_margined is not None else None,
-            'precision_in_constr': precision_in_constr if precision_in_constr is not None else None,
-            'gap': np.round(opt_gap, 3) if opt_gap is not None else None,
-            'num_kl': num_kl,
-            'W': W,
-            'b': b,
-            # 'violation_approximation': violation_approx,
-            # 'violation_feasible_tol': violation_feasible_tol,
         }
         writer.writerow(row)
 
 def write_results(method: str, solution: Union[Model, PIP, IterativeShrinkage, list[PIP]], integrated_csv,
-                  X_test, y_test):
+                  X_test, y_test, precision_threshold=None, fold=None):
     """
     Dispatch function to write results for different classification methods to an integrated CSV file.
-    Supports MIP models and various PIP-based algorithms (PIP, IterativeShrinkage) with specialized handling
+    Supports Full MIP models and various PIP-based algorithms (PIP, IterativeShrinkage) with specialized handling
     for single vs iterative solutions.
 
     Supported methods:
-        - MIP: Mixed Integer Programming (MIP) approach
-        - F: epsilon-fixed approach
-        - S: epsilon-shrinkage approach
-        - F_Sim: Enhanced epsilon-fixed approach
-        - F_Sim_A: epsilon-fixed arbitrary-1 approach
-        - S_En_Out: Enhanced epsilon-shrinkage approach
-        - S_En_A_Out: epsilon-shrinkage arbitrary-1 approach
-        - S_En_In: Enhanced epsilon-shrinkage with inner updating
+        - 'Full MIP': Full MIP approach
+        - 'PIP': PIP approach
+        - 'ISA-PIP': ISA-PIP approach
+        - 'D4-PIP': D4-PIP approach
+        - 'D-PIP': D-PIP approach
+        - 'IDSA4-PIP': IDSA4-PIP approach
+        - 'IDSA-PIP': IDSA-PIP approach
 
     Args:
         method (str): Method identifier (see supported methods above).
-        solution (Union[Model, PIP, IterativeShrinkage, List[PIP]]): 
+        solution (Union[Model, PIP, IterativeShrinkage, List[PIP]]):
             Solution object(s) containing optimized weights/biases and metrics:
-            - Model: MIP model instance
+            - Model: Full MIP model instance
             - PIP/IterativeShrinkage: Single algorithm instance
             - List[PIP]: Multiple iterative PIP instances
         integrated_csv (str): Path to integrated results CSV file.
         X_test (pd.DataFrame/np.ndarray): Test set feature matrix (shape: n_samples × n_features).
         y_test (pd.DataFrame/np.ndarray): Test set label vector (shape: n_samples × 1).
+        precision_threshold (dict/None): Precision threshold for constrained classes.
+        fold(int): Fold number.
 
     Returns:
         None: Writes results to CSV file and returns nothing.
     """
-    if method == "MIP":
-        solution.write_integrated_results(integrated_csv, X_test, y_test)
-    elif method == "F":
-        # solution.write_results_single_model_alg(method)
-        solution.write_integrated_results(integrated_csv, method, X_test, y_test)
-    elif method == "S":
+    if method == "Full MIP":
+        solution.write_integrated_results(integrated_csv, X_test, y_test, precision_threshold=precision_threshold, fold=fold)
+    elif method == "PIP":
+        solution.write_integrated_results(integrated_csv, method, X_test, y_test, precision_threshold=precision_threshold, fold=fold)
+    elif method == "ISA-PIP":
         pip = solution[-1]
-        pip.write_integrated_results(integrated_csv, method, X_test, y_test)
-    elif method == "F_Sim":
-        # solution.write_results_multi_model_alg(X_test, y_test, method)
-        solution.write_integrated_results(integrated_csv, method, X_test, y_test)
-    elif method == "F_Sim_A":
-        # solution.write_results_single_model_alg(method)
-        solution.write_integrated_results(integrated_csv, method, X_test, y_test)
-    elif method == "S_En_Out":
-        # solution.write_results_multi_model_alg(X_test, y_test, method)
-        solution.write_integrated_results(integrated_csv, method, X_test, y_test)
-    elif method == "S_En_A_Out":
-        # solution.write_results_single_model_alg(method)
-        solution.write_integrated_results(integrated_csv, method, X_test, y_test)
-    elif method == "S_En_In":
-        # solution.write_results_single_model_alg(method)
-        solution.write_integrated_results(integrated_csv, method, X_test, y_test)
+        pip.write_integrated_results(integrated_csv, method, X_test, y_test, precision_threshold=precision_threshold, fold=fold)
+    elif method == "D4-PIP":
+        solution.write_integrated_results(integrated_csv, method, X_test, y_test, precision_threshold=precision_threshold, fold=fold)
+    elif method == "D-PIP":
+        solution.write_integrated_results(integrated_csv, method, X_test, y_test, precision_threshold=precision_threshold, fold=fold)
+    elif method == "IDSA4-PIP":
+        solution.write_integrated_results(integrated_csv, method, X_test, y_test, precision_threshold=precision_threshold, fold=fold)
+    elif method == "IDSA-PIP":
+        solution.write_integrated_results(integrated_csv, method, X_test, y_test, precision_threshold=precision_threshold, fold=fold)

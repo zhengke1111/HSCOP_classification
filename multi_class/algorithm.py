@@ -3,52 +3,25 @@ from typing import Dict, Optional
 from model import *
 
 class PIP:
-    """
-    PIP Algorithm Core Class
-    Solves classification optimization problems with precision constraints, supporting two iterative strategies:
-    - Fixed-piece: Uses pre-defined piece sets for iteration
-    - Arbitrary-piece (enhanced): Dynamically selects piece combinations during iteration
-
-    Attributes:
-        X_train (np.ndarray): Training feature matrix with shape (n_samples, n_features)
-        y_train (np.ndarray): Training label array with shape (n_samples,)
-        class_restrict (list): List of classes to impose precision constraints on
-        epsilon (float): Epsilon approximation parameter
-        beta (float): Lower bound threshold for precision constraints
-        ell (Optional[dict]): Fixed piece set (only for fixed-PA model; None for arbitrary strategies)
-        model_params (dict): Gurobi solver parameters
-        unchanged_iter (int): Max iterations with unchanged objective value (early stop trigger)
-        max_iter (int): Maximum number of main iterations for PIP algorithm
-        min_ratio (float): Minimum value for adaptive ratio update
-        max_ratio (float): Maximum value for adaptive ratio update
-        base_ratio (float): Initial adaptive ratio value
-        change_ratio (float): Step size for ratio adjustment
-        execution_time_list (list): Records execution time of each iteration
-        model_dict (Dict[int, Optional[Union[Model, Dict[int, Model]]]]): Stores solved models per iteration
-        algorithm_state (int): State flag (0=initial, 1=fixed-piece success, 2=arbitrary-4 success,
-                               3=arbitrary-1 success, negative=failed iteration)
-        alg_dir (str): Directory to save algorithm outputs (models, results)
-        output (dict): Final algorithm outputs (objective value, weights, biases, z variables)
-    """
-    def __init__(self, X_train, y_train, class_restrict, epsilon, beta, model_params, ell, algorithm_params, alg_dir):
+    """PIP algorithm: iteratively solves partial MIP with fixed or arbitrary piece selection."""
+    def __init__(self, X_train, y_train, class_restrict, epsilon, beta, model_params, ell, algorithm_params, alg_dir,
+                 save_log=False, console_log=False):
 
         """
-        Initialize PIP algorithm instance
+        Initialize PIP algorithm instance.
 
         Args:
-            X_train (np.ndarray): Training feature matrix
-            y_train (np.ndarray): Training label array
-            class_restrict (list): Classes to impose precision constraints on
-            epsilon (float): Epsilon approximation parameter
-            beta (dict): Lower bound for precision constraints
-            model_params (dict): Gurobi model parameters (e.g., TimeLimit, MIPGap)
-            ell (Optional[dict]): Fixed piece set (None for arbitrary-piece strategies)
-            algorithm_params (dict): PIP control parameters with structure:
-                {
-                    'iteration': {'unchanged_iter': int, 'max_iter': int},
-                    'ratio': {'min_ratio': float, 'max_ratio': float, 'base_ratio': float, 'change_ratio': float}
-                }
-            alg_dir (str): Directory path to save algorithm outputs
+            X_train: Training feature matrix
+            y_train: Training label array
+            class_restrict: Classes to impose precision constraints on
+            epsilon: Approximation parameter
+            beta: Precision constraint threshold per class
+            model_params: Gurobi solver parameters
+            ell: Fixed piece set (None for arbitrary-piece strategies)
+            algorithm_params: PIP control parameters:
+                {'iteration': {'unchanged_iter', 'max_iter'},
+                 'ratio': {'min_ratio', 'max_ratio', 'base_ratio', 'change_ratio'}}
+            alg_dir: Directory to save algorithm outputs
         """
         self.X_train = X_train
         self.y_train = y_train
@@ -75,7 +48,10 @@ class PIP:
         }
         self.algorithm_state = 0  # 0: initial, 1: fixed-piece success, 2: arbitrary-4 success, 3: arbitrary-1 success
         self.alg_dir = alg_dir
-        os.makedirs(self.alg_dir, exist_ok=True)  # Create directory if not exists
+        self.save_log = save_log
+        self.console_log = console_log
+        if self.save_log:
+            os.makedirs(self.alg_dir, exist_ok=True)  # Create directory if not exists
 
         # Initialize final output container
         self.output = {
@@ -88,22 +64,10 @@ class PIP:
 
     def ratio_update_rule(self, ratio, obj_val, obj_val_old, iter_unchanged):
         """
-        Adaptive ratio update rule based on objective value change
-
-        Adjusts the ratio parameter to balance exploration/exploitation:
-        - Increase ratio if objective value is unchanged (stagnation)
-        - Decrease ratio if objective value improves
-
-        Args:
-            ratio (float): Current ratio value
-            obj_val (float): Current iteration objective value
-            obj_val_old (float): Previous iteration objective value
-            iter_unchanged (int): Number of consecutive iterations with unchanged objective
+        Adaptive ratio update: increase ratio on stagnation, decrease on improvement.
 
         Returns:
-            tuple: (new_ratio, new_iter_unchanged)
-                - new_ratio: Updated ratio value (clamped to [min_ratio, max_ratio])
-                - new_iter_unchanged: Updated count of unchanged iterations
+            (new_ratio, new_iter_unchanged): updated ratio clamped to [min_ratio, max_ratio]
         """
         # Check if objective value is unchanged (within numerical tolerance)
         if -1e-5 <= obj_val - obj_val_old <= 1e-5:
@@ -115,24 +79,7 @@ class PIP:
         return new_ratio, iter_unchanged_new
 
     def formulate_and_solve_partial_model(self, model_dir, delta_1, delta_2, ell, iter_model_name, W_start, b_start):
-        """
-        Formulate and solve the partial optimization model (core subproblem)
-
-        Creates a Model instance for partial optimization, formulates the mathematical model
-        with initial values, and solves it using Gurobi solver.
-
-        Args:
-            model_dir (str): Directory to save the model file
-            delta_1 (dict): delta+ parameters for fixing variables
-            delta_2 (dict): delta- parameters for fixing variables
-            ell (dict): Piece set for the current subproblem
-            iter_model_name (str): Unique name for the iteration model
-            W_start (dict): Initial weight matrix for warm start
-            b_start (dict): Initial bias vector for warm start
-
-        Returns:
-            Model: Solved partial model instance with results (objVal, var_val, etc.)
-        """
+        """Build and solve a partial MIP model with given delta thresholds and piece set."""
         # Initialize partial model with problem parameters
         partial_model = Model(
             X=self.X_train,
@@ -146,7 +93,9 @@ class PIP:
             delta_minus=delta_2,
             model_params=self.model_params,
             model_dir=model_dir,
-            model_name=iter_model_name
+            model_name=iter_model_name,
+            save_log=self.save_log,
+            console_log=self.console_log
         )
 
         # Formulate the model with warm start values and solve
@@ -155,23 +104,7 @@ class PIP:
         return partial_model
 
     def iteration_process_fixed_piece(self, alg_name, iteration, start, ratio, W_start, b_start):
-        """
-        Iteration process for fixed-piece PIP algorithm
-
-        Calculates delta parameters, solves partial model with fixed piece set,
-        and records execution time.
-
-        Args:
-            alg_name (str): Algorithm name (for model naming)
-            iteration (int): Current iteration number
-            start (float): Start time of the iteration (time.time())
-            ratio (float): Current adaptive ratio value
-            W_start (dict): Initial weight matrix for warm start
-            b_start (dict): Initial bias vector for warm start
-
-        Returns:
-            Model: Solved partial model instance for fixed-piece iteration
-        """
+        """Fixed-piece iteration: compute delta, solve partial model, record time."""
         # Calculate delta+ and delta- parameters using fixed piece set
         delta_1, delta_2 = delta_of_J(
             self.X_train, self.y_train, W_start, b_start,
@@ -192,24 +125,7 @@ class PIP:
         return partial_model
 
     def iteration_process_enhanced_arbitrary_4(self, alg_name, iteration, start, ratio, W_start, b_start):
-        """
-        Iteration process for enhanced arbitrary-piece PIP algorithm (4 combinations)
-
-        Dynamically generates piece sets, filters them based on inner function values,
-        selects 4 random piece combinations, solves subproblems for each combination,
-        and tracks execution time for each subproblem.
-
-        Args:
-            alg_name (str): Algorithm name (for model naming)
-            iteration (int): Current iteration number
-            start (float): Start time of the iteration (time.time())
-            ratio (float): Current adaptive ratio value
-            W_start (dict): Initial weight matrix for warm start
-            b_start (dict): Initial bias vector for warm start
-
-        Returns:
-            Dict[int, Model]: Dictionary of solved partial models (subproblem index -> Model instance)
-        """
+        """Arbitrary-4 iteration: generate piece set, select 4 combinations, solve subproblems."""
         # Initialize storage for arbitrary-piece strategy if not exists
         if 'ell_comb_len_list' not in self.__dict__:
             self.__dict__['ell_comb_len_list'] = []  # Track piece combination lengths
@@ -265,7 +181,8 @@ class PIP:
             iter_model_name = alg_name + f"_iter_{iteration}" + f"_sub_prob_{sub_prob_counter}"
             # Create subdirectory for current iteration
             model_dir = os.path.join(self.alg_dir, f"iter_{iteration}")
-            os.makedirs(model_dir, exist_ok=True)
+            if self.save_log:
+                os.makedirs(model_dir, exist_ok=True)
 
             # Formulate and solve partial model for current piece combination
             partial_model = self.formulate_and_solve_partial_model(
@@ -284,23 +201,7 @@ class PIP:
         return model_dict
 
     def iteration_process_enhanced_arbitrary_1(self, alg_name, iteration, start, ratio, W_start, b_start):
-        """
-        Iteration process for enhanced arbitrary-piece PIP algorithm (1 combination)
-
-        Dynamically generates piece sets, selects 1 random piece per class,
-        solves the partial model, and records execution time.
-
-        Args:
-            alg_name (str): Algorithm name (for model naming)
-            iteration (int): Current iteration number
-            start (float): Start time of the iteration (time.time())
-            ratio (float): Current adaptive ratio value
-            W_start (dict): Initial weight matrix for warm start
-            b_start (dict): Initial bias vector for warm start
-
-        Returns:
-            Model: Solved partial model instance for arbitrary-piece iteration
-        """
+        """Arbitrary-1 iteration: generate piece set, select 1 random piece per class, solve."""
         # Initialize piece combination length tracker if not exists
         if 'ell_comb_len_list' not in self.__dict__:
             self.__dict__['ell_comb_len_list'] = []
@@ -340,18 +241,7 @@ class PIP:
         return partial_model
 
     def main_computation(self, iteration_process, alg_name, W, b):
-        """
-        Main iterative computation loop for PIP algorithm
-
-        Executes the core iteration process (fixed/arbitrary piece), updates adaptive ratio,
-        tracks convergence (unchanged objective value), and stores final results.
-
-        Args:
-            iteration_process (callable): Iteration process function (fixed/arbitrary)
-            alg_name (str): Algorithm name (for tracking)
-            W (dict): Initial weight matrix
-            b (dict): Initial bias vector
-        """
+        """Main PIP loop: iterate, update ratio, track convergence, store final output."""
         # Generate initial z and gamma variables for warm start
         z_plus_0_start, z_plus_start, z_minus_start = generate_z_start(
             self.X_train, self.y_train, W, b, self.epsilon, self.class_restrict, self.ell
@@ -481,19 +371,8 @@ class PIP:
                 self.output['z_minus'] = self.__dict__['z_minus_list'][-1]
 
 
-    def write_integrated_results(self, integrated_csv, alg_name, X_test, y_test):
-        """
-        Write integrated final results
-
-        Computes classification metrics (accuracy, precision, recall) for train/test sets,
-        checks precision constraint satisfaction, and writes all integrated results to CSV.
-
-        Args:
-            integrated_csv (str): Path to integrated results CSV file
-            alg_name (str): Algorithm name (for result labeling)
-            X_test (np.ndarray): Test feature matrix
-            y_test (np.ndarray): Test label array
-        """
+    def write_integrated_results(self, integrated_csv, alg_name, X_test, y_test, precision_threshold=None, fold=None):
+        """Compute train/test metrics and write results to CSV."""
         if self.algorithm_state >= 0:
             # Calculate precision in constraint (satisfaction check)
             constr_precision = precision_in_constraint(
@@ -540,7 +419,8 @@ class PIP:
                 test_acc=test_results['accuracy'],
                 test_precision=test_results['precision'], test_recall=test_results['recall'],
                 precision_in_constr=constr_precision, opt_gap=None, num_kl=num_kl,
-                W=self.output['W'], b=self.output['b']
+                W=self.output['W'], b=self.output['b'],
+                precision_threshold=precision_threshold, fold=fold
             )
         else:
             # Write failure message if algorithm failed
@@ -548,38 +428,21 @@ class PIP:
                 writer = csv.writer(f)
                 writer.writerow([alg_name, f'Failed in the {-self.algorithm_state + 1} iteration.'])
 
-
 class IterativeShrinkage:
-    """
-    Iterative Shrinkage Algorithm Class
-    Wraps the PIP algorithm to perform iterative shrinkage of the epsilon parameter,
-
-    Attributes:
-        X_train (np.ndarray): Training feature matrix
-        y_train (np.ndarray): Training label array
-        class_restrict (list): List of classes to impose precision constraints on
-        beta (dict): Lower bound threshold for precision constraints
-        model_params (dict): Gurobi solver parameters
-        max_outer_iter (int): Maximum number of outer shrinkage iterations (from config.SHRINKAGE_MAX_OUT_ITER)
-        pip_params (dict): PIP algorithm control parameters
-        alg_dir (str): Directory to save shrinkage algorithm outputs
-        execution_time_list (list): Records execution time of each outer iteration
-        pip_alg_dict (Dict[int, Optional[Union[PIP, Dict[int, PIP]]]]): Stores PIP instances per outer iteration
-        algorithm_state (int): State flag (0=initial, positive=success, negative=failed iteration)
-        output (dict): Final algorithm outputs (objective value, weights, biases, z variables)
-    """
-    def __init__(self, X_train, y_train, class_restrict, beta, model_params, pip_params, alg_dir):
+    """Iterative Shrinkage: wraps PIP with progressively shrinking epsilon across outer iterations."""
+    def __init__(self, X_train, y_train, class_restrict, beta, model_params, pip_params, alg_dir,
+                 save_log=False, console_log=False):
         """
-        Initialize Iterative Shrinkage algorithm instance
+        Initialize IterativeShrinkage instance.
 
         Args:
-            X_train (np.ndarray): Training feature matrix
-            y_train (np.ndarray): Training label array
-            class_restrict (list): Classes to impose precision constraints on
-            beta (float): Lower bound for precision constraints
-            model_params (dict): Gurobi model parameters
-            pip_params (dict): PIP algorithm control parameters (passed to PIP class)
-            alg_dir (str): Directory path to save shrinkage algorithm outputs
+            X_train: Training feature matrix
+            y_train: Training label array
+            class_restrict: Classes to impose precision constraints on
+            beta: Precision constraint thresholds per class
+            model_params: Gurobi solver parameters
+            pip_params: PIP control parameters (passed to inner PIP instances)
+            alg_dir: Directory to save outputs
         """
         self.X_train = X_train
         self.y_train = y_train
@@ -591,6 +454,8 @@ class IterativeShrinkage:
         self.max_outer_iter = SHRINKAGE_MAX_OUT_ITER
         self.pip_params = pip_params
         self.alg_dir = alg_dir
+        self.save_log = save_log
+        self.console_log = console_log
 
         # Initialize runtime tracking and PIP instance storage
         self.execution_time_list = []
@@ -609,23 +474,7 @@ class IterativeShrinkage:
         }
 
     def iteration_process_enhanced_arbitrary_4(self, alg_name, epsilon, iteration, start, W_start, b_start):
-        """
-        Outer iteration process for enhanced arbitrary-piece (4 combinations) shrinkage
-
-        Creates PIP instance for current epsilon value, runs PIP main computation,
-        and tracks piece combination lengths and solution variables.
-
-        Args:
-            alg_name (str): Algorithm name (for PIP naming)
-            epsilon (list): Epsilon values for each outer iteration
-            iteration (int): Current outer iteration number
-            start (float): Start time of the outer iteration (time.time())
-            W_start (dict): Initial weight matrix for PIP warm start
-            b_start (dict): Initial bias vector for PIP warm start
-
-        Returns:
-            Dict[int, PIP]: Dictionary of PIP instances (subproblem index -> PIP instance)
-        """
+        """Outer iteration: generate piece set, select 4 combinations, run PIP on each."""
         # Initialize storage for shrinkage strategy if not exists
         if 'ell_comb_len_list' not in self.__dict__:
             self.__dict__['ell_comb_len_list'] = []
@@ -659,7 +508,8 @@ class IterativeShrinkage:
             # Initialize PIP instance for current piece combination and epsilon
             pip = PIP(
                 self.X_train, self.y_train, self.class_restrict, epsilon[iteration], self.beta,
-                self.model_params, ell, self.pip_params, pip_alg_dir
+                self.model_params, ell, self.pip_params, pip_alg_dir,
+                self.save_log, self.console_log
             )
 
             # Run PIP main computation with fixed-piece strategy
@@ -676,23 +526,7 @@ class IterativeShrinkage:
         return pip_dict
 
     def iteration_process_enhanced_arbitrary_1(self, alg_name, epsilon, iteration, start, W_start, b_start):
-        """
-        Outer iteration process for enhanced arbitrary-piece (1 random combination) shrinkage
-
-        Generates a single random piece combination, initializes a PIP instance with this combination,
-        runs fixed-piece PIP computation, and tracks execution time and piece combination metrics.
-
-        Args:
-            alg_name (str): Base algorithm name (for PIP instance naming)
-            epsilon (list): Epsilon values for each outer iteration (shrinks each iteration)
-            iteration (int): Current outer iteration number (0-indexed)
-            start (float): Start time of the outer iteration (time.time() timestamp)
-            W_start (dict): Initial weight matrix for PIP warm start
-            b_start (dict): Initial bias vector for PIP warm start
-
-        Returns:
-            PIP: Executed PIP instance with results for the random piece combination
-        """
+        """Outer iteration: select 1 random piece combination, run PIP."""
         # Initialize piece combination length tracker if not exists
         if 'ell_comb_len_list' not in self.__dict__:
             self.__dict__['ell_comb_len_list'] = []
@@ -717,7 +551,8 @@ class IterativeShrinkage:
         # Initialize PIP instance with random piece combination and current epsilon
         pip = PIP(
             self.X_train, self.y_train, self.class_restrict, epsilon[iteration], self.beta,
-            self.model_params, ell, self.pip_params, pip_alg_dir
+            self.model_params, ell, self.pip_params, pip_alg_dir,
+            self.save_log, self.console_log
         )
 
         # Create unique PIP algorithm name with outer iteration identifier
@@ -730,70 +565,8 @@ class IterativeShrinkage:
         self.execution_time_list.append(time.time() - start)
         return pip
 
-    def iteration_process_enhanced_inner_update(self, alg_name, epsilon, iteration, start, W_start, b_start):
-        """
-        Outer iteration process for enhanced inner-update shrinkage
-
-        Initializes a PIP instance with NO predefined piece configuration (ell=None),
-        runs PIP computation with the enhanced arbitrary-4 piece strategy, and tracks execution time.
-        This strategy lets PIP dynamically determine piece combinations internally.
-
-        Args:
-            alg_name (str): Base algorithm name (for PIP instance naming)
-            epsilon (list): Epsilon values for each outer iteration (shrinks each iteration)
-            iteration (int): Current outer iteration number (0-indexed)
-            start (float): Start time of the outer iteration (time.time() timestamp)
-            W_start (dict): Initial weight matrix for PIP warm start
-            b_start (dict): Initial bias vector for PIP warm start
-
-        Returns:
-            PIP: Executed PIP instance with results from inner arbitrary-4 piece strategy
-        """
-        # Create directory for current outer iteration's PIP outputs
-        pip_alg_dir = os.path.join(self.alg_dir, f"outer_iteration_{iteration}")
-
-        # Initialize PIP instance with NO predefined piece configuration (ell=None)
-        pip = PIP(
-            self.X_train, self.y_train, self.class_restrict, epsilon[iteration], self.beta,
-            self.model_params, None, self.pip_params, pip_alg_dir
-        )
-
-        # Create unique PIP algorithm name with outer iteration identifier
-        pip_alg_name = alg_name + f"_outer_iter_{iteration}"
-
-        # Run PIP main computation with enhanced arbitrary-4 piece strategy
-        pip.main_computation(pip.iteration_process_enhanced_arbitrary_4, pip_alg_name, W_start, b_start)
-
-        # Record total execution time for current outer iteration
-        self.execution_time_list.append(time.time() - start)
-        return pip
-
     def main_computation(self, iteration_process, alg_name, W, b):
-        """
-        Main outer iteration driver for the Iterative Shrinkage algorithm
-
-        Orchestrates the complete shrinkage process:
-        1. Generates epsilon sequence (progressively shrinking values)
-        2. Iterates through outer shrinkage iterations with specified strategy
-        3. Processes PIP results (single/multi-subproblem)
-        4. Selects optimal solutions and updates warm-start parameters
-        5. Sets final output based on algorithm state and strategy type
-
-        Args:
-            iteration_process (callable): Outer iteration strategy to execute
-                - self.iteration_process_enhanced_arbitrary_4
-                - self.iteration_process_enhanced_arbitrary_1
-                - self.iteration_process_enhanced_inner_update
-            alg_name (str): Base algorithm name for result labeling
-            W (dict): Initial weight matrix for outer iteration warm start
-            b (dict): Initial bias vector for outer iteration warm start
-
-        State Codes (self.algorithm_state):
-            1: Enhanced outer update (multi-subproblem arbitrary-4)
-            2: Enhanced outer update (single-subproblem arbitrary-1)
-            3: Inner update (no predefined pieces)
-            Negative values: Failed iteration (value = -failed_iteration - 1)
-        """
+        """Main outer loop: generate shrinking epsilon sequence, iterate, update warm start."""
         # Generate epsilon sequence (progressively shrinks each iteration)
         epsilon = generate_epsilon(self.max_outer_iter)
 
@@ -901,31 +674,8 @@ class IterativeShrinkage:
                 self.output['z_plus'] = self.__dict__['z_plus_list'][-1]
                 self.output['z_minus'] = self.__dict__['z_minus_list'][-1]
 
-    def write_integrated_results(self, integrated_csv, alg_name, X_test, y_test):
-        """
-        Write integrated shrinkage algorithm results to CSV file
-
-        Aggregates and writes comprehensive results including:
-        - Execution time metrics (total runtime, model solve time)
-        - Classification metrics (train/test accuracy, precision, recall)
-        - Precision constraint compliance
-        - Learned model parameters (weights, biases)
-
-        Args:
-            integrated_csv (str): Path to output CSV file for integrated results
-            alg_name (str): Algorithm name for result labeling in CSV
-            X_test (np.ndarray): Test feature matrix (shape: n_test_samples × n_features)
-            y_test (np.ndarray): Test label array (shape: n_test_samples × 1)
-
-        Metrics Included:
-            - Execution time: Total outer iteration runtime
-            - Model time: Aggregated solver runtime from all PIP instances
-            - Objective value: Final optimization objective value
-            - Train/test metrics: acc_margined, accuracy, precision, recall
-            - Precision constraint compliance: How well precision constraints are satisfied
-            - num_kl: Piece combination length (only for arbitrary piece strategies)
-            - Model parameters: W (weights), b (biases)
-        """
+    def write_integrated_results(self, integrated_csv, alg_name, X_test, y_test, precision_threshold=None, fold=None):
+        """Compute train/test metrics and write results to CSV."""
         # Write complete results for successful execution
         if self.algorithm_state >= 0:
             # Calculate precision constraint compliance (training set)
@@ -982,7 +732,8 @@ class IterativeShrinkage:
                 opt_gap=None,
                 num_kl=num_kl,
                 W=self.output['W'],
-                b=self.output['b']
+                b=self.output['b'],
+                precision_threshold=precision_threshold, fold=fold
             )
         # Write failure information for unsuccessful execution
         else:

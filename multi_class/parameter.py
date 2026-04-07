@@ -459,10 +459,10 @@ GRASS        330
 """
 
 MIP_START_SOL = {
-    'red_wine': RED_WINE_MIP_START,
+    'wine': RED_WINE_MIP_START,
     'fish': FISH_MIP_START,
-    'robot_2': ROBOT_2_MIP_START,
-    'segmentation': SEGMENTATION_MIP_START,
-    'vehicle': VEHICLE_MIP_START,
+    'robo': ROBOT_2_MIP_START,
+    'segm': SEGMENTATION_MIP_START,
+    'vehi': VEHICLE_MIP_START,
     'wave': WAVE_MIP_START,
 }

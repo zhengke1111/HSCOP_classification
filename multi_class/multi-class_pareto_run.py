@@ -211,7 +211,7 @@ def run_sklearn_classifiers(param):
 
 
 def multi_class_pareto_run():
-    for data_set in ['red_wine', 'fish', 'robot_2', 'segmentation', 'vehicle', 'wave']:
+    for data_set in ['wine', 'fish', 'robo', 'segm', 'vehi', 'wave']:
         param = {'data_set': data_set, 'sample_size': None, 'n_splits': 4, 'folds': None}
         run_sklearn_classifiers(param)
 

@@ -1,7 +1,7 @@
 # HSCOP_classification
 Source code of HSCOP classification.
 
-This project consists of two parts: score-based multi-class classification and tree-based classification. 
+This project consists of two parts: score-based multi-class classification and tree-based classification.
 
 ## Requirements
 - Python 3.11 (Except `decisiontree/decisiontree_pareto/binoct-master/run_exp.py`, which needs Python 3.10 to support the `cplex` version)
@@ -19,26 +19,27 @@ export LD_LIBRARY_PATH="/home/zhengke/anaconda3/envs/python3.10/lib:$LD_LIBRARY_
 To run the optimization code, you need to install Gurobi and activate your
 own valid license.
 
-## Overview 
+## Overview
 The content of this repository is as follows:
-- `multiclass`  
-    - `dataset` includes the required six datasets
-    - `results` store the output results
-        - `our_results`: the original results files of what we present in article.  
-    - `algorithm.py`: Core algorithm class including
-      - `PIP` class: Solves one $\varepsilon$-approximation problem via the PIP-based $\varepsilon$-fixed algorithm, supporting two strategies: (1) solving one partial problem without PA‑decomposition in each iteration; (2) solving up to 4 randomly selected PA-decomposed partial problem in each iteration.
-      - `IterativeShrinkage` class: Solves the original problem by PIP-based $\varepsilon$-shrinkage algorithms. In each outer iteration, two strategies are adopted to solve $\varepsilon$-approximation subproblems: (1) Without PA-decomposition: directly solve the $\varepsilon$-approximation problem using the $\varepsilon$-fixed algorithm; (2) With PA-decomposition: first perform PA-decomposition, then randomly select up to 4 PA-decomposed partial problems, each solved individually via the $\varepsilon$-fixed algorithm.
-    - `callback.py`: callback mechanism for solving MIP problems built in `model.py`.
-    - `model.py`: Includes `Model` class for constructing and solving either partial or full $\varepsilon$-approximation problems: partial models are solved iteratively within the PIP algorithm, while the full problem is solved via the Full MIP method.
-    - `multi-class_pareto_run.py`: Trains classifiers (LogisticRegression, Linear SVM, Linear SVM_CS, Perceptron, Ridge Regression) in scikit-learn via cross-validation; results are saved to the `multi-class/results/multi-class_pareto_run` directory
-    - `multi-class_run.py`: Run this Python file to conduct experiments with precision-constrained multi-class classification algorithms. In `run_multi_class_classification_experiment()`, modify boolean values in `method` to select algorithms, adjust `start_sol` to set the initial solution, and tune `precision_threshold` to modify precision constraints. Select methods via:
-      - MIP: Full MIP approach
-      - F: $\varepsilon$-fixed 
-      - S: $\varepsilon$-shrinkage 
-      - F_Sim_A: $\varepsilon$-fixed arbitrary-1
-      - S_En_A_Out: $\varepsilon$-shrinkage arbitrary-1
-    - `parameter.py`: Centrally configures hyperparameters (e.g., gurobi settings, algorithm parameters), dataset paths and precomputed MIP warm start values.
-    - `utils.py`: utility file to store some commonly used functions in this project. 
+- `multi_class`
+    - `dataset`: Six datasets used in experiments.
+    - `results`: Output results directory.
+        - `our_results/multi_class_run/{data_set}`: Experiment results organized by dataset, each containing:
+            - `parameters.txt`: Precision configurations for the dataset. Records hyperparameters (epsilon, method, model_param) and all precision_threshold combinations used in experiments.
+            - `multi_class_{data_set}_results.csv`: Experiment results presented in the main text.
+            - `{data_set}_{precision}_{timestamp}/`: (Optional) LogFile subdirectories per precision setting. Only present when `save_log=True` is enabled.
+    - `algorithm.py`: Core algorithm classes.
+        - `PIP`: Solves one $\varepsilon$-approximation problem via the PIP algorithm, supporting fixed-piece and arbitrary-piece selection strategies.
+        - `IterativeShrinkage`: Solves the original problem via iterative shrinkage algorithms:
+            - `ISA-PIP`: Iterative Shrinkage Algorithm
+            - `IDSA-PIP`: Iterative Shrinkage Algorithm with PA-decomposition
+    - `callback.py`: Gurobi callback for tracking optimality gap, improvement time, and early termination.
+    - `model.py`: `Model` class for constructing and solving full or partial $\varepsilon$-approximation MIP problems via Gurobi.
+    - `multi-class_run.py`: Main entry point. Configure datasets, algorithms, and precision thresholds in `run_multi_class_classification_experiment()`, then run this file. Available methods:
+        `Full MIP`, `PIP`, `ISA-PIP`, `IDSA-PIP`
+    - `multi-class_pareto_run.py`: Trains baseline classifiers (LogisticRegression, LinearSVM, Perceptron, Ridge) via cross-validation. Can be used to generate Pareto curves comparing baseline methods against our algorithms (results not included in main text).
+    - `parameter.py`: Centrally configures Gurobi parameters, algorithm hyperparameters, dataset paths, and precomputed MIP warm start values (`MIP_START_SOL`).
+    - `utils.py`: Data loading, big-M computation, metric calculations, and result writing utilities.
 - `decisiontree`
 
     - `dataset` includes the required datasets
@@ -79,7 +80,54 @@ The content of this repository is as follows:
 
     - `utils.py`: utility file to store some commonly used functions in this project. 
 
-## Usage 
+## Usage
+### Multi-class classification `multi_class`
+- `multi-class_run.py`: Main entry point. Run this script to execute experiments.
+
+    **Output structure per dataset:**
+    ```
+    results/our_results/multi_class_run/{data_set}/
+    ├── parameters.txt                      # Experiment configurations
+    ├── multi_class_{data_set}_results.csv  # Combined results CSV
+    └── {data_set}_{precision}_{timestamp}/ # Optional LogFile subdirectories (save_log=True only)
+    ```
+
+    **CSV columns:** `Precision_threshold, Fold, method, obj, time, train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall`
+
+    **Configuration in `run_multi_class_classification_experiment()`:**
+        - `dataset_list`: List of datasets to run. Available: `['wine', 'fish', 'robo', 'segm', 'vehi', 'wave']`
+        - `method`: Dictionary of algorithms to execute. Set to `True` to enable:
+            ```python
+            method = {'Full MIP': True, 'PIP': True, 'ISA-PIP': True, 'IDSA-PIP': True}
+            ```
+        - `precision_threshold`: Dictionary of precision configurations per dataset. Example:
+            ```python
+            precision_threshold = {
+                'wine': [{1: 0.85}, {1: 0.90}, {1: 0.85, 2: 0.65}, {1: 0.90, 2: 0.65}],
+                # ... other datasets
+            }
+            ```
+        - `n_splits`: Number of cross-validation folds (default: 4)
+        - `folds`: Specific folds to run (`None` = run all folds)
+        - `save_log`: Whether to save Gurobi log files (default: `False`)
+        - `console_log`: Whether to output Gurobi logs to console (default: `False`)
+
+    **Global parameters in `parameter.py`:**
+        - `EPSILON`: Approximation parameter (default: 1e-5) used in PIP
+        - `RHO`: Penalty coefficient for infeasibility
+        - `MODEL_PARAM`: Gurobi solver parameters
+        - `ALG_PARAM`: Algorithm control parameters (iteration limits, ratios, etc.)
+        - `SHRINKAGE_MAX_OUT_ITER`: Maximum outer iterations for shrinkage algorithms
+        - `MIP_START_SOL`: Precomputed warm start solutions per dataset
+
+    **Output path configuration:**
+        - Modify line 284 in `multi-class_run.py` to change results directory:
+            ```python
+            dataset_dir = f"results/our_results/multi_class_run/{data_set}"  # Default path
+            # Change to your custom path, e.g.:
+            # dataset_dir = f"my_results/{data_set}"
+            ```
+
 ### Tree-based classification `decisiontree`
 - `decisiontree_run.py`: run it to produce the results of `Full MIP`,   `IDSA-PIP`(`C-PIP`) and `U-PIP`.
 
