@@ -1,0 +1,13 @@
+dataset,depth,split,method,tau_0
+ctmc,2,1,U-PIP,5
+ctmc,2,2,U-PIP,4
+ctmc,2,3,U-PIP,6
+ctmc,2,4,U-PIP,5
+ctmc,3,1,U-PIP,3
+ctmc,3,2,U-PIP,7
+ctmc,3,3,U-PIP,3
+ctmc,3,4,U-PIP,6
+ctmc,4,1,U-PIP,9
+ctmc,4,2,U-PIP,7
+ctmc,4,3,U-PIP,9
+ctmc,4,4,U-PIP,3
