@@ -2,7 +2,7 @@ import gurobipy as grb
 import time
 import callback_data_tree
 
-def mip_tree_callback(model, where):
+def partial_model_callback(model, where):
     """ callback function for MIP including PIP and full_MIP(if necesary), mainly used to record the solver log and control terminating time
 
     Args:
@@ -68,7 +68,7 @@ def mip_tree_callback(model, where):
                     model.cbLazy(model._vars[i] <= 0)
 
 
-def full_mip_callback(model, where):
+def full_model_callback(model, where):
     """
     :param model: model well constructed before optimize()
     :param where: just call in this way: model.optimize(mip_callback)

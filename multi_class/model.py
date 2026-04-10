@@ -6,7 +6,9 @@ from parameter import *
 
 
 class Model:
-    """Gurobi MIP model for multi-class classification with precision constraints (full or partial)."""
+    """
+    Gurobi MIP model for multi-class classification with precision constraints (full or partial).
+    """
     def __init__(self, X, y, class_restrict, epsilon, beta, model_type, ell, delta_plus, delta_minus, model_params,
                  model_dir, model_name, save_log=False, console_log=False):
         """

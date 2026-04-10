@@ -8,7 +8,7 @@ import csv
 import os
 from collections import Counter
 import utils
-import MIP_tree_callback
+import callback
 import callback_data_tree
 
 def full_mip_tree(model, data, start, settings, stop_rule, file_path):
@@ -183,7 +183,7 @@ def full_mip_tree(model, data, start, settings, stop_rule, file_path):
 
     callback_data_tree.log_data=[]
     model._vars = model.getVars()
-    model.optimize(MIP_tree_callback.full_mip_callback)
+    model.optimize(callback.full_mip_callback)
     
     log_data_list = callback_data_tree.log_data
     log_df = pd.DataFrame(log_data_list)
