@@ -11,7 +11,7 @@ from . import Full_MIP_tree
 from . import callback_data_tree
 from . import utils
 from . import MIP_tree
-from . import PIP_tree_control_termination
-from . import PIP_tree_solve_partial_problem
+from . import algorithm
+from . import model
 from . import PIP_unconstrained_iterations_tree
 from . import PIP_unconstrained_single_iter_tree

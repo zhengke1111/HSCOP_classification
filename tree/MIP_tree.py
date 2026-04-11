@@ -1,5 +1,5 @@
 import utils
-import PIP_tree_control_termination as PIP_tree_control_termination
+from algorithm import *
 import Full_MIP_tree
 import callback_data_tree
 import numpy as np
@@ -151,7 +151,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         selected_piece = None
         settings['selected_piece'] = None
         start['objective_value'] = -np.inf
-        objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, start, settings, stop_rule, file_path)
+        objective_function_term, solution, counts_result, record_time = pip_tree_control_termination(model, data, start, settings, stop_rule, file_path)
         
 
     if method == 3:  # 'ISA-PIP'
@@ -170,7 +170,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         
         for iteration in range(max_outer_iter):
             file_path['shrinkage_iter'] = iteration
-            objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, iter_start, settings, stop_rule, file_path)
+            objective_function_term, solution, counts_result, record_time = pip_tree_control_termination(model, data, iter_start, settings, stop_rule, file_path)
             record_time_iteration.append(record_time)
             iter_start['objective_value'] = solution['objective_value']
             iter_start['a'], iter_start['b'], iter_start['c'] = solution['a'], solution['b'], solution['c']
@@ -186,7 +186,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         start['objective_value'] = -np.inf
-        objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, start, settings, stop_rule, file_path)
+        objective_function_term, solution, counts_result, record_time = pip_tree_control_termination(model, data, start, settings, stop_rule, file_path)
         multi_piece_list = counts_result['multi_piece_list']
 
 
@@ -201,7 +201,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         os.makedirs(result_sub3dir, exist_ok=True)
         file_path['result_sub3dir'] = result_sub3dir
         start['objective_value'] = -np.inf
-        objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, start, settings, stop_rule, file_path)
+        objective_function_term, solution, counts_result, record_time = pip_tree_control_termination(model, data, start, settings, stop_rule, file_path)
         
 
     if method == 6:  #  'IDSA4-PIP'
@@ -233,7 +233,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
                 piece_index += 1
                 file_path['piece_index'] = piece_index
                 settings['selected_piece'] = selected_piece
-                objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, iter_start, settings, stop_rule, file_path)
+                objective_function_term, solution, counts_result, record_time = pip_tree_control_termination(model, data, iter_start, settings, stop_rule, file_path)
                 record_time_piece.append(record_time)
                 if solution['objective_value'] >= max_objective:
                     max_objective = solution['objective_value']
@@ -268,7 +268,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
             time_end_generate_M = time.time()
             time_generate_M = time_end_generate_M - time_start_generate_M
             settings['selected_piece'] = selected_piece
-            objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_tree_control_termination(model, data, iter_start, settings, stop_rule, file_path)
+            objective_function_term, solution, counts_result, record_time = pip_tree_control_termination(model, data, iter_start, settings, stop_rule, file_path)
             record_time_iteration.append(record_time)
             iter_start['objective_value'] = solution['objective_value']
             iter_start['a'], iter_start['b'], iter_start['c'] = solution['a'], solution['b'], solution['c']
@@ -285,7 +285,7 @@ def mip_tree(model, data, start, settings, stop_rule, file_path):
         callback_data_tree.timelimit = 30
         start['objective_value'] = -np.inf
         epsilon, beta_p, settings['epsilon'], settings['beta_p'] = None, None, None, None
-        objective_function_term, solution, counts_result, record_time = PIP_tree_control_termination.pip_unconstrained_tree_control_termination(model, data, start, settings, stop_rule, file_path)
+        objective_function_term, solution, counts_result, record_time = pip_unconstrained_tree_control_termination(model, data, start, settings, stop_rule, file_path)
 
     train_result, test_result, train_constraint_gap, test_constraint_gap, test_train_gap = utils.train_test_results(X_train, y_train, X_test, y_test, solution, D, J, beta_p, class_restricted)
 

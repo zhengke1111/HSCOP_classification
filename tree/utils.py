@@ -8,6 +8,22 @@ import numpy as np
 import itertools
 import math
 
+def generate_epsilon(max_iter):
+    """
+    Generate a sequence of epsilon values for iterative shrinkage (decays exponentially).
+    Epsilon controls the relaxation of constraints during optimization.
+
+    Args:
+        max_iter (int): Total number of iterations for shrinkage.
+
+    Returns:
+        list: Sequence of epsilon values (length = max_iter).
+    """
+    epsilon_0 = 0.1
+    shrinkage_rate = 0.1
+    epsilon = [epsilon_0 * (shrinkage_rate ** (i - 1)) for i in range(1, max_iter + 1)]
+    return epsilon
+
 
 def ancestors(D):
     """
@@ -118,16 +134,16 @@ def calculate_gamma(X_train, y_train, a, b, c, D, selected_piece, beta_p, epsilo
     gamma = {}
     for s in range(N):
         for t in range(2**D):
-            z_plus_0_start[s, t] = heaviside_closed(0, min([sum(a[k][i]*X_train[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k][i]*X_train[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]]))
-            z_plus_start[s, t] = heaviside_closed(0, min([sum(a[k][i]*X_train[s][i] for i in range(p)) - b[k] for k in A_R[t]]+ [-sum(a[k][i]*X_train[s][i] for i in range(p)) + b[k] - epsilon for k in A_L[t]]))
+            z_plus_0_start[s, t] = heaviside_closed(0, min([sum(a[k, i]*X_train[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k, i]*X_train[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]]))
+            z_plus_start[s, t] = heaviside_closed(0, min([sum(a[k, i]*X_train[s][i] for i in range(p)) - b[k] for k in A_R[t]]+ [-sum(a[k, i]*X_train[s][i] for i in range(p)) + b[k] - epsilon for k in A_L[t]]))
             if selected_piece is None:
-                z_minus_start[s, t] = 1 - heaviside_open(0, min([sum(-a[k][i] * X_train[s][i] for i in range(p)) + b[k] for k in A_L[t]] + [sum(a[k][i] * X_train[s][i] for i in range(p)) - b[k] + epsilon for k in A_R[t]])) 
+                z_minus_start[s, t] = 1 - heaviside_open(0, min([sum(-a[k, i] * X_train[s][i] for i in range(p)) + b[k] for k in A_L[t]] + [sum(a[k, i] * X_train[s][i] for i in range(p)) - b[k] + epsilon for k in A_R[t]])) 
             else:
                 k = selected_piece[s][t]
                 if k in A_L[t]:
-                    z_minus_start[s, t] = 1 - heaviside_open(0, sum(-a[k][i] * X_train[s][i] for i in range(p)) + b[k]) 
+                    z_minus_start[s, t] = 1 - heaviside_open(0, sum(-a[k, i] * X_train[s][i] for i in range(p)) + b[k]) 
                 if k in A_R[t]:
-                    z_minus_start[s, t] = 1 - heaviside_open(0, sum(a[k][i] * X_train[s][i] for i in range(p)) - b[k] + epsilon)
+                    z_minus_start[s, t] = 1 - heaviside_open(0, sum(a[k, i] * X_train[s][i] for i in range(p)) - b[k] + epsilon)
     for j in class_restricted:
         class_true = heaviside_closed(0, sum(c[j,t]*z_plus_start[s, t] for s in range(N) for t in range(2**D)) - 1)
         gamma[j] = max(0, -(sum(c[j,t]*z_plus_start[s, t] for s in class_index[j] for t in range(2**D)) - beta_p[j]*sum(c[j,t]*(1-z_minus_start[s, t]) for s in range(N) for t in range(2**D))), 100*(1-class_true))
@@ -155,7 +171,7 @@ def calculate_z_plus_0(X_train, a, b, D):
    
     for s in range(N):
         for t in range(2**D):
-            z_plus_0_start[s, t] = heaviside_closed(0, min([sum(a[k][i]*X_train[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k][i]*X_train[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]]))
+            z_plus_0_start[s, t] = heaviside_closed(0, min([sum(a[k, i]*X_train[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k, i]*X_train[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]]))
             
     return z_plus_0_start
 
@@ -224,7 +240,7 @@ def calculate_delta(X_train, a, b, D, selected_piece, epsilon, base_rate):
     A_L, A_R = ancestors(D)
     for s in range(N):
         for t in range(2**D):
-            phi_plus_0 = min([sum(a[k][i]*X_train[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k][i]*X_train[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]])
+            phi_plus_0 = min([sum(a[k, i]*X_train[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k, i]*X_train[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]])
             if phi_plus_0 > 0:
                 value_ge[0].append(phi_plus_0)
             elif phi_plus_0 < 0:
@@ -237,7 +253,7 @@ def calculate_delta(X_train, a, b, D, selected_piece, epsilon, base_rate):
                 index_odd += 1
             
             if epsilon is not None:  # In unconstrained case, epsilon is None
-                phi_plus = min([sum(a[k][i]*X_train[s][i] for i in range(p)) - b[k] for k in A_R[t]]+[-sum(a[k][i]*X_train[s][i] for i in range(p)) + b[k] - epsilon for k in A_L[t]])
+                phi_plus = min([sum(a[k, i]*X_train[s][i] for i in range(p)) - b[k] for k in A_R[t]]+[-sum(a[k, i]*X_train[s][i] for i in range(p)) + b[k] - epsilon for k in A_L[t]])
                 if phi_plus > 0:
                     value_ge[1].append(phi_plus)
                 elif phi_plus < 0:
@@ -250,7 +266,7 @@ def calculate_delta(X_train, a, b, D, selected_piece, epsilon, base_rate):
                     index_odd += 1
                 
                 if selected_piece is None:
-                    underline_phi = max([sum(a[k][i] * X_train[s][i] for i in range(p)) - b[k] for k in A_L[t]] + [sum(-a[k][i] * X_train[s][i] for i in range(p)) + b[k] - epsilon for k in A_R[t]])
+                    underline_phi = max([sum(a[k, i] * X_train[s][i] for i in range(p)) - b[k] for k in A_L[t]] + [sum(-a[k, i] * X_train[s][i] for i in range(p)) + b[k] - epsilon for k in A_R[t]])
                     if underline_phi > 0:
                         value_ge[1].append(underline_phi)
                     elif underline_phi < 0:
@@ -264,9 +280,9 @@ def calculate_delta(X_train, a, b, D, selected_piece, epsilon, base_rate):
                 else:
                     k = selected_piece[s][t]
                     if k in A_L[t]:
-                        phi_minus = sum(-a[k][i] * X_train[s][i] for i in range(p)) + b[k]
+                        phi_minus = sum(-a[k, i] * X_train[s][i] for i in range(p)) + b[k]
                     if k in A_R[t]:
-                        phi_minus = sum(a[k][i] * X_train[s][i] for i in range(p)) - b[k] + epsilon
+                        phi_minus = sum(a[k, i] * X_train[s][i] for i in range(p)) - b[k] + epsilon
                     if -phi_minus > 0:
                         value_ge[1].append(-phi_minus)
                     elif -phi_minus < 0:
@@ -512,7 +528,8 @@ def train_decisiontree_model(X_train, y_train, max_depth):
     a_start = {}
     b_start = {}
     for k in range(2**D-1):
-        a_start[k] = np.zeros(feature_dim)
+        for f in range(feature_dim):
+            a_start[k, f] = 0
         b_start[k] = 0
     keys_c = [(j, t) for j in J for t in range(2**D)]
     c_start = {key: 0 for key in keys_c}
@@ -544,7 +561,7 @@ def train_decisiontree_model(X_train, y_train, max_depth):
                 else:
                     rng = np.random.default_rng(seed=42)
                     chosen_feature = rng.choice(available_features)
-                    a_start[k][chosen_feature] = -100
+                    a_start[k, feature_index] = -100
                     b_start[k] = 0
                     parent_features[i].add(chosen_feature)
             # Set a_start[k][arbitrary_feature] = -100 instead of 0, set b_start[k] = i to ensure \mathcal M is a singelton
@@ -562,7 +579,7 @@ def train_decisiontree_model(X_train, y_train, max_depth):
                 else:
                     rng = np.random.default_rng(seed=42)
                     chosen_feature = rng.choice(available_features)
-                    a_start[k][chosen_feature] = -100
+                    a_start[k, feature_index] = -100
                     b_start[k] = 0
                     parent_features[i].add(chosen_feature)
             # Set a_start[k][arbitrary_feature] = -100 instead of 0, set b_start[k] = i to ensure \mathcal M is a singelton
@@ -570,7 +587,7 @@ def train_decisiontree_model(X_train, y_train, max_depth):
             feature_index = tree_structure.feature[node_id]
             threshold = tree_structure.threshold[node_id]
             k = i
-            a_start[k][feature_index] = -100
+            a_start[k, feature_index] = -100
             b_start[k] = -100*threshold 
             parent_features[i].add(feature_index)
             # 100 * original a_start, b_start to ensure there exists \phi_plus_0 > 0 
@@ -612,12 +629,12 @@ def generate_M(X_train, a_start, b_start, D, epsilon, integer_rate, enhanced_siz
         M_set_index[s] = {}
         for t in range(2**D):
             M_set_index[s][t] = []
-            phi_max[s][t] = max([-sum(a_start[k][i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon for k in A_R[t]]+[sum(a_start[k][i]*X_train[s][i] for i in range(p)) - b_start[k] for k in A_L[t]])
+            phi_max[s][t] = max([-sum(a_start[k, i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon for k in A_R[t]]+[sum(a_start[k, i]*X_train[s][i] for i in range(p)) - b_start[k] for k in A_L[t]])
             for k in A_R[t]:
-                if phi_max[s][t] - (-sum(a_start[k][i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon) == 0:
+                if phi_max[s][t] - (-sum(a_start[k, i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon) == 0:
                     M_set_index[s][t].append(k)
             for k in A_L[t]:
-                if phi_max[s][t] - (sum(a_start[k][i]*X_train[s][i] for i in range(p)) - b_start[k]) == 0:
+                if phi_max[s][t] - (sum(a_start[k, i]*X_train[s][i] for i in range(p)) - b_start[k]) == 0:
                     M_set_index[s][t].append(k)
     selected_piece = generate_random_combination(X_train, a_start, b_start, D, epsilon)
     delta_1, delta_2 = calculate_delta(X_train=X_train, a=a_start, b=b_start, D=D, selected_piece=selected_piece, epsilon=epsilon, base_rate=integer_rate)
@@ -629,9 +646,9 @@ def generate_M(X_train, a_start, b_start, D, epsilon, integer_rate, enhanced_siz
                     M_set_index[s][t] = [rng.choice(M_set_index[s][t])]
                 else:
                     multi_piece += 1
-                    if multi_piece <= 2: # if multi_piece <= int(math.log2(enhanced_size)):
-                        M_set_index[s][t] = rng.choice(M_set_index[s][t], size=2, replace=False).tolist()
-                    if multi_piece > 2:  # if multi_piece >  int(math.log2(enhanced_size)):
+                    if multi_piece <= int(math.log2(enhanced_size)):
+                        M_set_index[s][t] = rng.choice(M_set_index[s][t], size=int(math.log2(enhanced_size)), replace=False).tolist()
+                    if multi_piece > int(math.log2(enhanced_size)):
                         M_set_index[s][t] = [rng.choice(M_set_index[s][t])]
     return M_set_index, multi_piece
 
@@ -710,19 +727,19 @@ def generate_random_combination(X_train, a_start, b_start, D, epsilon):
         selected_piece[s] = {}
         for t in range(2**D):
             M_set_index[s][t] = []
-            phi_max[s][t] = max([-sum(a_start[k][i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon for k in A_R[t]]+[sum(a_start[k][i]*X_train[s][i] for i in range(p)) - b_start[k] for k in A_L[t]])
+            phi_max[s][t] = max([-sum(a_start[k, i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon for k in A_R[t]]+[sum(a_start[k, i]*X_train[s][i] for i in range(p)) - b_start[k] for k in A_L[t]])
             for k in A_R[t]:
-                if phi_max[s][t] - (-sum(a_start[k][i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon) == 0:
+                if phi_max[s][t] - (-sum(a_start[k, i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon) == 0:
                     M_set_index[s][t].append(k)
             for k in A_L[t]:
-                if phi_max[s][t] - (sum(a_start[k][i]*X_train[s][i] for i in range(p)) - b_start[k]) == 0:
+                if phi_max[s][t] - (sum(a_start[k, i]*X_train[s][i] for i in range(p)) - b_start[k]) == 0:
                     M_set_index[s][t].append(k)
             rng = np.random.default_rng(seed=42)
             selected_piece[s][t] = rng.choice(M_set_index[s][t]) 
     return selected_piece
 
 
-def evaluate_tree(X, y, a, b, c, D): 
+def evaluate_tree(X, y, a, b, c, depth): 
     """
     Evaluate a decision tree solution on a dataset.
 
@@ -753,7 +770,7 @@ def evaluate_tree(X, y, a, b, c, D):
     J = list(set(y))
     N = X.shape[0]
     p = X.shape[1]
-    A_L, A_R = ancestors(D)
+    A_L, A_R = ancestors(depth)
     heaviside_sets = {}
     leaf_node = {}
     nm_accuracy = 0
@@ -765,19 +782,19 @@ def evaluate_tree(X, y, a, b, c, D):
     counts = {}
 
     for s in range(N):
-        for t in range(2**D):
+        for t in range(2**depth):
             if round(c[y[s],t],0) == 1:
-                nm_accuracy_margin += heaviside_closed(0, min([sum(a[k][i]*X[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k][i]*X[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]]))
+                nm_accuracy_margin += heaviside_closed(0, min([sum(a[k, i]*X[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k, i]*X[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]]))
     
     for s in range(N):
         heaviside_sets[s]={}
         leaf_node[s] = -1
-        for t in range(2**D):
+        for t in range(2**depth):
             heaviside_sets[s][t]=[]
             for k in A_R[t]:
-                heaviside_sets[s][t].append(heaviside_closed(0,sum(a[k][i]*X[s][i] for i in range(p))-b[k]))
+                heaviside_sets[s][t].append(heaviside_closed(0,sum(a[k, i]*X[s][i] for i in range(p))-b[k]))
             for k in A_L[t]:
-                heaviside_sets[s][t].append(heaviside_open(0,-sum(a[k][i]*X[s][i] for i in range(p))+b[k]))
+                heaviside_sets[s][t].append(heaviside_open(0,-sum(a[k, i]*X[s][i] for i in range(p))+b[k]))
             if math.prod(heaviside_sets[s][t]) == 1:
                 leaf_node[s] = t
 
