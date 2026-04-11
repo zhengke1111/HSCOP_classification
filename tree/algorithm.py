@@ -6,10 +6,11 @@ import numpy as np
 from typing import Dict, Optional, Union
 
 class PIP:
-    def __init__(self, X_train, y_train, depth, tau_0, class_restrict, epsilon, beta, model_params, ell, algorithm_params, alg_dir,
+    def __init__(self, X_train, y_train, dataset, depth, tau_0, class_restrict, epsilon, beta, model_params, ell, algorithm_params, alg_dir,
                  save_log=False, console_log=False):
         self.X_train = X_train
         self.y_train = y_train
+        self.dataset = dataset
         self.depth = depth
         self.tau_0 = tau_0
         self.class_restrict = class_restrict
@@ -23,9 +24,9 @@ class PIP:
         self.max_iter = algorithm_params['iteration']['max_iter']
 
         # Extract ratio update parameters
-        self.min_ratio = algorithm_params['ratio']['min_ratio']
         self.max_ratio = algorithm_params['ratio']['max_ratio']
-        self.base_ratio = algorithm_params['ratio']['base_ratio']
+        self.base_ratio = algorithm_params['ratio']['base_ratio'][self.depth][dataset]
+        self.min_ratio = self.base_ratio
         self.change_ratio = algorithm_params['ratio']['change_ratio']
 
         # Initialize runtime tracking and model storage
@@ -53,7 +54,7 @@ class PIP:
             new_ratio = min(ratio + self.change_ratio, self.max_ratio) 
             iter_unchanged_new = iter_unchanged + 1
         else:
-            integer_rate = max(ratio - self.change_ratio, self.min_ratio)
+            new_ratio = max(ratio - self.change_ratio, self.min_ratio)
             iter_unchanged_new = 0
         return new_ratio, iter_unchanged_new
 
@@ -264,11 +265,12 @@ class PIP:
 
 
 class IterativeShrinkage:
-    def __init__(self, X_train, y_train, depth, tau_0, class_restrict, beta, model_params, pip_params, alg_dir,
+    def __init__(self, X_train, y_train, dataset, depth, tau_0, class_restrict, beta, model_params, pip_params, alg_dir,
                  save_log=False, console_log=False):
 
         self.X_train = X_train
         self.y_train = y_train
+        self.dataset = dataset
         self.depth = depth
         self.tau_0 = tau_0
         self.class_restrict = class_restrict
@@ -322,7 +324,7 @@ class IterativeShrinkage:
 
             # Initialize PIP instance for current piece combination and epsilon
             pip = PIP(
-                self.X_train, self.y_train, self.class_restrict, epsilon[iteration], self.beta,
+                self.X_train, self.y_train, self.dataset, self.depth, self.tau_0, self.class_restrict, epsilon[iteration], self.beta,
                 self.model_params, ell, self.pip_params, pip_alg_dir,
                 self.save_log, self.console_log
             )
@@ -352,7 +354,7 @@ class IterativeShrinkage:
 
         # Initialize PIP instance with random piece combination and current epsilon
         pip = PIP(
-            self.X_train, self.y_train, self.class_restrict, epsilon[iteration], self.beta,
+            self.X_train, self.y_train, self.dataset, self.depth, self.tau_0, self.class_restrict, epsilon[iteration], self.beta,
             self.model_params, ell, self.pip_params, pip_alg_dir,
             self.save_log, self.console_log
         )

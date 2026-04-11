@@ -3,6 +3,7 @@ from algorithm import *
 from parameter import *
 from utils import *
 import pprint
+import copy
 
 
 # =========== Settings to Solve Multi-class Classification Problem with Precision Constraint ==========
@@ -11,7 +12,7 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
     # --------------------------
     # Inner Function: Solve TCC with specific algorithm
     # --------------------------
-    def run_algorithm(method, X_train, y_train, depth, tau_0, beta, epsilon, model_params, result_dir, a_start, b_start, c_start,
+    def run_algorithm(method, X_train, y_train, dataset, depth, tau_0, beta, epsilon, model_params, result_dir, a_start, b_start, c_start,
                       save_log=False, console_log=False):
         
         # Get class restrictions from beta parameters
@@ -29,7 +30,7 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
         # PIP
         elif method == "PIP":
             pip = PIP(
-                X_train, y_train, depth, tau_0, class_restrict, epsilon, beta,
+                X_train, y_train, dataset, depth, tau_0, class_restrict, epsilon, beta,
                 model_params, None, ALG_PARAM, result_dir,
                 save_log, console_log
             )
@@ -45,7 +46,7 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
             for iteration in range(max_out_iter):
                 pip_dir = os.path.join(result_dir, f'ISA-PIP_out_iter_{iteration}')
                 pip = PIP(
-                    X_train, y_train, depth, tau_0, class_restrict, epsilon_[iteration], beta,
+                    X_train, y_train, dataset, depth, tau_0, class_restrict, epsilon_[iteration], beta,
                     model_params, None, ALG_PARAM, pip_dir,
                     save_log, console_log
                 )
@@ -63,7 +64,7 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
         # D4-PIP: Use PA-decomposition in the basic PIP algorithm and select at most 4 arbitrary pieces in one iteration
         elif method == "D4-PIP":
             fixed_simplified = PIP(
-                X_train, y_train, depth, tau_0, class_restrict, epsilon, beta,
+                X_train, y_train, dataset, depth, tau_0, class_restrict, epsilon, beta,
                 model_params, None, ALG_PARAM, result_dir,
                 save_log, console_log
             )
@@ -76,7 +77,7 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
         # D-PIP: Use PA-decomposition in the basic PIP algorithm and select 1 arbitrary piece in one iteration
         elif method == "D-PIP":
             fixed_simplified_arbitrary = PIP(
-                X_train, y_train, depth, tau_0, class_restrict, epsilon, beta,
+                X_train, y_train, dataset, depth, tau_0, class_restrict, epsilon, beta,
                 model_params, None, ALG_PARAM, result_dir,
                 save_log, console_log
             )
@@ -89,7 +90,7 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
         # IDSA4-PIP: A variant of IDSA-PIP where at most 4 arbitrary pieces will be selected in one outer iteration
         elif method == "IDSA4-PIP":
             shrinkage_enhanced_outer = IterativeShrinkage(
-                X_train, y_train, depth, tau_0, class_restrict, beta, model_params,
+                X_train, y_train, dataset, depth, tau_0, class_restrict, beta, model_params,
                 ALG_PARAM, result_dir, save_log, console_log
             )
             shrinkage_enhanced_outer.main_computation(
@@ -101,7 +102,7 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
         # IDSA-PIP
         elif method == "IDSA-PIP":
             shrinkage_enhanced_arb_outer = IterativeShrinkage(
-                X_train, y_train, depth, tau_0, class_restrict, beta, model_params,
+                X_train, y_train, dataset, depth, tau_0, class_restrict, beta, model_params,
                 ALG_PARAM, result_dir, save_log, console_log
             )
             shrinkage_enhanced_arb_outer.main_computation(
@@ -124,18 +125,32 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
     epsilon = EPSILON  # Approximation parameter
     time_str = time.strftime('%y%m%d-%H%M%S')  # Timestamp for result directory
 
+    for run in range(1,5):
+        X_train = param['data_splits'][run]['X_train']
+        y_train = param['data_splits'][run]['y_train']
+        X_test = param['data_splits'][run]['X_test']
+        y_test = param['data_splits'][run]['y_test']
 
-def run_tree_experiment(pareto = False):
-    method_dict = {'Full MIP': True, 'IDSA-PIP': True, 'U-PIP': False}
-    method = None
-    depth_list = [2, 3, 4]
+        for method, state in param['method'].items():
+            if state is True:
+                start_sol_copy = copy.deepcopy(param['start_sol'][run])
+                result_dir = os.path.join(dataset_dir, f"{param['dataset']}_depth-{param['depth']}_run-{run}")
+                solution = run_algorithm(method, X_train, y_train, param['dataset'], param['depth'], param['tau_0'][run], param['beta'], epsilon, param['model_param'], 
+                                         result_dir, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
+                # write_results
+
+
     
 
+        
 
+def run_tree_experiment(method_dict, depth_list, pareto = False):
     
     for dataset in DATASET_LIST:
         dataset_dir = f"results/{dataset}"
         os.makedirs(dataset_dir, exist_ok=True)
+
+        dataset_results_csv = os.path.join(dataset_dir, f'tree_{dataset}_results.csv')
 
         for depth in depth_list:
             X, y = sample_data(dataset=dataset)
@@ -146,13 +161,34 @@ def run_tree_experiment(pareto = False):
             key_beta = min(most_common_classes).item()
             data_splits = {}
             initial_train = {}
+            start_sol = {}
+            start_sol_copy = {}
+            initial_train_results = {}
+            tau_0 = {}
             for run in range(1,5):
                 data_splits[run] = split_data(X, y, random_state = 42 + run)
                 X_train = data_splits[run]['X_train']
                 y_train = data_splits[run]['y_train']
-                initial_solution = train_decisiontree_model(X_train, y_train, max_depth = depth)
-                initial_train_results = evaluate_tree(X_train, y_train, initial_solution['a'], initial_solution['b'], initial_solution['c'], depth)
-                initial_train[run] = initial_train_results['frac']
+                start_sol[run] = train_decisiontree_model(X_train, y_train, max_depth = depth)
+                start_sol_copy[run] = copy.deepcopy(start_sol[run])
+                initial_train_results[run] = evaluate_tree(X_train, y_train, start_sol[run]['a'], start_sol[run]['b'], start_sol[run]['c'], depth)
+                initial_train[run] = initial_train_results[run]['frac']
+
+                p = X_train.shape[1]
+                if p>5:
+                    if REUSE_TAU_0 == False:                                            
+                        tau_lb = max(2,math.ceil(p/2)-3)                        # Upper bound: \lceil p/2 \rceil +3
+                        tau_ub = min(p,math.ceil(p/2)+3)                        # Lower bound: \lceil p/2 \rceil -3
+                        random.seed(42)                                         # Random seeds depend on the realtime timestamp
+                        tau_0[run] =  random.choice(range(tau_lb, tau_ub + 1))  # Randomly select \tau_0 \in [\lceil p/2 \rceil -3, \lceil p/2 \rceil +3]
+                        random.seed()
+                    else:
+                        df = pd.read_csv(f"tree/dataset/decisiontree_tau_0.csv")
+                        df["dataset"] = df["dataset"].astype(str)
+                        df["depth"]   = df["depth"].astype(int)
+                        df["split"]     = df["split"].astype(int)
+                        tau_map = df.set_index(["dataset", "depth", "split"])["tau_0"].to_dict()
+                        tau_0[run] = tau_map[(dataset, depth, run)]
             
             if pareto == False:
                 prec_values = [initial_train[run][f'prec{key_beta}'] for run in initial_train]
@@ -165,24 +201,48 @@ def run_tree_experiment(pareto = False):
                 else:
                     threshold = (np.ceil(max(prec_values)*100)/100).item()
 
-                beta_p = {key_beta: threshold}
-                # decisiontree_constraint(dataset=dataset, method_list = method_list, data_splits=data_splits, beta_p=beta_p, depth = depth, pareto = pareto, reuse_tau_0=reuse_tau_0)
+                beta = {key_beta: threshold}
+
+                param = {'dataset': dataset,
+                         'depth': depth,
+                         'tau_0': tau_0,
+                         'data_splits': data_splits,
+                         'method': method_dict,
+                         'start_sol': start_sol_copy,
+                         'model_param': MODEL_PARAM,
+                         'beta': beta,
+                         'save_log': False, 
+                         'console_log': True
+                         }
+                
+                solve_tree_classification_prob(param, dataset_results_csv, dataset_dir)
+
             
+
             # ========== Grid thresholds for pareto comparison ==========
-            if pareto == True:
-                if method == [8]: 
-                    beta_p = {key_beta: None}
-                    # decisiontree_constraint(dataset=dataset, method_list = [8], data_splits=data_splits, beta_p=beta_p, depth = depth, pareto = pareto, reuse_tau_0=reuse_tau_0)
-                if method == [7]:
-                    # For blsc dataset
-                    if dataset == 'blsc':
-                        threshold_dict = BLSC_THRESHOLD_GRID
+            # if pareto == True:
+            #     for method, state in method_dict.items():
+            #         if state is True: 
+            #             result_dir = f'{dataset_dir}/depth-{depth}_run-{run}_method-{method}'
+            #             if param['save_log']:
+            #                 os.makedirs(result_dir, exist_ok=True)  # Ensure directory exists
 
-                    # For ctmc dataset
-                    if dataset == 'ctmc':
-                        threshold_dict = CTMC_THRESHOLD_GRID
-                    
-                    for threshold in threshold_dict[depth]:
-                        beta_p = {key_beta: threshold}
-                        # decisiontree_constraint(dataset=dataset, method_list = method_list, data_splits=data_splits, beta_p=beta_p, depth = depth, pareto = pareto, reuse_tau_0 = reuse_tau_0)
+            #             if method == 'U-PIP':
+            #                 beta = {key_beta: None}
+                        
+            #             if method == 'IDSA-PIP':
+            #                 # For blsc dataset
+            #                 if param['dataset'] == 'blsc':
+            #                     threshold_dict = BLSC_THRESHOLD_GRID
+            #                 # For ctmc dataset
+            #                 if param['dataset'] == 'ctmc':
+            #                     threshold_dict = CTMC_THRESHOLD_GRID
+                            
+            #                 for threshold in threshold_dict[depth]:
+            #                     beta = {key_beta: threshold}
 
+
+
+method = {'Full MIP': True, 'IDSA-PIP': True, 'U-PIP': False}
+depth_list = [2, 3, 4]
+run_tree_experiment(method, depth_list, pareto = False)
