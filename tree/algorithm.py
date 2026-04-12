@@ -85,6 +85,33 @@ class PIP:
         partial_model.solve_model()
         return partial_model
     
+    def formulate_and_solve_unconstrained_partial_model(self, model_dir, delta_1, delta_2, iter_model_name, a_start, b_start, c_start):
+        """Build and solve a partial MIP model with given delta thresholds and piece set."""
+        # Initialize partial model with problem parameters
+        partial_model = Model(
+            X=self.X_train,
+            y=self.y_train,
+            depth=self.depth,
+            tau_0=self.tau_0,
+            class_restrict=self.class_restrict,
+            epsilon=self.epsilon,
+            beta=self.beta,
+            model_type='unconstrained_partial',
+            ell=None,
+            delta_plus=delta_1,
+            delta_minus=delta_2,
+            model_params=self.model_params,
+            model_dir=model_dir,
+            model_name=iter_model_name,
+            save_log=self.save_log,
+            console_log=self.console_log
+        )
+
+        # Formulate the model with warm start values and solve
+        partial_model.formulate_model(a_start, b_start, c_start)
+        partial_model.solve_model()
+        return partial_model
+    
     def iteration_process_fixed_piece(self, alg_name, iteration, start, ratio, a_start, b_start, c_start):
         delta_1, delta_2 = calculate_delta(self.X_train, a_start, b_start, self.depth, self.ell, self.epsilon, ratio)
 
@@ -147,6 +174,20 @@ class PIP:
 
         # Formulate and solve partial model
         partial_model = self.formulate_and_solve_partial_model(model_dir, delta_1, delta_2, ell, iter_model_name, a_start, b_start, c_start)
+
+        # Record iteration execution time
+        self.execution_time_list.append(time.time() - start)
+        return partial_model
+    
+    def iteration_process_unconstrained(self, alg_name, iteration, start, ratio, a_start, b_start, c_start):
+        delta_1, delta_2 = calculate_delta(self.X_train, a_start, b_start, self.depth, None, None, ratio)
+
+        # Define unique model name for current iteration
+        iter_model_name = alg_name + f"_iter_{iteration}"
+        model_dir = self.alg_dir
+
+        # Formulate and solve partial model
+        partial_model = self.formulate_and_solve_unconstrained_partial_model(model_dir, delta_1, delta_2, iter_model_name, a_start, b_start, c_start)
 
         # Record iteration execution time
         self.execution_time_list.append(time.time() - start)
@@ -258,6 +299,53 @@ class PIP:
                 self.output['a'] = self.__dict__['a_list'][-1]
                 self.output['b'] = self.__dict__['b_list'][-1]
                 self.output['c'] = self.__dict__['c_list'][-1]
+
+    def main_computation_unconstrained(self, iteration_process, alg_name, a, b, c):
+        z_plus_0_start = calculate_z_plus_0(self.X_train, a, b, self.depth)
+        L_start = calculate_L(self.X_train, self.y_train, c, self.depth, z_plus_0_start)
+        obj_val = (sum(L_t for L_t in L_start.values()) / self.X_train.shape[0])
+
+        a_start = a
+        b_start = b
+        c_start = c
+        iter_unchanged = 0  # Counter for consecutive unchanged iterations
+        ratio = self.base_ratio  # Initial adaptive ratio
+
+        for iteration in range(self.max_iter):
+            start = time.time()
+            obj_val_old = obj_val  # Store previous objective value
+
+            solution = iteration_process(alg_name, iteration, start, ratio, a_start, b_start, c_start)
+
+            if solution.model_state == 1:  # Check if model solved successfully
+                # Update objective value and warm start parameters
+                obj_val = solution.model.objVal
+                a_start = solution.var_val['a']
+                b_start = solution.var_val['b']
+                c_start = solution.var_val['c']
+
+                # Update adaptive ratio and unchanged iteration counter
+                ratio, iter_unchanged = self.ratio_update_rule(ratio, obj_val, obj_val_old, iter_unchanged)
+                self.model_dict[iteration] = solution
+            else:
+                # Mark algorithm as failed if model solving failed
+                self.algorithm_state = -iteration - 1
+                break
+
+            # Early stop if objective value unchanged for max allowed iterations
+            if iter_unchanged >= self.unchanged_iter:
+                self.max_iter = iteration + 1
+                break
+
+        if self.algorithm_state >= 0:
+            self.algorithm_state = 1  # fixed-piece success
+            final_model = self.model_dict[self.max_iter - 1]
+            self.output['obj_val'] = final_model.model.objVal
+            self.output['a'] = final_model.var_val['a']
+            self.output['b'] = final_model.var_val['b']
+            self.output['c'] = final_model.var_val['c']
+                
+            
                 
     def write_integrated_results(self, integrated_csv, alg_name, X_test, y_test, precision_threshold=None, fold=None):
         pass # TODO

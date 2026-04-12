@@ -7,7 +7,7 @@ import copy
 
 
 # =========== Settings to Solve Multi-class Classification Problem with Precision Constraint ==========
-def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
+def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir, pareto = False):
 
     # --------------------------
     # Inner Function: Solve TCC with specific algorithm
@@ -112,8 +112,13 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
             return shrinkage_enhanced_arb_outer
 
         elif method == "U-PIP":
-            pass # TODO 
-
+            unconstrained = PIP(
+                X_train, y_train, dataset, depth, tau_0, class_restrict, None, None,
+                model_params, None, ALG_PARAM, result_dir,
+                save_log, console_log
+            )
+            unconstrained.main_computation_unconstrained(unconstrained.iteration_process_unconstrained, method, a_start, b_start, c_start)
+            return unconstrained
         # Return None for unsupported methods
         return None
     
@@ -131,12 +136,28 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir):
         X_test = param['data_splits'][run]['X_test']
         y_test = param['data_splits'][run]['y_test']
 
-        for method, state in param['method'].items():
-            if state is True:
-                start_sol_copy = copy.deepcopy(param['start_sol'][run])
-                result_dir = os.path.join(dataset_dir, f"{param['dataset']}_depth-{param['depth']}_run-{run}")
-                solution = run_algorithm(method, X_train, y_train, param['dataset'], param['depth'], param['tau_0'][run], param['beta'], epsilon, param['model_param'], 
-                                         result_dir, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
+        if pareto == False:
+            for method, state in param['method'].items():
+                if state is True:
+                    start_sol_copy = copy.deepcopy(param['start_sol'][run])
+                    result_dir = os.path.join(dataset_dir, f"{param['dataset']}_depth-{param['depth']}_run-{run}")
+                    solution = run_algorithm(method, X_train, y_train, param['dataset'], param['depth'], param['tau_0'][run], param['beta'], epsilon, param['model_param'], 
+                                            result_dir, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
+                # write_results
+        else:
+            for method, state in param['method'].items():
+                if state is True:
+                    start_sol_copy = copy.deepcopy(param['start_sol'][run])
+                    result_dir = os.path.join(dataset_dir, f"{param['dataset']}_depth-{param['depth']}_run-{run}")
+                    if method == 'IDSA-PIP':
+                        for threshold in THRESHOLD_GRID[param['dataset']][param['depth']]:
+                            beta = {param['key_beta']: threshold}
+                            solution = run_algorithm(method, X_train, y_train, param['dataset'], param['depth'], param['tau_0'][run], beta, epsilon, param['model_param'], 
+                                                result_dir, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
+                    elif method == 'U-PIP':
+                        beta = {param['key_beta']: None}
+                        solution = run_algorithm(method, X_train, y_train, param['dataset'], param['depth'], param['tau_0'][run], beta, None, param['model_param'], 
+                                                result_dir, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
                 # write_results
 
 
@@ -183,12 +204,17 @@ def run_tree_experiment(method_dict, depth_list, pareto = False):
                         tau_0[run] =  random.choice(range(tau_lb, tau_ub + 1))  # Randomly select \tau_0 \in [\lceil p/2 \rceil -3, \lceil p/2 \rceil +3]
                         random.seed()
                     else:
-                        df = pd.read_csv(f"tree/dataset/decisiontree_tau_0.csv")
+                        if pareto == False:
+                            df = pd.read_csv(f"tree/dataset/decisiontree_tau_0.csv")
+                        else:
+                            df = pd.read_csv(f"tree/dataset/decisiontree_pareto_tau_0.csv")
                         df["dataset"] = df["dataset"].astype(str)
                         df["depth"]   = df["depth"].astype(int)
                         df["split"]     = df["split"].astype(int)
                         tau_map = df.set_index(["dataset", "depth", "split"])["tau_0"].to_dict()
                         tau_0[run] = tau_map[(dataset, depth, run)]
+                else:
+                    tau_0[run] = None
             
             if pareto == False:
                 prec_values = [initial_train[run][f'prec{key_beta}'] for run in initial_train]
@@ -215,34 +241,28 @@ def run_tree_experiment(method_dict, depth_list, pareto = False):
                          'console_log': True
                          }
                 
-                solve_tree_classification_prob(param, dataset_results_csv, dataset_dir)
+                solve_tree_classification_prob(param, dataset_results_csv, dataset_dir, pareto)
 
             
-
             # ========== Grid thresholds for pareto comparison ==========
-            # if pareto == True:
-            #     for method, state in method_dict.items():
-            #         if state is True: 
-            #             result_dir = f'{dataset_dir}/depth-{depth}_run-{run}_method-{method}'
-            #             if param['save_log']:
-            #                 os.makedirs(result_dir, exist_ok=True)  # Ensure directory exists
-
-            #             if method == 'U-PIP':
-            #                 beta = {key_beta: None}
-                        
-            #             if method == 'IDSA-PIP':
-            #                 # For blsc dataset
-            #                 if param['dataset'] == 'blsc':
-            #                     threshold_dict = BLSC_THRESHOLD_GRID
-            #                 # For ctmc dataset
-            #                 if param['dataset'] == 'ctmc':
-            #                     threshold_dict = CTMC_THRESHOLD_GRID
-                            
-            #                 for threshold in threshold_dict[depth]:
-            #                     beta = {key_beta: threshold}
+            if pareto == True:
+                param = {'dataset': dataset,
+                    'depth': depth,
+                    'tau_0': tau_0,
+                    'data_splits': data_splits,
+                    'method': method_dict,
+                    'start_sol': start_sol_copy,
+                    'model_param': MODEL_PARAM,
+                    'key_beta': key_beta,
+                    'threshold': THRESHOLD_GRID[dataset],
+                    'save_log': False, 
+                    'console_log': True
+                    }
+        
+                solve_tree_classification_prob(param, dataset_results_csv, dataset_dir, pareto)
 
 
 
-method = {'Full MIP': True, 'IDSA-PIP': True, 'U-PIP': False}
+method = {'Full MIP': False, 'IDSA-PIP': False, 'U-PIP': True}
 depth_list = [2, 3, 4]
-run_tree_experiment(method, depth_list, pareto = False)
+run_tree_experiment(method, depth_list, pareto = True)
