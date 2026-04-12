@@ -141,24 +141,61 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir, pare
                 if state is True:
                     start_sol_copy = copy.deepcopy(param['start_sol'][run])
                     result_dir = os.path.join(dataset_dir, f"{param['dataset']}_depth-{param['depth']}_run-{run}")
+                    result_dir_method = os.path.join(result_dir, f"{method}")
+                    if param['save_log']:
+                        os.makedirs(result_dir, exist_ok=True)
+                        os.makedirs(result_dir_method, exist_ok=True)
+                    
                     solution = run_algorithm(method, X_train, y_train, param['dataset'], param['depth'], param['tau_0'][run], param['beta'], epsilon, param['model_param'], 
-                                            result_dir, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
-                # write_results
+                                            result_dir_method, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
+                    
+                    if method == 'Full MIP':
+                        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, dataset=param['dataset'], split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
+                    
+                    if method == 'PIP':
+                        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
+                    
+                    if method == 'ISA-PIP':
+                        pip = solution[-1]
+                        pip.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
+
+                    if method == 'D4-PIP':
+                        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
+
+                    if method == 'D-PIP':
+                        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
+
+                    if method == 'IDSA4-PIP':
+                        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
+
+                    if method == 'IDSA-PIP':
+                        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
+
         else:
             for method, state in param['method'].items():
                 if state is True:
                     start_sol_copy = copy.deepcopy(param['start_sol'][run])
                     result_dir = os.path.join(dataset_dir, f"{param['dataset']}_depth-{param['depth']}_run-{run}")
+                    result_dir_method = os.path.join(result_dir, f"{method}")
+                    if param['save_log']:
+                        os.makedirs(result_dir, exist_ok=True)
+                        os.makedirs(result_dir_method, exist_ok=True)
+
                     if method == 'IDSA-PIP':
                         for threshold in THRESHOLD_GRID[param['dataset']][param['depth']]:
                             beta = {param['key_beta']: threshold}
+                            threshold_str = str(np.round(threshold, 2))
+                            result_dir_method_beta = os.path.join(result_dir_method, f'beta-{threshold_str}')
                             solution = run_algorithm(method, X_train, y_train, param['dataset'], param['depth'], param['tau_0'][run], beta, epsilon, param['model_param'], 
-                                                result_dir, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
+                                                result_dir_method_beta, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
+                            solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=beta, X_test=X_test, y_test=y_test)
+                    
                     elif method == 'U-PIP':
                         beta = {param['key_beta']: None}
                         solution = run_algorithm(method, X_train, y_train, param['dataset'], param['depth'], param['tau_0'][run], beta, None, param['model_param'], 
-                                                result_dir, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
-                # write_results
+                                                result_dir_method, start_sol_copy['a'], start_sol_copy['b'], start_sol_copy['c'], param['save_log'], param['console_log'])
+                        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=beta, X_test=X_test, y_test=y_test)
+
 
 
     
@@ -166,9 +203,10 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir, pare
         
 
 def run_tree_experiment(method_dict, depth_list, pareto = False):
+    dataset_list_ = DATASET_LIST if pareto == False else DATASET_LIST_PARETO
     
-    for dataset in DATASET_LIST:
-        dataset_dir = f"results/{dataset}"
+    for dataset in dataset_list_:
+        dataset_dir = f"tree/results/{dataset}"
         os.makedirs(dataset_dir, exist_ok=True)
 
         dataset_results_csv = os.path.join(dataset_dir, f'tree_{dataset}_results.csv')
@@ -237,7 +275,7 @@ def run_tree_experiment(method_dict, depth_list, pareto = False):
                          'start_sol': start_sol_copy,
                          'model_param': MODEL_PARAM,
                          'beta': beta,
-                         'save_log': False, 
+                         'save_log': True, 
                          'console_log': True
                          }
                 
@@ -255,7 +293,7 @@ def run_tree_experiment(method_dict, depth_list, pareto = False):
                     'model_param': MODEL_PARAM,
                     'key_beta': key_beta,
                     'threshold': THRESHOLD_GRID[dataset],
-                    'save_log': False, 
+                    'save_log': True, 
                     'console_log': True
                     }
         
@@ -263,6 +301,6 @@ def run_tree_experiment(method_dict, depth_list, pareto = False):
 
 
 
-method = {'Full MIP': False, 'IDSA-PIP': False, 'U-PIP': True}
+method = {'Full MIP': False, 'PIP': False, 'ISA-PIP': False, 'D4-PIP': False, 'D-PIP': False, 'IDSA4-PIP': False, 'IDSA-PIP': False, 'U-PIP': True}
 depth_list = [2, 3, 4]
 run_tree_experiment(method, depth_list, pareto = True)

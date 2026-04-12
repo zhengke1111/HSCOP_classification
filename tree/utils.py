@@ -6,7 +6,11 @@ from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import numpy as np
 import itertools
+import csv
 import math
+from typing import Union
+# from model import Model
+# from algorithm import PIP, IterativeShrinkage
 
 def generate_epsilon(max_iter):
     """
@@ -967,3 +971,65 @@ def sample_data(dataset=None):
         y_sampled = df['class']
 
     return X_sampled, y_sampled
+
+def write_results(split, method, tau_0, beta, solution, dataset_results_csv, X_test, y_test):
+    if method == "Full MIP":
+        pass
+    if method == "IDSA PIP":
+        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=split, method=method, tau_0=tau_0, beta=beta, X_test=X_test, y_test=y_test)
+        
+
+def extract_inner_values(d, values=None):
+    """
+    Recursively extract all non-dict values from a nested dictionary
+
+    Args:
+        d (dict): Nested dictionary to extract values from
+        values (list/None): List to collect values (initialized as empty if None)
+
+    Returns:
+        list: All non-dict values from the nested dictionary
+    """
+    if values is None:
+        values = []
+    for key, value in d.items():
+        if isinstance(value, dict):
+            extract_inner_values(value, values)
+        else:
+            values.append(value)
+    return values
+
+def write_single_integrated_result(results_csv, dataset, depth, split, method, tau_0, beta, objective_value, optimality_gap, time, actual_time, gamma, train_acc, test_acc, train_prec, test_prec):
+    
+    with open(results_csv, mode='a', newline='') as f:
+        writer = csv.writer(f)
+        if f.tell() == 0:
+            writer.writerow([
+                'dataset',
+                'depth',
+                'split',
+                'method',
+                'tau_0',
+                'key_beta_p',
+                'beta_p',
+                'objective_value',
+                'optimality_gap (Full MIP)',
+                'time',
+                'actual_time (Full MIP)',
+                'gamma',
+                'train_acc',
+                'test_acc',
+                'train_prec',
+                'test_prec'
+            ])
+        writer.writerow([
+            dataset, depth, split, method, tau_0, 
+            next(iter(beta)) if beta is not None else None,
+            next(iter(beta.values())) if beta is not None else None,
+            objective_value,
+            optimality_gap,
+            time,
+            actual_time,
+            gamma,
+            train_acc, test_acc, train_prec, test_prec
+        ])

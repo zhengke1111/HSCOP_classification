@@ -5,9 +5,7 @@ import pandas as pd
 import random
 from math import prod
 from typing import Union
-from model import Model
 from parameter import *
-from algorithm import PIP, IterativeShrinkage
 from sklearn.metrics import precision_score, accuracy_score, recall_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
@@ -904,7 +902,7 @@ def write_single_integrated_result(integrated_csv, title, execution_time, model_
         }
         writer.writerow(row)
 
-def write_results(method: str, solution: Union[Model, PIP, IterativeShrinkage, list[PIP]], integrated_csv,
+def write_results(method: str, solution, integrated_csv,
                   X_test, y_test, precision_threshold=None, fold=None):
     """
     Dispatch function to write results for different classification methods to an integrated CSV file.

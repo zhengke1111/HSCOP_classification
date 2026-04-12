@@ -281,7 +281,7 @@ def run_multi_class_classification_experiment():
 
     for data_set in ['wine', 'fish', 'robo', 'segm', 'vehi', 'wave']:
         # Create dataset-level directory
-        dataset_dir = f"results/our_results/multi_class_run/{data_set}"
+        dataset_dir = f"multi_class/results/multi_class_run/{data_set}"
         os.makedirs(dataset_dir, exist_ok=True)
 
         # Create shared results CSV at dataset level

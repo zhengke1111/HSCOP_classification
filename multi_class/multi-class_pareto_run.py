@@ -200,7 +200,7 @@ def run_sklearn_classifiers(param):
     summary_df = pd.concat(all_results, ignore_index=True)
 
     # Create output directory and save CSV
-    output_dir = 'results/multi-class_pareto_run'
+    output_dir = 'multi_class/results/multi-class_pareto_run'
     os.makedirs(output_dir, exist_ok=True)
     data_set_name = param['data_set']
     summary_file = os.path.join(output_dir, f'{data_set_name}_sklearn_classifiers_summary.csv')

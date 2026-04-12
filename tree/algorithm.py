@@ -44,13 +44,15 @@ class PIP:
         # Initialize final output container
         self.output = {
             'obj_val': -np.inf,
+            'opt_gap': None,
             'a': None,  
             'b': None,  
-            'c': None
+            'c': None,
+            'gamma': None
         }
         
     def ratio_update_rule(self, ratio, obj_val, obj_val_old, iter_unchanged):
-        if -1e-5 <= obj_val - obj_val_old <= 1e-5:
+        if  obj_val - obj_val_old <= 1e-5:
             new_ratio = min(ratio + self.change_ratio, self.max_ratio) 
             iter_unchanged_new = iter_unchanged + 1
         else:
@@ -128,7 +130,10 @@ class PIP:
             self.__dict__['a_list'] = []  # Track weights per iteration
             self.__dict__['b_list'] = []  # Track biases per iteration
             self.__dict__['c_list'] = []  # Track biases per iteration
+            self.__dict__['gamma_list'] = []  # Track gamma per iteration
             self.__dict__['obj_list'] = []  # Track objective values per iteration
+            self.__dict__['gap_list'] = []  # Track optimality gap for per subproblem
+
 
         ell_set_index, multi_piece = utils.generate_M(self.X_train, a_start, b_start, self.depth, self.epsilon, ratio, ENHANCED_SIZE)
         ell_comb = utils.generate_combinations(ell_set_index)  # Generate {\cal L}^4_{st}(a,b)
@@ -216,6 +221,7 @@ class PIP:
                 a_benchmark = a_start
                 b_benchmark = b_start
                 c_benchmark = c_start
+                gamma_benchmark = gamma_start
                 
                 self.model_dict[iteration] = {}
                 # Evaluate all subproblems and select best solution
@@ -228,6 +234,7 @@ class PIP:
                             a_benchmark = model.var_val['a']
                             b_benchmark = model.var_val['b']
                             c_benchmark = model.var_val['c']
+                            gamma_benchmark = model.var_val['gamma']
                         self.model_dict[iteration].update({sub_prob: model})
                     else:
                         # Mark algorithm as failed if any subproblem fails
@@ -239,12 +246,14 @@ class PIP:
                     self.__dict__['obj_list'].append(obj_benchmark)
                     self.__dict__['a_list'].append(a_benchmark)
                     self.__dict__['b_list'].append(b_benchmark)
-                    self.__dict__['c_list'].append(b_benchmark)
+                    self.__dict__['c_list'].append(c_benchmark)
+                    self.__dict__['gamma_list'].append(gamma_benchmark)
                     
                     # Update warm start parameters for next iteration
                     a_start = a_benchmark
                     b_start = b_benchmark
                     c_start = c_benchmark
+                    gamma_start = gamma_benchmark
                     obj_val = obj_benchmark
 
                     # Update adaptive ratio and unchanged iteration counter
@@ -260,6 +269,7 @@ class PIP:
                     a_start = solution.var_val['a']
                     b_start = solution.var_val['b']
                     c_start = solution.var_val['c']
+                    gamma_start = solution.var_val['gamma']
 
                     # Update adaptive ratio and unchanged iteration counter
                     ratio, iter_unchanged = self.ratio_update_rule(ratio, obj_val, obj_val_old, iter_unchanged)
@@ -292,6 +302,7 @@ class PIP:
                 self.output['a'] = final_model.var_val['a']
                 self.output['b'] = final_model.var_val['b']
                 self.output['c'] = final_model.var_val['c']
+                self.output['gamma'] = final_model.var_val['gamma']
                 
             else:
                 # Arbitrary-4 (multiple models per iteration)
@@ -299,6 +310,7 @@ class PIP:
                 self.output['a'] = self.__dict__['a_list'][-1]
                 self.output['b'] = self.__dict__['b_list'][-1]
                 self.output['c'] = self.__dict__['c_list'][-1]
+                self.output['gamma'] = self.__dict__['gamma_list'][-1]
 
     def main_computation_unconstrained(self, iteration_process, alg_name, a, b, c):
         z_plus_0_start = calculate_z_plus_0(self.X_train, a, b, self.depth)
@@ -344,11 +356,39 @@ class PIP:
             self.output['a'] = final_model.var_val['a']
             self.output['b'] = final_model.var_val['b']
             self.output['c'] = final_model.var_val['c']
-                
-            
-                
-    def write_integrated_results(self, integrated_csv, alg_name, X_test, y_test, precision_threshold=None, fold=None):
-        pass # TODO
+
+    def write_integrated_results(self, dataset_results_csv, split, method, tau_0, beta, X_test, y_test):
+        if self.algorithm_state >= 0:
+            train_results = evaluate_tree(self.X_train, self.y_train, self.output['a'], self.output['b'], self.output['c'], self.depth)
+            test_results = evaluate_tree(X_test, y_test, self.output['a'], self.output['b'], self.output['c'], self.depth)
+
+            execution_time = 0
+            for val in self.execution_time_list:
+                if isinstance(val, dict):
+                    execution_time += val['total']
+                else:
+                    execution_time += val
+
+            # Calculate total model solve time across all PIP instances
+            all_models = extract_inner_values(self.model_dict)
+            model_time = np.sum([model.model.Runtime for model in all_models if model is not None])
+
+            write_single_integrated_result(results_csv=dataset_results_csv,                
+                                           dataset=self.dataset, 
+                                           depth=self.depth, 
+                                           split=split, 
+                                           method=method, 
+                                           tau_0=tau_0, 
+                                           beta=beta, 
+                                           objective_value=self.output['obj_val'], 
+                                           optimality_gap=None, 
+                                           time=model_time, 
+                                           actual_time=None, 
+                                           gamma=next(iter(self.output['gamma'].values())) if self.output['gamma'] is not None else None, 
+                                           train_acc=train_results['frac']['acc'], 
+                                           test_acc=test_results['frac']['acc'], 
+                                           train_prec=train_results['frac'][f'prec{self.class_restrict[0]}'], 
+                                           test_prec=test_results['frac'][f'prec{self.class_restrict[0]}'])
 
 
 
@@ -382,9 +422,11 @@ class IterativeShrinkage:
         # Initialize final output container
         self.output: Dict[str, Optional[Union[dict, float]]] = {
             'obj_val': -np.inf,
+            'opt_gap': None,
             'a': None,
             'b': None,
-            'c': None
+            'c': None,
+            'gamma': None
         }
 
     def iteration_process_enhanced_arbitrary_4(self, alg_name, epsilon, iteration, start, a_start, b_start, c_start):
@@ -394,9 +436,10 @@ class IterativeShrinkage:
             self.__dict__['a_list'] = []
             self.__dict__['b_list'] = []
             self.__dict__['c_list'] = []
+            self.__dict__['gamma_list'] = []
             self.__dict__['obj_list'] = []
 
-        ell_set_index, multi_piece = utils.generate_M(self.X_train, a_start, b_start, self.depth, epsilon[iteration], self.pip_params['ratio']['base_ratio'], ENHANCED_SIZE)
+        ell_set_index, multi_piece = utils.generate_M(self.X_train, a_start, b_start, self.depth, epsilon[iteration], ALG_PARAM['ratio']['base_ratio'][self.depth][self.dataset], ENHANCED_SIZE)
         ell_comb = utils.generate_combinations(ell_set_index)  # Generate {\cal L}^4_{st}(a,b)
         self.__dict__['ell_comb_list'].append(multi_piece)
 
@@ -482,6 +525,7 @@ class IterativeShrinkage:
                 a_benchmark = a_start
                 b_benchmark = b_start
                 c_benchmark = c_start
+                gamma_benchmark = None
                 
                 self.pip_alg_dict[iteration] = {}
 
@@ -496,6 +540,7 @@ class IterativeShrinkage:
                             a_benchmark = pip.output['a']
                             b_benchmark = pip.output['b']
                             c_benchmark = pip.output['c']
+                            gamma_benchmark = pip.output['gamma']
                             
                         # Store successful subproblem PIP instance
                         self.pip_alg_dict[iteration].update({sub_prob: pip})
@@ -507,7 +552,7 @@ class IterativeShrinkage:
                 # Update parameters if all subproblems succeeded
                 if self.algorithm_state >= 0:
                     # Initialize result lists if not exists
-                    for attr in ['obj_list', 'a_list', 'b_list', 'c_list']:
+                    for attr in ['obj_list', 'a_list', 'b_list', 'c_list', 'gamma_list']:
                         if attr not in self.__dict__:
                             self.__dict__[attr] = []
 
@@ -516,6 +561,7 @@ class IterativeShrinkage:
                     self.__dict__['a_list'].append(a_benchmark)
                     self.__dict__['b_list'].append(b_benchmark)
                     self.__dict__['c_list'].append(c_benchmark)
+                    self.__dict__['gamma_list'].append(gamma_benchmark)
 
                     # Update warm-start parameters for next outer iteration
                     a_start = a_benchmark
@@ -559,6 +605,7 @@ class IterativeShrinkage:
                 self.output['a'] = last_pip.output['a']
                 self.output['b'] = last_pip.output['b']
                 self.output['c'] = last_pip.output['c']
+                self.output['gamma'] = last_pip.output['gamma']
           
             else:
                 # For arbitrary-4: use best results from last iteration
@@ -566,6 +613,42 @@ class IterativeShrinkage:
                 self.output['a'] = self.__dict__['a_list'][-1]
                 self.output['b'] = self.__dict__['b_list'][-1]
                 self.output['c'] = self.__dict__['c_list'][-1]
+                self.output['gamma'] = self.__dict__['gamma_list'][-1]
                 
-    def write_integrated_results(self, integrated_csv, alg_name, X_test, y_test, precision_threshold=None, fold=None):
-        pass # TODO
+    def write_integrated_results(self, dataset_results_csv, split, method, tau_0, beta, X_test, y_test):
+        if self.algorithm_state >= 0:
+            train_results = evaluate_tree(self.X_train, self.y_train, self.output['a'], self.output['b'], self.output['c'], self.depth)
+            test_results = evaluate_tree(X_test, y_test, self.output['a'], self.output['b'], self.output['c'], self.depth)
+
+            execution_time = 0
+            for val in self.execution_time_list:
+                if isinstance(val, dict):
+                    execution_time += val['total']
+                else:
+                    execution_time += val
+
+            # Calculate total model solve time across all PIP instances
+            all_pips = extract_inner_values(self.pip_alg_dict)
+            model_time = 0
+            for pip in all_pips:
+                all_models = extract_inner_values(pip.model_dict)
+                model_time += np.sum([
+                    model.model.Runtime for model in all_models if model is not None
+                ])
+
+            write_single_integrated_result(results_csv=dataset_results_csv,                
+                                           dataset=self.dataset, 
+                                           depth=self.depth, 
+                                           split=split, 
+                                           method=method, 
+                                           tau_0=tau_0, 
+                                           beta=beta, 
+                                           objective_value=self.output['obj_val'], 
+                                           optimality_gap=None, 
+                                           time=model_time, 
+                                           actual_time=None, 
+                                           gamma=next(iter(self.output['gamma'].values())) if self.output['gamma'] is not None else None, 
+                                           train_acc=train_results['frac']['acc'], 
+                                           test_acc=test_results['frac']['acc'], 
+                                           train_prec=train_results['frac'][f'prec{self.class_restrict[0]}'], 
+                                           test_prec=test_results['frac'][f'prec{self.class_restrict[0]}'])

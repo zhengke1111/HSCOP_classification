@@ -465,7 +465,7 @@ class Model:
             callback = full_model_callback
         elif self.model_type == 'partial' or 'unconstrained_partial':
             self.model.Params.LazyConstraints = 1
-            if self.ell is None:
+            if self.ell is None and self.model_type == 'partial' :
                 time_limit = UNPA_PARTIAL_MODEL_TIME_LIMIT
                 self.model.__dict__['unchanged_tolerance'] = UNPA_UNCHANGED_TOLERANCE
             else:
@@ -489,9 +489,30 @@ class Model:
         self.model._vars = self.model.getVars()
         self.model_optimize(callback)
         if self.model_state > 0:
-            for key in ['a', 'b', 'c']:
-                self.var_val[key] = {keys: self.var[key][keys].getAttr(GRB.Attr.X) for keys in self.var[key].keys()}
+            if self.model_type == 'unconstrained_partial':
+                for key in ['a', 'b', 'c']:
+                    self.var_val[key] = {keys: self.var[key][keys].getAttr(GRB.Attr.X) for keys in self.var[key].keys()}
+            else:
+                for key in ['a', 'b', 'c', 'gamma']:
+                    self.var_val[key] = {keys: self.var[key][keys].getAttr(GRB.Attr.X) for keys in self.var[key].keys()}
 
-    def write_integrated_results(self, integrated_csv, X_test, y_test, precision_threshold=None, fold=None):
-        """Compute train/test metrics and write results to CSV."""
-        pass
+    def write_integrated_results(self, dataset_results_csv, dataset, split, method, tau_0, beta, X_test, y_test):
+        train_results = evaluate_tree(self.X, self.y, self.var_val['a'], self.var_val['b'], self.var_val['c'], self.depth)
+        test_results = evaluate_tree(X_test, y_test, self.var_val['a'], self.var_val['b'], self.var_val['c'], self.depth)
+        write_single_integrated_result(results_csv=dataset_results_csv,
+                                       dataset=dataset,
+                                       depth=self.depth,
+                                       split=split,
+                                       method=method,
+                                       tau_0=tau_0,
+                                       beta=beta,
+                                       objective_value=self.model.ObjVal,
+                                       optimality_gap=self.model.MIPGap,
+                                       time=self.model.__dict__['final_improvement_time'],
+                                       actual_time=self.model.Runtime,
+                                       gamma=next(iter(self.var_val['gamma'].values())),
+                                       train_acc=train_results['frac']['acc'], 
+                                       test_acc=test_results['frac']['acc'], 
+                                       train_prec=train_results['frac'][f'prec{self.class_restrict[0]}'], 
+                                       test_prec=test_results['frac'][f'prec{self.class_restrict[0]}']
+                                       )
