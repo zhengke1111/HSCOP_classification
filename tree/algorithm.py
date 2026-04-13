@@ -425,6 +425,8 @@ class PIP:
                                            time=model_time, 
                                            actual_time=None,     # This item is the actual Running time for Full MIP, None for partial models
                                            gamma=next(iter(self.output['gamma'].values())) if self.output['gamma'] is not None else None, 
+                                           train_acc_margin=train_results['frac']['acc_margin'], 
+                                           test_acc_margin=test_results['frac']['acc_margin'], 
                                            train_acc=train_results['frac']['acc'], 
                                            test_acc=test_results['frac']['acc'], 
                                            train_prec=train_results['frac'][f'prec{self.class_restrict[0]}'], 
@@ -712,6 +714,8 @@ class IterativeShrinkage:
                                            time=model_time, 
                                            actual_time=None,        # This item is the actual Running time for Full MIP, None for partial models
                                            gamma=next(iter(self.output['gamma'].values())) if self.output['gamma'] is not None else None, 
+                                           train_acc_margin=train_results['frac']['acc_margin'], 
+                                           test_acc_margin=test_results['frac']['acc_margin'], 
                                            train_acc=train_results['frac']['acc'], 
                                            test_acc=test_results['frac']['acc'], 
                                            train_prec=train_results['frac'][f'prec{self.class_restrict[0]}'], 

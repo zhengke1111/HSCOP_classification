@@ -557,6 +557,8 @@ class Model:
                                        time=self.model.__dict__['final_improvement_time'],
                                        actual_time=self.model.Runtime,
                                        gamma=next(iter(self.var_val['gamma'].values())),
+                                       train_acc_margin=train_results['frac']['acc_margin'], 
+                                       test_acc_margin=test_results['frac']['acc_margin'], 
                                        train_acc=train_results['frac']['acc'], 
                                        test_acc=test_results['frac']['acc'], 
                                        train_prec=train_results['frac'][f'prec{self.class_restrict[0]}'], 

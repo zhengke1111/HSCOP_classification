@@ -901,12 +901,6 @@ def sample_data(dataset=None):
         y_sampled = df['class']
 
     return X_sampled, y_sampled
-
-def write_results(split, method, tau_0, beta, solution, dataset_results_csv, X_test, y_test):
-    if method == "Full MIP":
-        pass
-    if method == "IDSA PIP":
-        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=split, method=method, tau_0=tau_0, beta=beta, X_test=X_test, y_test=y_test)
         
 
 def extract_inner_values(d, values=None):
@@ -929,7 +923,7 @@ def extract_inner_values(d, values=None):
             values.append(value)
     return values
 
-def write_single_integrated_result(results_csv, dataset, depth, split, method, tau_0, beta, objective_value, optimality_gap, time, actual_time, gamma, train_acc, test_acc, train_prec, test_prec):
+def write_single_integrated_result(results_csv, dataset, depth, split, method, tau_0, beta, objective_value, optimality_gap, time, actual_time, gamma, train_acc_margin, test_acc_margin, train_acc, test_acc, train_prec, test_prec):
     
     with open(results_csv, mode='a', newline='') as f:
         writer = csv.writer(f)
@@ -947,6 +941,8 @@ def write_single_integrated_result(results_csv, dataset, depth, split, method, t
                 'time',
                 'actual_time (Full MIP)',
                 'gamma',
+                'train_acc_margin',
+                'test_acc_margin',
                 'train_acc',
                 'test_acc',
                 'train_prec',
@@ -961,5 +957,5 @@ def write_single_integrated_result(results_csv, dataset, depth, split, method, t
             time,
             actual_time,
             gamma,
-            train_acc, test_acc, train_prec, test_prec
+            train_acc_margin, test_acc_margin, train_acc, test_acc, train_prec, test_prec
         ])
