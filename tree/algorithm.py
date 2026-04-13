@@ -436,7 +436,23 @@ class IterativeShrinkage:
     """Iterative Shrinkage: wraps PIP with progressively shrinking epsilon across outer iterations."""
     def __init__(self, X_train, y_train, dataset, depth, tau_0, class_restrict, beta, model_params, pip_params, alg_dir,
                  save_log=False, console_log=False):
-        
+        """
+        Initialize IterativeShrinkage instance
+
+        Args:
+            X_train: Training feature matrix
+            y_train: Training label array
+            dataset: Name of dataset, e.g. 'blsc'
+            depth: Depth of the decision tree
+            tau_0: \ell_0 norm constraint of the branching coefficient at each branching node k, a_k
+            class_restrict: Class(es) to apply precision constraints
+            beta: Precision constraint parameters per class
+            model_params: Gurobi solver parameters
+            pip_params: PIP control parameters (passed to inner PIP instances)
+            alg_dir: Directory to save outputs
+            save_log (bool, optional): True if save the Gurobi log. Defaults to False.
+            console_log (bool, optional): True if output the Gurobi solving log. Defaults to False.
+        """
         self.X_train = X_train
         self.y_train = y_train
         self.dataset = dataset
@@ -470,7 +486,8 @@ class IterativeShrinkage:
         }
 
     def iteration_process_enhanced_arbitrary_4(self, alg_name, epsilon, iteration, start, a_start, b_start, c_start):
-
+        """Outer iteration: generate piece set, select up to 4 combinations, run PIP on each"""
+        # Initialize storage for shrinkage strategy if not exists
         if 'ell_comb_list' not in self.__dict__:
             self.__dict__['ell_comb_list'] = []
             self.__dict__['a_list'] = []
@@ -479,10 +496,12 @@ class IterativeShrinkage:
             self.__dict__['gamma_list'] = []
             self.__dict__['obj_list'] = []
 
+        # Generate arbitrary piece combinations ({\cal L}^4_{st}(a,b))
         ell_set_index, multi_piece = utils.generate_ELL(self.X_train, a_start, b_start, self.depth, epsilon[iteration], ALG_PARAM['ratio']['base_ratio'][self.depth][self.dataset], ENHANCED_SIZE)
-        ell_comb = utils.generate_combinations(ell_set_index)  # Generate {\cal L}^4_{st}(a,b)
+        ell_comb = utils.generate_combinations(ell_set_index)  
         self.__dict__['ell_comb_list'].append(multi_piece)
 
+        # Solve PIP for each piece combination
         sub_prob_counter = 0
         pip_dict = {}
         execution_time_iteration = {}
@@ -514,9 +533,12 @@ class IterativeShrinkage:
         return pip_dict
     
     def iteration_process_enhanced_arbitrary_1(self, alg_name, epsilon, iteration, start, a_start, b_start, c_start):
+        """Outer iteration: select 1 random piece combination, run PIP."""
+        # Initialize piece combination length tracker if not exists
         if 'ell_comb_list' not in self.__dict__:
             self.__dict__['ell_comb_list'] = []
         
+        # Generate piece set based on current epsilon and warm start parameters
         ell = utils.generate_random_combination(self.X_train, a_start, b_start, self.depth, epsilon[iteration]) 
         self.__dict__['ell_comb_list'].append(ell) #
 
@@ -656,6 +678,8 @@ class IterativeShrinkage:
                 self.output['gamma'] = self.__dict__['gamma_list'][-1]
                 
     def write_integrated_results(self, dataset_results_csv, split, method, tau_0, beta, X_test, y_test):
+        """Compute train/test metrics and write results to CSV."""
+        
         if self.algorithm_state >= 0:
             train_results = evaluate_tree(self.X_train, self.y_train, self.output['a'], self.output['b'], self.output['c'], self.depth)
             test_results = evaluate_tree(X_test, y_test, self.output['a'], self.output['b'], self.output['c'], self.depth)
@@ -684,9 +708,9 @@ class IterativeShrinkage:
                                            tau_0=tau_0, 
                                            beta=beta, 
                                            objective_value=self.output['obj_val'], 
-                                           optimality_gap=None, 
+                                           optimality_gap=None,     # Only record optimality gap for Full MIP
                                            time=model_time, 
-                                           actual_time=None, 
+                                           actual_time=None,        # This item is the actual Running time for Full MIP, None for partial models
                                            gamma=next(iter(self.output['gamma'].values())) if self.output['gamma'] is not None else None, 
                                            train_acc=train_results['frac']['acc'], 
                                            test_acc=test_results['frac']['acc'], 

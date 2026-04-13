@@ -4,9 +4,8 @@ import time
 
 def full_model_callback(model, where):
     """
-    :param model: model well constructed before optimize()
-    :param where: just call in this way: model.optimize(mip_callback)
-    :return: 
+    Gurobi callback for full MIP: tracks optimality gap, improvement time, and first feasible time.
+    Updates metrics every 3 seconds via model.__dict__.
     """
     if where == GRB.Callback.MIP:
         run_time = model.cbGet(GRB.Callback.RUNTIME)
@@ -61,11 +60,9 @@ def full_model_callback(model, where):
 
 
 def partial_model_callback(model, where):
-    """ callback function for MIP including PIP and full_MIP(if necesary), mainly used to record the solver log and control terminating time
-
-    Args:
-        model (gurobipy model): _description_
-        where (GRB.Callback.MIP): _description_
+    """ 
+    Gurobi callback for partial MIP: tracks improvement time and terminates early if objective is unchanged.
+    Checks every 3 seconds; terminates if unchanged for longer than unchanged_tolerance.
     """
     if where == GRB.Callback.MIP:
         # Obtain current objective value and runtime

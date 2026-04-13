@@ -187,7 +187,7 @@ def cart_run():
 
     df = pd.DataFrame(results)
 
-    out_path = "decisiontree/results/CART_results.csv"
+    out_path = "tree/results/CART_results.csv"
     df.to_csv(out_path, index=False)
 
     print(f"\nSaved results to: {out_path}")

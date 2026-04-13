@@ -9,8 +9,8 @@ import itertools
 import csv
 import math
 from typing import Union
-# from model import Model
-# from algorithm import PIP, IterativeShrinkage
+
+
 
 def generate_epsilon(max_iter):
     """
@@ -29,23 +29,23 @@ def generate_epsilon(max_iter):
     return epsilon
 
 
-def ancestors(D):
+def ancestors(depth):
     """
-    Compute the left-ancestor and right-ancestor sets for each leaf node in a complete binary decision tree of depth `D`.
+    Compute the left-ancestor and right-ancestor sets for each leaf node in a complete binary decision tree of depth.
 
     The tree is indexed using the standard array-based binary tree convention:
     - the root node has index 0,
     - for an internal node `p`, its left child is `2*p + 1`,
     - its right child is `2*p + 2`.
 
-    Leaves are indexed externally by `t = 0, ..., 2**D - 1`. Internally, these correspond to node indices `2**D - 1, ..., 2**(D+1) - 2` in the complete binary tree.
+    Leaves are indexed externally by `t = 0, ..., 2**depth - 1`. Internally, these correspond to node indices `2**depth - 1, ..., 2**(depth+1) - 2` in the complete binary tree.
 
     For each leaf `t`, the function traces the path from that leaf back to the root and records:
     - `A_L[t]`: the set of ancestor nodes at which the path moves through the left child,
     - `A_R[t]`: the set of ancestor nodes at which the path moves through the right child.
 
     Args:
-        D: An integer representing the depth of the decision tree.
+        depth: An integer representing the depth of the decision tree.
 
     Returns:
         tuple:
@@ -54,15 +54,15 @@ def ancestors(D):
 
     Notes:
         - The tree is assumed to be a complete binary tree.
-        - There are exactly `2**D` leaves.
+        - There are exactly `2**depth` leaves.
         - The returned ancestor lists are ordered from the leaf upward toward the root.
     """
     A_L = {}
     A_R = {}
-    for t in range(2**D):
+    for t in range(2**depth):
         A_L[t] = []
         A_R[t] = []
-        real_t = t + 2 ** D - 1
+        real_t = t + 2 ** depth - 1
         current_node = real_t
         while current_node != 0:
             parent_node = (current_node - 1) // 2
@@ -109,20 +109,20 @@ def heaviside_open(lb, x):
         return 0
 
 
-def calculate_gamma(X_train, y_train, a, b, c, D, selected_piece, beta_p, epsilon, class_restricted):
+def calculate_gamma(X_train, y_train, a, b, c, depth, selected_piece, beta, epsilon, class_restricted):
     r"""
     Compute the violation amount \gamma and the initial solutions of binary variables \xi, z^+, z^- 
     Used in precision constrained problem
 
     Args:
-        X_train (ndarray): training set: X
-        y_train (ndarray): training set: y
-        a (ndarray): parameter a = \{a_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
-        b (ndarray): parameter b = \{b_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
-        c (ndarray): parameter c = \{c_{jt}\}_{j\in [J], t\in {\cal T}_{\ell}}, assign class j to leaf node t
-        beta_p (dict): {class: precision threshold}
+        X_train: training set: X
+        y_train: training set: y
+        a: parameter a = \{a_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
+        b: parameter b = \{b_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
+        c: parameter c = \{c_{jt}\}_{j\in [J], t\in {\cal T}_{\ell}}, assign class j to leaf node t
+        beta (dict): {class: precision threshold}
         epsilon (float): epsilon
-        class_restricted (int): the class(es) that have precision lower bound(s) 
+        class_restricted (int): the class that have precision lower bound(s) 
 
     Returns:
         tuple[int, dict, dict, dict]: gamma,  z_plus_0_start, z_plus_start, z_minus_start
@@ -130,14 +130,14 @@ def calculate_gamma(X_train, y_train, a, b, c, D, selected_piece, beta_p, epsilo
     """
     N = X_train.shape[0]
     p = X_train.shape[1]
-    A_L, A_R = ancestors(D)
+    A_L, A_R = ancestors(depth)
     total_class_num = len(Counter(y_train))
     J = range(1, total_class_num+1)  # classes
     class_index = {cls: np.where(y_train == cls)[0] for cls in J}  # use to select samples of certain class
     z_plus_0_start, z_plus_start, z_minus_start = {}, {}, {}
     gamma = {}
     for s in range(N):
-        for t in range(2**D):
+        for t in range(2**depth):
             z_plus_0_start[s, t] = heaviside_closed(0, min([sum(a[k, i]*X_train[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k, i]*X_train[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]]))
             z_plus_start[s, t] = heaviside_closed(0, min([sum(a[k, i]*X_train[s][i] for i in range(p)) - b[k] for k in A_R[t]]+ [-sum(a[k, i]*X_train[s][i] for i in range(p)) + b[k] - epsilon for k in A_L[t]]))
             if selected_piece is None:
@@ -149,38 +149,38 @@ def calculate_gamma(X_train, y_train, a, b, c, D, selected_piece, beta_p, epsilo
                 if k in A_R[t]:
                     z_minus_start[s, t] = 1 - heaviside_open(0, sum(a[k, i] * X_train[s][i] for i in range(p)) - b[k] + epsilon)
     for j in class_restricted:
-        class_true = heaviside_closed(0, sum(c[j,t]*z_plus_start[s, t] for s in range(N) for t in range(2**D)) - 1)
-        gamma[j] = max(0, -(sum(c[j,t]*z_plus_start[s, t] for s in class_index[j] for t in range(2**D)) - beta_p[j]*sum(c[j,t]*(1-z_minus_start[s, t]) for s in range(N) for t in range(2**D))), 100*(1-class_true))
+        class_true = heaviside_closed(0, sum(c[j,t]*z_plus_start[s, t] for s in range(N) for t in range(2**depth)) - 1)
+        gamma[j] = max(0, -(sum(c[j,t]*z_plus_start[s, t] for s in class_index[j] for t in range(2**depth)) - beta[j]*sum(c[j,t]*(1-z_minus_start[s, t]) for s in range(N) for t in range(2**depth))), 100*(1-class_true))
     return gamma, z_plus_0_start, z_plus_start, z_minus_start
 
 
-def calculate_z_plus_0(X_train, a, b, D):
+def calculate_z_plus_0(X_train, a, b, depth):
     r"""
     Compute the initial solution of binary variable \xi
     Used in unconstrained problem, in which there are only \xi, no z^+, z^- and precision constraint violation \gamma
 
     Args:
-        X_train (ndarray): training set: X
-        a (ndarray): parameter a = \{a_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
-        b (ndarray): parameter b = \{b_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
-        c (ndarray): parameter c = \{c_{jt}\}_{j\in [J], t\in {\cal T}_{\ell}}, assign class j to leaf node t
+        X_train: training set: X
+        a: parameter a = \{a_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
+        b: parameter b = \{b_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
+        c: parameter c = \{c_{jt}\}_{j\in [J], t\in {\cal T}_{\ell}}, assign class j to leaf node t
 
     Returns:
         dict: z_plus_0_start (intial solution of \xi)
     """
     N = X_train.shape[0]
     p = X_train.shape[1]
-    A_L, A_R = ancestors(D)
+    A_L, A_R = ancestors(depth)
     z_plus_0_start = {}
    
     for s in range(N):
-        for t in range(2**D):
+        for t in range(2**depth):
             z_plus_0_start[s, t] = heaviside_closed(0, min([sum(a[k, i]*X_train[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k, i]*X_train[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]]))
             
     return z_plus_0_start
 
 
-def calculate_delta(X_train, a, b, D, selected_piece, epsilon, base_rate):
+def calculate_delta(X_train, a, b, depth, selected_piece, epsilon, base_rate):
     """
     The index sets {\cal J}_{0;<}, {\cal J}_{0;>}, {\cal J}_{0;0} and {\cal J}_{1;<}, {\cal J}_{1;>}, {\cal J}_{1;0} are determined by the
     values of the corresponding path-based functions \phi:
@@ -206,10 +206,10 @@ def calculate_delta(X_train, a, b, D, selected_piece, epsilon, base_rate):
     In the unconstrained case, `epsilon` is `None`, so only the index sets associated with type `0` are computed.
 
     Args:
-        X_train (ndarray): training set: X
-        a (ndarray): parameter a = \{a_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
-        b (ndarray): parameter b = \{b_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
-        D (int): Depth of the decision tree.
+        X_train: training set: X
+        a: parameter a = \{a_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
+        b: parameter b = \{b_k\}_{k\in {\cal T}_{\cal B}} in classification score a_k @ X - b_k at node k
+        depth (int): Depth of the decision tree.
         selected_piece: Selected piece used in the piecewise decomposition; if `None`, the full form is used.
         epsilon (float or None): Margin parameter. \varepsilon
         base_rate (float): Integer ratio as the quantile level used to determine the thresholds defining the in-between sets.
@@ -241,9 +241,9 @@ def calculate_delta(X_train, a, b, D, selected_piece, epsilon, base_rate):
         delta_1 = {0:1}
         delta_2 = {0:1}
     index_odd = 0
-    A_L, A_R = ancestors(D)
+    A_L, A_R = ancestors(depth)
     for s in range(N):
-        for t in range(2**D):
+        for t in range(2**depth):
             phi_plus_0 = min([sum(a[k, i]*X_train[s][i] for i in range(p)) - b[k] - 1 for k in A_R[t]] + [-sum(a[k, i]*X_train[s][i] for i in range(p)) + b[k] - 1 for k in A_L[t]])
             if phi_plus_0 > 0:
                 value_ge[0].append(phi_plus_0)
@@ -315,7 +315,7 @@ def calculate_delta(X_train, a, b, D, selected_piece, epsilon, base_rate):
     return delta_1, delta_2
 
 
-def calculate_eta_zeta_L(X_train, y_train, c, D, z_plus_0, z_plus, z_minus):
+def calculate_eta_zeta_L(X_train, y_train, c, depth, z_plus_0, z_plus, z_minus):
     r"""
     Compute the quantities `eta`, `zeta`, and `L` for each class-leaf pair in the precision constrained decision tree model.
 
@@ -323,9 +323,9 @@ def calculate_eta_zeta_L(X_train, y_train, c, D, z_plus_0, z_plus, z_minus):
     samples. These quantities are used to evaluate how samples of each class are assigned to leaves under the current leaf-class assignment `c`.
 
     Args:
-        X_train (ndarray): training set: X
-        y_train (ndarray): training set: y
-        c (ndarray): parameter c = \{c_{jt}\}_{j\in [J], t\in {\cal T}_{\ell}}, assign class j to leaf node t
+        X_train: training set: X
+        y_train: training set: y
+        c: parameter c = \{c_{jt}\}_{j\in [J], t\in {\cal T}_{\ell}}, assign class j to leaf node t
         D (int): Depth of the decision tree.
         z_plus_0 (dict): Values of `z_plus_0[(s, t)]` (\xi_{st}) for sample-leaf pairs.
         z_plus (dict): Values of `z_plus[(s, t)]`     (z^+_{st}) for sample-leaf pairs.
@@ -344,7 +344,7 @@ def calculate_eta_zeta_L(X_train, y_train, c, D, z_plus_0, z_plus, z_minus):
     M_eta = {cls: sum(1 for _ in class_index[cls]) for cls in J}
     L , eta, zeta = {}, {}, {}
     for j in J:
-        for t in range(2**D):
+        for t in range(2**depth):
             if c[j, t] > 1/2:  # Instead of == 1 to avoid the numerical issues that some c[j, t] = 0.99999...
                 L[t] = sum(z_plus_0[s, t] for s in class_index[j]) + N*(1-c[j,t])
                 eta[j,t] = sum(z_plus[s,t] for s in class_index[j]) + M_eta[j]*(1-c[j,t])
@@ -355,15 +355,15 @@ def calculate_eta_zeta_L(X_train, y_train, c, D, z_plus_0, z_plus, z_minus):
     return eta, zeta, L
 
 
-def calculate_L(X_train, y_train, c, D, z_plus_0):
+def calculate_L(X_train, y_train, c, depth, z_plus_0):
     r"""
     Compute `L` for each class-leaf pair in the unconstrained decision tree model.
 
     Args:
-        X_train (ndarray): training set: X
-        y_train (ndarray): training set: y
-        c (ndarray): parameter c = \{c_{jt}\}_{j\in [J], t\in {\cal T}_{\ell}}, assign class j to leaf node t
-        D (int): Depth of the decision tree.
+        X_train: training set: X
+        y_train: training set: y
+        c: parameter c = \{c_{jt}\}_{j\in [J], t\in {\cal T}_{\ell}}, assign class j to leaf node t
+        depth (int): Depth of the decision tree.
         z_plus_0 (dict): Values of `z_plus_0[(s, t)]` (\xi_{st}) for sample-leaf pairs.
 
     Returns:
@@ -376,7 +376,7 @@ def calculate_L(X_train, y_train, c, D, z_plus_0):
     class_index = {cls: np.where(y_train == cls)[0] for cls in J}
     L = {}    
     for j in J:
-        for t in range(2**D):
+        for t in range(2**depth):
             if c[j, t] > 1/2:  # Instead of == 1 to avoid the numerical issues that some c[j, t] = 0.99999...
                 L[t] = sum(z_plus_0[s, t] for s in class_index[j]) + N*(1-c[j,t])
     return L
@@ -513,8 +513,8 @@ def train_decisiontree_model(X_train, y_train, max_depth):
     Train a decision tree classifier and convert it into an initialization `(a, b, c)` for the complete binary tree formulation of depth `max_depth`.
 
     Args:
-        X_train (ndarray): training set: X
-        y_train (ndarray): training set: y
+        X_train: training set: X
+        y_train: training set: y
         max_depth (int): Depth of the decision tree.
 
     Returns:
@@ -526,16 +526,16 @@ def train_decisiontree_model(X_train, y_train, max_depth):
     children_left = tree_structure.children_left
     children_right = tree_structure.children_right
     tree_level_order_positions = get_positions_in_complete_binary_tree(children_right, children_left, max_depth)
-    D = math.floor(math.log(len(tree_level_order_positions),2))
+    depth = math.floor(math.log(len(tree_level_order_positions),2))
     J = list(set(y_train))
     feature_dim = X_train.shape[1]
     a_start = {}
     b_start = {}
-    for k in range(2**D-1):
+    for k in range(2**depth-1):
         for f in range(feature_dim):
             a_start[k, f] = 0
         b_start[k] = 0
-    keys_c = [(j, t) for j in J for t in range(2**D)]
+    keys_c = [(j, t) for j in J for t in range(2**depth)]
     c_start = {key: 0 for key in keys_c}
 
     parent_features = {}
@@ -553,9 +553,9 @@ def train_decisiontree_model(X_train, y_train, max_depth):
             while tree_level_order_positions[parent_node] == -1:
                 parent_node = (parent_node - 1) // 2
             class_label = np.argmax(tree_structure.value[tree_level_order_positions[parent_node]][0])+1
-            if i >= 2**D -1:
+            if i >= 2**depth -1:
                 j = class_label
-                t = i - (2**D - 1)
+                t = i - (2**depth - 1)
                 c_start[j, t] = 1
             else:
                 k = i
@@ -568,12 +568,12 @@ def train_decisiontree_model(X_train, y_train, max_depth):
                     a_start[k, feature_index] = -100
                     b_start[k] = 0
                     parent_features[i].add(chosen_feature)
-            # Set a_start[k][arbitrary_feature] = -100 instead of 0, set b_start[k] = i to ensure \mathcal M is a singelton
+            # Set a_start[k, arbitrary_feature] = -100 instead of 0, set b_start[k] = i to ensure \mathcal M is a singelton
         elif tree_structure.feature[node_id]== -2:
             class_label = np.argmax(tree_structure.value[node_id][0]) +1
-            if i >= 2**D -1:
+            if i >= 2**depth -1:
                 j = class_label
-                t = i - (2**D - 1)
+                t = i - (2**depth - 1)
                 c_start[j, t] = 1
             else: 
                 k = i
@@ -586,7 +586,7 @@ def train_decisiontree_model(X_train, y_train, max_depth):
                     a_start[k, feature_index] = -100
                     b_start[k] = 0
                     parent_features[i].add(chosen_feature)
-            # Set a_start[k][arbitrary_feature] = -100 instead of 0, set b_start[k] = i to ensure \mathcal M is a singelton
+            # Set a_start[k, arbitrary_feature] = -100 instead of 0, set b_start[k] = i to ensure \mathcal M is a singelton
         else:
             feature_index = tree_structure.feature[node_id]
             threshold = tree_structure.threshold[node_id]
@@ -599,23 +599,23 @@ def train_decisiontree_model(X_train, y_train, max_depth):
     return result
 
 
-def generate_ELL(X_train, a_start, b_start, D, epsilon, integer_rate, enhanced_size):
+def generate_ELL(X_train, a_start, b_start, depth, epsilon, integer_rate, enhanced_size):
     """
-    Generate the candidate index set `M_set_index` for each sample-leaf pair.
+    Generate the candidate index set `L_set_index` for each sample-leaf pair.
 
     Args:
         X_train: Training feature matrix.
         a_start: Initial split-coefficient parameters.
         b_start: Initial split-threshold parameters.
-        D: Depth of the decision tree.
+        depth: Depth of the decision tree.
         epsilon: Margin parameter.
         integer_rate: Quantile level used in `calculate_delta`.
         enhanced_size: Parameter controlling the allowed number of enlarged multi-piece selections.
 
     Returns:
         tuple:
-            - `M_set_index`: nested dictionary of candidate indices, for example, if s\in \{0,1\}, t\in \{0\}, then 
-            M_set_index = {
+            - `L_set_index`: nested dictionary of candidate indices, for example, if s\in \{0,1\}, t\in \{0\}, then 
+            L_set_index = {
                             0: {0: [5, 6]},
                             1: {0: [8, 9]}                            
                                             }
@@ -625,13 +625,13 @@ def generate_ELL(X_train, a_start, b_start, D, epsilon, integer_rate, enhanced_s
     p = X_train.shape[1]
     phi_max = {}
     M_set_index = {}
-    A_L, A_R = ancestors(D)
+    A_L, A_R = ancestors(depth)
     rng = np.random.default_rng(seed=42)
     
     for s in range(N):
         phi_max[s] = {}
         M_set_index[s] = {}
-        for t in range(2**D):
+        for t in range(2**depth):
             M_set_index[s][t] = []
             phi_max[s][t] = max([-sum(a_start[k, i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon for k in A_R[t]]+[sum(a_start[k, i]*X_train[s][i] for i in range(p)) - b_start[k] for k in A_L[t]])
             for k in A_R[t]:
@@ -640,11 +640,11 @@ def generate_ELL(X_train, a_start, b_start, D, epsilon, integer_rate, enhanced_s
             for k in A_L[t]:
                 if phi_max[s][t] - (sum(a_start[k, i]*X_train[s][i] for i in range(p)) - b_start[k]) == 0:
                     M_set_index[s][t].append(k)
-    selected_piece = generate_random_combination(X_train, a_start, b_start, D, epsilon)
-    delta_1, delta_2 = calculate_delta(X_train=X_train, a=a_start, b=b_start, D=D, selected_piece=selected_piece, epsilon=epsilon, base_rate=integer_rate)
+    selected_piece = generate_random_combination(X_train, a_start, b_start, depth, epsilon)
+    delta_1, delta_2 = calculate_delta(X_train=X_train, a=a_start, b=b_start, D=depth, selected_piece=selected_piece, epsilon=epsilon, base_rate=integer_rate)
     multi_piece = 0
     for s in range(N):
-        for t in range(2**D):
+        for t in range(2**depth):
             if len(M_set_index[s][t])>1: 
                 if phi_max[s][t] < -delta_2[1]:
                     M_set_index[s][t] = [rng.choice(M_set_index[s][t])]
@@ -666,7 +666,7 @@ def generate_combinations(nested_dict):
 
     Args:
         nested_dict: Nested dictionary whose entries are candidate lists. For example, 
-        M_set_index = {
+        L_set_index = {
                         0: {0: [5, 6]},
                         1: {0: [8, 9]}                            
                                         }
@@ -702,7 +702,7 @@ def generate_combinations(nested_dict):
     return result
 
 
-def generate_random_combination(X_train, a_start, b_start, D, epsilon):
+def generate_random_combination(X_train, a_start, b_start, depth, epsilon):
     """
     Generate one random piece selection for all sample-leaf pairs.
 
@@ -713,7 +713,7 @@ def generate_random_combination(X_train, a_start, b_start, D, epsilon):
         X_train: Training feature matrix.
         a_start: Initial split-coefficient parameters.
         b_start: Initial split-threshold parameters.
-        D: Depth of the decision tree.
+        depth: Depth of the decision tree.
         epsilon: Margin parameter.
 
     Returns:
@@ -724,12 +724,12 @@ def generate_random_combination(X_train, a_start, b_start, D, epsilon):
     phi_max = {}
     M_set_index = {}
     selected_piece = {}
-    A_L, A_R = ancestors(D)
+    A_L, A_R = ancestors(depth)
     for s in range(N):
         phi_max[s] = {}
         M_set_index[s] = {}
         selected_piece[s] = {}
-        for t in range(2**D):
+        for t in range(2**depth):
             M_set_index[s][t] = []
             phi_max[s][t] = max([-sum(a_start[k, i]*X_train[s][i] for i in range(p)) + b_start[k] - epsilon for k in A_R[t]]+[sum(a_start[k, i]*X_train[s][i] for i in range(p)) - b_start[k] for k in A_L[t]])
             for k in A_R[t]:
@@ -747,7 +747,7 @@ def evaluate_tree(X, y, a, b, c, depth):
     """
     Evaluate a decision tree solution on a dataset.
 
-    Given the tree parameters `(a, b, c)` and tree depth `D`, this function computes the leaf assignment of each sample and evaluates the resulting
+    Given the tree parameters `(a, b, c)` and tree depth, this function computes the leaf assignment of each sample and evaluates the resulting
     classification performance. It returns both overall accuracy and class-specific precision, together with their corresponding counts.
 
     In addition, the function computes a margin-based accuracy measure, namely the proportion of samples that are correctly classified and satisfy the
@@ -759,7 +759,7 @@ def evaluate_tree(X, y, a, b, c, depth):
         a: Split-coefficient parameters of the tree.
         b: Split-threshold parameters of the tree.
         c: Leaf-class assignment variables.
-        D: Depth of the decision tree.
+        depth: Depth of the decision tree.
 
     Returns:
         dict: A dictionary with two entries:
@@ -823,76 +823,6 @@ def evaluate_tree(X, y, a, b, c, depth):
 
     result = {'frac': frac, 'counts': counts}
     return result
-
-
-def train_test_results(X_train, y_train, X_test, y_test, solution, D, J, beta_p, class_restricted):
-    """
-    Evaluate a tree solution on both the training and test sets, and compute the corresponding constraint gaps and train-test performance differences.
-
-    The function first evaluates the solution on the training and test data using `evaluate_tree`. It then compares the resulting metrics, including
-    accuracy, margin-based accuracy, and class-specific precision.
-
-    If precision thresholds `beta_p` are provided, the function also computes the precision constraint gap for each restricted class:
-    - `min(0, prec_j - beta_p[j])` if precision is defined,
-    - `-2` if precision is undefined (i.e., no sample is predicted as class `j`).
-
-    In addition, it computes the difference between test and training performance. For class-specific precision:
-    - `999` means training precision is undefined,
-    - `-999` means test precision is undefined.
-
-    Args:
-        X_train: Training feature matrix.
-        y_train: Training labels.
-        X_test: Test feature matrix.
-        y_test: Test labels.
-        solution: Dictionary containing the tree solution, with keys `a`, `b`, and `c`.
-        D: Depth of the decision tree.
-        J: List of class labels.
-        beta_p: Dictionary of class-specific precision thresholds, or `None`.
-        class_restricted: Classes for which precision constraints are imposed.
-
-    Returns:
-        tuple:
-            - `train_result`: evaluation result on the training set,
-            - `test_result`: evaluation result on the test set,
-            - `train_constraint_gap`: training precision constraint gaps,
-            - `test_constraint_gap`: test precision constraint gaps,
-            - `test_train_gap`: test minus training performance differences.
-    """
-    train_result = evaluate_tree(X_train, y_train, solution['a'], solution['b'], solution['c'], D)
-    train_constraint_gap = {}
-
-    test_result = evaluate_tree(X_test, y_test, solution['a'], solution['b'], solution['c'], D)
-    test_constraint_gap = {}
-
-    test_train_gap = {}
-    test_train_gap['acc'] = round(test_result['frac']['acc'] - train_result['frac']['acc'], 3)
-    test_train_gap['acc_margin'] = round(test_result['frac']['acc_margin'] - train_result['frac']['acc_margin'],3)
-
-    if beta_p is not None:
-        for j in class_restricted:
-            if train_result['frac'][f'prec{j}'] >= 0:
-                train_constraint_gap[f'prec{j}'] = min(0, round(train_result['frac'][f'prec{j}'] - beta_p[j],3))
-            else:
-                train_constraint_gap[f'prec{j}'] = -2
-    
-        for j in class_restricted:
-            if test_result['frac'][f'prec{j}'] >= 0:
-                test_constraint_gap[f'prec{j}'] = min(0, round(test_result['frac'][f'prec{j}'] - beta_p[j],3))
-            else:
-                test_constraint_gap[f'prec{j}'] = -2
-    
-        for j in J:
-            if train_result['frac'][f'prec{j}'] >= 0 and test_result['frac'][f'prec{j}'] >= 0:
-                test_train_gap[f'prec{j}'] = round(test_result['frac'][f'prec{j}'] - train_result['frac'][f'prec{j}'], 3)
-            elif train_result['frac'][f'prec{j}'] == -1:
-                test_train_gap[f'prec{j}'] = 999
-            elif test_result['frac'][f'prec{j}'] == -1:
-                test_train_gap[f'prec{j}'] = -999
-    else:
-        train_constraint_gap, test_constraint_gap = None, None
-
-    return train_result, test_result, train_constraint_gap, test_constraint_gap, test_train_gap
 
 
 def format_output(data):
@@ -1010,8 +940,8 @@ def write_single_integrated_result(results_csv, dataset, depth, split, method, t
                 'split',
                 'method',
                 'tau_0',
-                'key_beta_p',
-                'beta_p',
+                'key_beta',
+                'beta',
                 'objective_value',
                 'optimality_gap (Full MIP)',
                 'time',

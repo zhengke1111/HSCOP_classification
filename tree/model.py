@@ -256,14 +256,14 @@ class Model:
                     self.var['L'][t].setAttr(gp.GRB.Attr.Start, L_start[t])
 
     def add_full_constr_z_0st_plus(self):
-        """For full model: add objective-related z_plus_0 (\xi) constraints for all (s,t)"""
+        r"""For full model: add objective-related z_plus_0 (\xi) constraints for all (s,t)"""
         for t in self.leaf_node:
             for s in self.N:
                 self.model.addConstrs((gp.quicksum(self.var['a'][k, i] * self.X[s][i] for i in self.p) - self.var['b'][k] - 1 - FEASIBILITYTOL >= - self.M_z_plus_0 * (1 - self.var['z_plus_0'][s, t])) for k in self.A_R[t])
                 self.model.addConstrs((gp.quicksum(-self.var['a'][k, i] * self.X[s][i] for i in self.p) + self.var['b'][k] - 1 - FEASIBILITYTOL >= - self.M_z_plus_0 * (1 - self.var['z_plus_0'][s, t])) for k in self.A_L[t])
 
     def add_partial_constr_z_0st_plus(self, a_start, b_start):
-        """For partial model: add objective-related z_plus_0 (\xi) constraints"""
+        r"""For partial model: add objective-related z_plus_0 (\xi) constraints"""
         for t in self.leaf_node:
             self.z_plus_0_fixed_as_1[t], self.z_plus_0_active[t], self.z_plus_0_fixed_as_0[t] = [], [], []
             for s in self.N:
