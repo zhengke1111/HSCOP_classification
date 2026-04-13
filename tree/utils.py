@@ -599,7 +599,7 @@ def train_decisiontree_model(X_train, y_train, max_depth):
     return result
 
 
-def generate_M(X_train, a_start, b_start, D, epsilon, integer_rate, enhanced_size):
+def generate_ELL(X_train, a_start, b_start, D, epsilon, integer_rate, enhanced_size):
     """
     Generate the candidate index set `M_set_index` for each sample-leaf pair.
 

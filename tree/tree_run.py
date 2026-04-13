@@ -4,6 +4,7 @@ from parameter import *
 from utils import *
 import pprint
 import copy
+import random
 
 
 # =========== Settings to Solve Multi-class Classification Problem with Precision Constraint ==========
@@ -204,7 +205,7 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir, pare
 
 def run_tree_experiment(method_dict, depth_list, pareto = False):
     dataset_list_ = DATASET_LIST if pareto == False else DATASET_LIST_PARETO
-    
+
     for dataset in dataset_list_:
         dataset_dir = f"tree/results/{dataset}"
         os.makedirs(dataset_dir, exist_ok=True)
@@ -301,6 +302,6 @@ def run_tree_experiment(method_dict, depth_list, pareto = False):
 
 
 
-method = {'Full MIP': False, 'PIP': False, 'ISA-PIP': False, 'D4-PIP': False, 'D-PIP': False, 'IDSA4-PIP': False, 'IDSA-PIP': False, 'U-PIP': True}
+method = {'Full MIP': True, 'PIP': False, 'ISA-PIP': False, 'D4-PIP': False, 'D-PIP': False, 'IDSA4-PIP': False, 'IDSA-PIP': True, 'U-PIP': False}
 depth_list = [2, 3, 4]
-run_tree_experiment(method, depth_list, pareto = True)
+run_tree_experiment(method, depth_list, pareto = False)

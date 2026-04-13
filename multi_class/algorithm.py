@@ -128,12 +128,12 @@ class PIP:
         """Arbitrary-4 iteration: generate piece set, select 4 combinations, solve subproblems."""
         # Initialize storage for arbitrary-piece strategy if not exists
         if 'ell_comb_len_list' not in self.__dict__:
-            self.__dict__['ell_comb_len_list'] = []  # Track piece combination lengths
-            self.__dict__['W_list'] = []  # Track weights per iteration
-            self.__dict__['b_list'] = []  # Track biases per iteration
-            self.__dict__['obj_list'] = []  # Track objective values per iteration
-            self.__dict__['z_plus_list'] = []  # Track z+ variables per iteration
-            self.__dict__['z_minus_list'] = []  # Track z- variables per iteration
+            self.__dict__['ell_comb_len_list'] = []     # Track piece combination lengths
+            self.__dict__['W_list'] = []                # Track weights per iteration
+            self.__dict__['b_list'] = []                # Track biases per iteration
+            self.__dict__['obj_list'] = []              # Track objective values per iteration
+            self.__dict__['z_plus_list'] = []           # Track z+ variables per iteration
+            self.__dict__['z_minus_list'] = []          # Track z- variables per iteration
 
         # Calculate delta+ and delta- parameters (ell is None for arbitrary strategy)
         delta_1, delta_2 = delta_of_J(
@@ -260,13 +260,13 @@ class PIP:
         # Initialize warm start parameters
         W_start = W
         b_start = b
-        iter_unchanged = 0  # Counter for consecutive unchanged iterations
-        ratio = self.base_ratio  # Initial adaptive ratio
+        iter_unchanged = 0          # Counter for consecutive unchanged iterations
+        ratio = self.base_ratio     # Initial adaptive ratio
 
         # Main iteration loop
         for iteration in range(self.max_iter):
             start = time.time()
-            obj_val_old = obj_val  # Store previous objective value
+            obj_val_old = obj_val   # Store previous objective value
 
             # Execute iteration process (fixed/arbitrary)
             solution = iteration_process(alg_name, iteration, start, ratio, W_start, b_start)

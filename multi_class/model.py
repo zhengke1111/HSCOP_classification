@@ -7,7 +7,7 @@ from parameter import *
 
 class Model:
     """
-    Gurobi MIP model for multi-class classification with precision constraints (full or partial).
+    Gurobi MIP model for score-based multi-class classification with precision constraints (full or partial).
     """
     def __init__(self, X, y, class_restrict, epsilon, beta, model_type, ell, delta_plus, delta_minus, model_params,
                  model_dir, model_name, save_log=False, console_log=False):
@@ -33,16 +33,16 @@ class Model:
         self.beta = beta
         self.epsilon = epsilon
 
-        self.model_type = model_type  # full or partial
-        self.ell = ell  # None if un-PA-decomposed model
-        self.delta_plus = delta_plus  # None if full model
+        self.model_type = model_type    # full or partial
+        self.ell = ell                  # None if un-PA-decomposed model
+        self.delta_plus = delta_plus    # None if full model
         self.delta_minus = delta_minus  # None if full model
 
-        self.M = generate_bigM(self.X)
+        self.M = generate_bigM(self.X)  
         self.N = range(self.X.shape[0])
         self.p = range(self.X.shape[1])
         self.I = range(len(np.unique(self.y)))
-        self.class_index = {cls: np.where(y == cls)[0] for cls in self.I}  # use to select samples of certain class
+        self.class_index = {cls: np.where(y == cls)[0] for cls in self.I}       # Select samples of each class
         self.class_index_rest = {cls: np.where(y != cls)[0] for cls in self.I}
 
         self.model = gp.Model()
@@ -57,7 +57,7 @@ class Model:
         self.var = {}
         self.var_val = {}
         self.num_int = 0
-        self.model_state = 0  # -1: infeasible, 0: default, 1: feasible
+        self.model_state = 0            # -1: infeasible, 0: default, 1: feasible
 
     def model_optimize(self, callback):
         """Execute Gurobi optimization with error handling."""

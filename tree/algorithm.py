@@ -6,8 +6,31 @@ import numpy as np
 from typing import Dict, Optional, Union
 
 class PIP:
+    """PIP algorithm: iteratively solves partial MIP with fixed or arbitrary piece selection."""
     def __init__(self, X_train, y_train, dataset, depth, tau_0, class_restrict, epsilon, beta, model_params, ell, algorithm_params, alg_dir,
                  save_log=False, console_log=False):
+        """
+        Initialize PIP algorithm instance.
+
+        Args:
+            X_train: Training feature matrix
+            y_train: Training label array
+            dataset: Name of dataset, e.g. 'blsc'
+            depth: Depth of the decision tree
+            tau_0: \ell_0 norm constraint of the branching coefficient at each branching node k, a_k
+            class_restrict: Class(es) to apply precision constraints
+            epsilon: Approximation parameter
+            beta: Precision constraint parameters per class
+            model_params: Gurobi solver parameters
+            ell: PA piece set (None for un-PA-decomposed methods or unconstrained model)
+            algorithm_params: PIP control parameters:
+                {'iteration': {'unchanged_iter', 'max_iter'},
+                 'ratio': {'min_ratio', 'max_ratio', 'base_ratio', 'change_ratio'}}
+                 'base_ratio' is dataset-specific, see ALG_PARAM in parameter.py
+            alg_dir: Directory to save algorithm outputs
+            save_log (bool, optional): True if save the Gurobi log. Defaults to False.
+            console_log (bool, optional): True if output the Gurobi solving log. Defaults to False.
+        """
         self.X_train = X_train
         self.y_train = y_train
         self.dataset = dataset
@@ -44,7 +67,6 @@ class PIP:
         # Initialize final output container
         self.output = {
             'obj_val': -np.inf,
-            'opt_gap': None,
             'a': None,  
             'b': None,  
             'c': None,
@@ -52,6 +74,7 @@ class PIP:
         }
         
     def ratio_update_rule(self, ratio, obj_val, obj_val_old, iter_unchanged):
+        # Check if objective value is unchanged (within numerical tolerance)
         if  obj_val - obj_val_old <= 1e-5:
             new_ratio = min(ratio + self.change_ratio, self.max_ratio) 
             iter_unchanged_new = iter_unchanged + 1
@@ -88,7 +111,7 @@ class PIP:
         return partial_model
     
     def formulate_and_solve_unconstrained_partial_model(self, model_dir, delta_1, delta_2, iter_model_name, a_start, b_start, c_start):
-        """Build and solve a partial MIP model with given delta thresholds and piece set."""
+        """Build and solve a unconstrained partial MIP model"""
         # Initialize partial model with problem parameters
         partial_model = Model(
             X=self.X_train,
@@ -115,30 +138,36 @@ class PIP:
         return partial_model
     
     def iteration_process_fixed_piece(self, alg_name, iteration, start, ratio, a_start, b_start, c_start):
+        """Fixed-piece iteration: compute delta, solve partial model, record time."""
+        # Calculate delta+ and delta- parameters using fixed piece set
         delta_1, delta_2 = calculate_delta(self.X_train, a_start, b_start, self.depth, self.ell, self.epsilon, ratio)
 
+        # Define unique model name for current iteration
         iter_model_name = alg_name + f"_iter_{iteration}"
 
+        # Formulate and solve partial model
         partial_model = self.formulate_and_solve_partial_model(self.alg_dir, delta_1, delta_2, self.ell, iter_model_name, a_start, b_start, c_start)
 
+        # Record iteration execution time
         self.execution_time_list.append(time.time() - start)
         return partial_model
 
     def iteration_process_enhanced_arbitrary_4(self, alg_name, iteration, start, ratio, a_start, b_start, c_start):
+        """Arbitrary-4 iteration: generate piece set, select up to 4 combinations, solve subproblems"""
         if 'ell_comb_list' not in self.__dict__:
-            self.__dict__['ell_comb_list'] = []  # Track piece combination lengths
-            self.__dict__['a_list'] = []  # Track weights per iteration
-            self.__dict__['b_list'] = []  # Track biases per iteration
-            self.__dict__['c_list'] = []  # Track biases per iteration
-            self.__dict__['gamma_list'] = []  # Track gamma per iteration
-            self.__dict__['obj_list'] = []  # Track objective values per iteration
-            self.__dict__['gap_list'] = []  # Track optimality gap for per subproblem
+            self.__dict__['ell_comb_list'] = []         # Track piece combination lengths
+            self.__dict__['a_list'] = []                # Track branching weights per iteration
+            self.__dict__['b_list'] = []                # Track branching biases per iteration
+            self.__dict__['c_list'] = []                # Track assigned class of leaf nodes per iteration
+            self.__dict__['gamma_list'] = []            # Track gamma per iteration
+            self.__dict__['obj_list'] = []              # Track objective values per iteration
 
-
-        ell_set_index, multi_piece = utils.generate_M(self.X_train, a_start, b_start, self.depth, self.epsilon, ratio, ENHANCED_SIZE)
-        ell_comb = utils.generate_combinations(ell_set_index)  # Generate {\cal L}^4_{st}(a,b)
+        # Generate 4 random piece combinations ({\cal L}^4_{st}(a,b))
+        ell_set_index, multi_piece = utils.generate_ELL(self.X_train, a_start, b_start, self.depth, self.epsilon, ratio, ENHANCED_SIZE)
+        ell_comb = utils.generate_combinations(ell_set_index)  
         self.__dict__['ell_comb_list'].append(multi_piece)
 
+        # Solve subproblems for each piece combination
         sub_prob_counter = 0
         model_dict = {}
         execution_time_iteration = {}
@@ -166,9 +195,11 @@ class PIP:
         return model_dict
 
     def iteration_process_enhanced_arbitrary_1(self, alg_name, iteration, start, ratio, a_start, b_start, c_start):
+        """Arbitrary-1 iteration: generate piece set, select 1 random piece per class, solve."""
         if 'ell_comb_list' not in self.__dict__:
             self.__dict__['ell_comb_list'] = []  # Track piece combination lengths
         
+        # Randomly select 1 piece
         ell = utils.generate_random_combination(self.X_train, a_start, b_start, self.depth, self.epsilon) 
         self.__dict__['ell_comb_list'].append(ell) #
         delta_1, delta_2 = calculate_delta(self.X_train, a_start, b_start, self.depth, ell, self.epsilon, ratio)
@@ -185,6 +216,7 @@ class PIP:
         return partial_model
     
     def iteration_process_unconstrained(self, alg_name, iteration, start, ratio, a_start, b_start, c_start):
+        """Iteration for un-(precision)-constrained partial problem."""
         delta_1, delta_2 = calculate_delta(self.X_train, a_start, b_start, self.depth, None, None, ratio)
 
         # Define unique model name for current iteration
@@ -199,20 +231,26 @@ class PIP:
         return partial_model
     
     def main_computation(self, iteration_process, alg_name, a, b, c):
+        """Main PIP loop: iterate, update ratio, track convergence, store final output."""
+        # General initial gamma and z for warm start
         gamma_start, z_plus_0_start, z_plus_start, z_minus_start = calculate_gamma(self.X_train, self.y_train, a, b, c, self.depth, self.ell, self.beta, self.epsilon, self.class_restrict)
+        # General initial L for calculating initial obj_val
         eta_start, zeta_start, L_start = calculate_eta_zeta_L(self.X_train, self.y_train, c, self.depth, z_plus_0_start, z_plus_start, z_minus_start)
+        # Calculate initial obj_val
         obj_val = (sum(L_t for L_t in L_start.values()) / self.X_train.shape[0] - RHO * (sum(gamma for gamma in gamma_start.values())))
 
+        # Initialize warm start
         a_start = a
         b_start = b
         c_start = c
-        iter_unchanged = 0  # Counter for consecutive unchanged iterations
-        ratio = self.base_ratio  # Initial adaptive ratio
+        iter_unchanged = 0          # Counter for consecutive unchanged iterations
+        ratio = self.base_ratio     # Initial adaptive ratio
 
         for iteration in range(self.max_iter):
             start = time.time()
-            obj_val_old = obj_val  # Store previous objective value
+            obj_val_old = obj_val   # Store previous objective value
 
+            # Execute iteration process (fixed/arbitrary)
             solution = iteration_process(alg_name, iteration, start, ratio, a_start, b_start, c_start)
 
             # Handle multi-subproblem solution (arbitrary-4)
@@ -292,7 +330,7 @@ class PIP:
                 else:
                     self.algorithm_state = 3  # arbitrary-1 success
             else:
-                self.algorithm_state = 1  # fixed-piece success
+                self.algorithm_state = 1      # fixed-piece success
 
             # Extract final results based on algorithm type
             if self.algorithm_state == 1 or self.algorithm_state == 3:
@@ -313,6 +351,7 @@ class PIP:
                 self.output['gamma'] = self.__dict__['gamma_list'][-1]
 
     def main_computation_unconstrained(self, iteration_process, alg_name, a, b, c):
+        """Main PIP loop for unconstrained problem: iterate, update ratio, track convergence, store final output."""
         z_plus_0_start = calculate_z_plus_0(self.X_train, a, b, self.depth)
         L_start = calculate_L(self.X_train, self.y_train, c, self.depth, z_plus_0_start)
         obj_val = (sum(L_t for L_t in L_start.values()) / self.X_train.shape[0])
@@ -320,7 +359,7 @@ class PIP:
         a_start = a
         b_start = b
         c_start = c
-        iter_unchanged = 0  # Counter for consecutive unchanged iterations
+        iter_unchanged = 0       # Counter for consecutive unchanged iterations
         ratio = self.base_ratio  # Initial adaptive ratio
 
         for iteration in range(self.max_iter):
@@ -341,7 +380,7 @@ class PIP:
                 self.model_dict[iteration] = solution
             else:
                 # Mark algorithm as failed if model solving failed
-                self.algorithm_state = -iteration - 1
+                self.algorithm_state = - iteration - 1
                 break
 
             # Early stop if objective value unchanged for max allowed iterations
@@ -350,7 +389,7 @@ class PIP:
                 break
 
         if self.algorithm_state >= 0:
-            self.algorithm_state = 1  # fixed-piece success
+            self.algorithm_state = 1  # Success
             final_model = self.model_dict[self.max_iter - 1]
             self.output['obj_val'] = final_model.model.objVal
             self.output['a'] = final_model.var_val['a']
@@ -358,6 +397,7 @@ class PIP:
             self.output['c'] = final_model.var_val['c']
 
     def write_integrated_results(self, dataset_results_csv, split, method, tau_0, beta, X_test, y_test):
+        """Compute train/test metrics and write results to CSV."""
         if self.algorithm_state >= 0:
             train_results = evaluate_tree(self.X_train, self.y_train, self.output['a'], self.output['b'], self.output['c'], self.depth)
             test_results = evaluate_tree(X_test, y_test, self.output['a'], self.output['b'], self.output['c'], self.depth)
@@ -381,9 +421,9 @@ class PIP:
                                            tau_0=tau_0, 
                                            beta=beta, 
                                            objective_value=self.output['obj_val'], 
-                                           optimality_gap=None, 
+                                           optimality_gap=None,  # Only record optimality gap for Full MIP
                                            time=model_time, 
-                                           actual_time=None, 
+                                           actual_time=None,     # This item is the actual Running time for Full MIP, None for partial models
                                            gamma=next(iter(self.output['gamma'].values())) if self.output['gamma'] is not None else None, 
                                            train_acc=train_results['frac']['acc'], 
                                            test_acc=test_results['frac']['acc'], 
@@ -393,9 +433,10 @@ class PIP:
 
 
 class IterativeShrinkage:
+    """Iterative Shrinkage: wraps PIP with progressively shrinking epsilon across outer iterations."""
     def __init__(self, X_train, y_train, dataset, depth, tau_0, class_restrict, beta, model_params, pip_params, alg_dir,
                  save_log=False, console_log=False):
-
+        
         self.X_train = X_train
         self.y_train = y_train
         self.dataset = dataset
@@ -422,7 +463,6 @@ class IterativeShrinkage:
         # Initialize final output container
         self.output: Dict[str, Optional[Union[dict, float]]] = {
             'obj_val': -np.inf,
-            'opt_gap': None,
             'a': None,
             'b': None,
             'c': None,
@@ -439,7 +479,7 @@ class IterativeShrinkage:
             self.__dict__['gamma_list'] = []
             self.__dict__['obj_list'] = []
 
-        ell_set_index, multi_piece = utils.generate_M(self.X_train, a_start, b_start, self.depth, epsilon[iteration], ALG_PARAM['ratio']['base_ratio'][self.depth][self.dataset], ENHANCED_SIZE)
+        ell_set_index, multi_piece = utils.generate_ELL(self.X_train, a_start, b_start, self.depth, epsilon[iteration], ALG_PARAM['ratio']['base_ratio'][self.depth][self.dataset], ENHANCED_SIZE)
         ell_comb = utils.generate_combinations(ell_set_index)  # Generate {\cal L}^4_{st}(a,b)
         self.__dict__['ell_comb_list'].append(multi_piece)
 
