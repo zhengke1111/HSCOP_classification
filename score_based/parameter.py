@@ -1,5 +1,5 @@
 """
-Global parameter configuration for multi-class classification with precision constraints
+Global parameter configuration for score-based multi-class classification with precision constraints
 Includes Gurobi params, algorithm hyperparameters, dataset paths, and warm start values
 """
 # Approximation parameter for PIP/IterativeShrinkage
@@ -34,7 +34,7 @@ ALG_PARAM = {'iteration': {'unchanged_iter': 4, 'max_iter': 10},
 RHO = 1e04
 
 # Dataset file paths
-FISH_PATH = 'multi_class/dataset/fish_data.csv'
+FISH_PATH = 'score_based/dataset/fish_data.csv'
 # Precomputed warm start values for FISH dataset (MIP model)
 FISH_MIP_START = {
     1: {'W': {(0, 0): 1.1665036033693035, (0, 1): -1.8628568969464094, (0, 2): -2.3427650034062495,
@@ -90,7 +90,7 @@ Puntius lateristriga      418
 Coilia dussumieri         415
 """
 
-WAVE_PATH = 'multi_class/dataset/waveform.csv'
+WAVE_PATH = 'score_based/dataset/waveform.csv'
 WAVE_MIP_START = {
     1: {'W': {(0, 0): 0.04910749266554331, (0, 1): 0.03200188277999106, (0, 2): 0.14230618718565907,
               (0, 3): 0.6271504592182829, (0, 4): 0.28515519123047534, (0, 5): 0.43114748878163245,
@@ -170,7 +170,7 @@ WAVE_MIP_START = {
 1        1647
 """
 
-RED_WINE_PATH = 'multi_class/dataset/red_wine.csv'
+RED_WINE_PATH = 'score_based/dataset/red_wine.csv'
 RED_WINE_MIP_START = {
     1: {'W': {(0, 0): -1.1900930755530315, (0, 1): 2.3186163678185796, (0, 2): 1.8496219401424003,
               (0, 3): 1.042326189809474, (0, 4): 0.661782474051309, (0, 5): 0.0, (0, 6): -0.6638978786183927,
@@ -220,7 +220,7 @@ RED_WINE_MIP_START = {
 3           10
 """
 
-VEHICLE_PATH = 'multi_class/dataset/vehicle.csv'
+VEHICLE_PATH = 'score_based/dataset/vehicle.csv'
 VEHICLE_MIP_START = {
     1: {'W': {(0, 0): -0.4379626551619413, (0, 1): 0.0, (0, 2): -0.08309535342331564, (0, 3): 4.218197092501123,
               (0, 4): -2.806158793578316, (0, 5): 0.0, (0, 6): 0.0, (0, 7): 0.0, (0, 8): -0.8374242611095379,
@@ -304,7 +304,7 @@ VEHICLE_MIP_START = {
 4           200
 """
 
-ROBOT_2_PATH = 'multi_class/dataset/robot_2.csv'
+ROBOT_2_PATH = 'score_based/dataset/robot_2.csv'
 ROBOT_2_MIP_START = {
     1: {'W': {(0, 0): 3.196800311160541, (0, 1): 1.77234134772133, (1, 0): -10.0, (1, 1): 0.0,
               (2, 0): 3.3797568894193293, (2, 1): -6.620243110581659, (3, 0): 3.8115476718958865,
@@ -330,7 +330,7 @@ Slight-Right-Turn     826
 Slight-Left-Turn      328
 """
 
-SEGMENTATION_PATH = 'multi_class/dataset/segmentation.csv'
+SEGMENTATION_PATH = 'score_based/dataset/segmentation.csv'
 SEGMENTATION_MIP_START = {
     1: {'W': {(0, 0): 0.0, (0, 1): 0.0, (0, 2): 0.0, (0, 3): 0.06864981619765942, (0, 4): 0.0, (0, 5): 0.0, (0, 6): 0.0,
               (0, 7): -0.5852952621943501, (0, 8): 0.0, (0, 9): 0.0, (0, 10): 0.0, (0, 11): 0.0, (0, 12): 0.0,

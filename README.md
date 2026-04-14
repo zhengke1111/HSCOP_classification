@@ -1,50 +1,79 @@
 # HSCOP_classification
-Source code of HSCOP classification.
+This repository contains implementations of multi-class classification in "Solving Constrained Affine Heaviside Composite Optimiation Problem by a Progressive IP Approach", by Ke Zheng, Junyi Liu, Yurui Wang, and Jong-Shi Pang.
 
-This project consists of two parts: score-based multi-class classification and tree-based classification.
+This project consists of two parts: 
+- Score-based multi-class classification, and 
+- Tree-based multi-class classification.
 
-## Requirements
-- Python 3.11 (Except `decisiontree/decisiontree_pareto/binoct-master/run_exp.py`, which needs Python 3.10 to support the `cplex` version)
+## Setup
+- **Python 3.11**
 
-- When you run `decisiontree/decisiontree_pareto/binoct-master/run_exp.py`, if encountering an Error like  ```ImportError: /lib64/libstdc++.so.6: version `CXXABI_1.3.9' not found```, you can enter the following in terminal (please replace '/home/zhengke' by your own path to anaconda):
+    All computations are coded in **Python 3.11**, except `decisiontree/decisiontree_pareto/binoct-master/run_exp.py`, which needs **Python 3.10** to support the `cplex==22.1.2.0`.
 
-```bash
-strings ~/anaconda3/lib/libstdc++.so.6.0.29 | grep CXXABI
-export LD_LIBRARY_PATH="/home/zhengke/anaconda3/envs/python3.10/lib:$LD_LIBRARY_PATH"
-```
+- **Python packages**
 
-- The required Python packages are listed in `requirements.txt`.
+    Listed in `requirements.txt`, including
 
-- This project requires `gurobipy==11.0.3` and a valid Gurobi license. Our experiments were conducted using the Gurobi Academic License.
-To run the optimization code, you need to install Gurobi and activate your
-own valid license.
+    - Basic data processing and computation: `numpy`, `pandas` and `scipy`.
 
+    - **Solvers**: 
+        - `gurobipy==11.0.3`: the main solver to implement PIP methods. A valid Gurobi Academic License is required.
+
+        - `cplex==22.1.2.0`: the solver of `BinOCT`, NOT required for PIP methods. If encountering an Error like  ```ImportError: /lib64/libstdc++.so.6: version `CXXABI_1.3.9' not found```, please enter the following in terminal (replace `/home/zhengke` by your own path to `anaconda`):
+
+            ```bash
+            strings ~/anaconda3/lib/libstdc++.so.6.0.29 | grep CXXABI
+            export LD_LIBRARY_PATH="/home/zhengke/anaconda3/envs/python3.10/lib:$LD_LIBRARY_PATH"
+            ```
+
+        - `scikit-learn==1.5.2`: the solver of `CART`, which is required for generating the initial solution of PIP methods.
+
+
+    
 ## Overview
 The content of this repository is as follows:
-- `multi_class`
-    - `dataset`: Six datasets used in experiments.
+- `score_based`
+
+    - `dataset`: 6 datasets used in experiments.
+
     - `results`: Output results directory.
-        - `our_results/multi_class_run/{data_set}`: Experiment results organized by dataset, each containing:
+
+        - `our_results/score_based_run/{data_set}`: Experiment results organized by dataset, each containing:
+
             - `parameters.txt`: Precision configurations for the dataset. Records hyperparameters (epsilon, method, model_param) and all precision_threshold combinations used in experiments.
-            - `multi_class_{data_set}_results.csv`: Experiment results presented in the main text.
+
+            - `score_based_{data_set}_results.csv`: Experiment results presented in the main text.
+
             - `{data_set}_{precision}_{timestamp}/`: (Optional) LogFile subdirectories per precision setting. Only present when `save_log=True` is enabled.
+
     - `algorithm.py`: Core algorithm classes.
+
         - `PIP`: Solves one $\varepsilon$-approximation problem via the PIP algorithm, supporting fixed-piece and arbitrary-piece selection strategies.
+
         - `IterativeShrinkage`: Solves the original problem via iterative shrinkage algorithms:
+
             - `ISA-PIP`: Iterative Shrinkage Algorithm
+
             - `IDSA-PIP`: Iterative Shrinkage Algorithm with PA-decomposition
+
     - `callback.py`: Gurobi callback for tracking optimality gap, improvement time, and early termination.
+
     - `model.py`: `Model` class for constructing and solving full or partial $\varepsilon$-approximation MIP problems via Gurobi.
-    - `multi-class_run.py`: Main entry point. Configure datasets, algorithms, and precision thresholds in `run_multi_class_classification_experiment()`, then run this file. Available methods:
+
+    - `score_based_run.py`: Main entry point. Configure datasets, algorithms, and precision thresholds in `run_score_based_classification_experiment()`, then run this file. Available methods:
         `Full MIP`, `PIP`, `ISA-PIP`, `IDSA-PIP`
-    - `multi-class_pareto_run.py`: Trains baseline classifiers (LogisticRegression, LinearSVM, Perceptron, Ridge) via cross-validation. Can be used to generate Pareto curves comparing baseline methods against our algorithms (results not included in main text).
+
+    - `score_based_pareto_run.py`: Trains baseline classifiers (LogisticRegression, LinearSVM, Perceptron, Ridge) via cross-validation. Can be used to generate Pareto curves comparing baseline methods against our algorithms (results not included in main text).
+
     - `parameter.py`: Centrally configures Gurobi parameters, algorithm hyperparameters, dataset paths, and precomputed MIP warm start values (`MIP_START_SOL`).
+
     - `utils.py`: Data loading, big-M computation, metric calculations, and result writing utilities.
+
 - `decisiontree`
 
-    - `dataset` includes the required datasets
+    - `dataset`: 8 datasets used in experiments.
 
-    - `results` store the output results
+    - `results`: Output results directory.
 
         - `decisiontree_results.csv`: results of tree-based classification, 8 datasets, depth-2,3,4, method `Full MIP` and `IDSA-PIP`.
 
@@ -52,7 +81,7 @@ The content of this repository is as follows:
 
         - `depth2`, `depth3`, `depth4`: empty folders to store (future) detailed results.
 
-    - `decisiontree_pareto`: existing methods in literature, including
+    - `decisiontree_pareto`: Existing methods in literature, including
 
         - `binoct-master`: `BinOCT` [Learning optimal classification trees using a binary linear program formulation](https://ojs.aaai.org/index.php/AAAI/article/view/3978)
 
@@ -70,31 +99,29 @@ The content of this repository is as follows:
         
     - `CART_run.py`: **run** this script to reproduce results of `CART`.
 
-    - `PIP_tree_solve_partial_problem.py`: build and solve an MIP for a single PIP partial problem in a tree-based classification problem. 
+    - `model.py`: build and solve an MIP for a single PIP partial problem in a tree-based classification problem. 
 
-    - `PIP_tree_control_termination.py`: determine whether to continue or stop, and, if continuing, decide whether to enlarge or shrink the in-between sets ${\cal J}$. 
-    
-    - `MIP_tree.py`: set input and output paths and formats for various methods. 
+    - `algorithm.py`: determine whether to continue or stop, and, if continuing, decide whether to enlarge or shrink the in-between sets ${\cal J}$. 
 
-    - `MIP_tree_callback.py`: `callback` mechanism for solving MIP problems. The parameter used in `MIP_tree_callback.py` are stored in `callback_data_tree.py`.
+    - `callback.py`: `callback` mechanism for solving MIP problems. The parameter used in `MIP_tree_callback.py` are stored in `callback_data_tree.py`.
 
     - `utils.py`: utility file to store some commonly used functions in this project. 
 
 ## Usage
-### Multi-class classification `multi_class`
-- `multi-class_run.py`: Main entry point. Run this script to execute experiments.
+### Multi-class classification `score_based`
+- `score_based_run.py`: Main entry point. Run this script to execute experiments.
 
     **Output structure per dataset:**
     ```
-    results/our_results/multi_class_run/{data_set}/
+    results/our_results/score_based_run/{data_set}/
     ├── parameters.txt                      # Experiment configurations
-    ├── multi_class_{data_set}_results.csv  # Combined results CSV
+    ├── score_based_{data_set}_results.csv  # Combined results CSV
     └── {data_set}_{precision}_{timestamp}/ # Optional LogFile subdirectories (save_log=True only)
     ```
 
     **CSV columns:** `Precision_threshold, Fold, method, obj, time, train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall`
 
-    **Configuration in `run_multi_class_classification_experiment()`:**
+    **Configuration in `run_score_based_classification_experiment()`:**
         - `dataset_list`: List of datasets to run. Available: `['wine', 'fish', 'robo', 'segm', 'vehi', 'wave']`
         - `method`: Dictionary of algorithms to execute. Set to `True` to enable:
             ```python
@@ -121,9 +148,9 @@ The content of this repository is as follows:
         - `MIP_START_SOL`: Precomputed warm start solutions per dataset
 
     **Output path configuration:**
-        - Modify line 284 in `multi-class_run.py` to change results directory:
+        - Modify line 284 in `score_based_run.py` to change results directory:
             ```python
-            dataset_dir = f"results/our_results/multi_class_run/{data_set}"  # Default path
+            dataset_dir = f"results/our_results/score_based_run/{data_set}"  # Default path
             # Change to your custom path, e.g.:
             # dataset_dir = f"my_results/{data_set}"
             ```

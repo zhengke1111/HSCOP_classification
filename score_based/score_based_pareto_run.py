@@ -200,7 +200,7 @@ def run_sklearn_classifiers(param):
     summary_df = pd.concat(all_results, ignore_index=True)
 
     # Create output directory and save CSV
-    output_dir = 'multi_class/results/multi-class_pareto_run'
+    output_dir = 'score_based/results/score_based_pareto_run'
     os.makedirs(output_dir, exist_ok=True)
     data_set_name = param['data_set']
     summary_file = os.path.join(output_dir, f'{data_set_name}_sklearn_classifiers_summary.csv')
@@ -210,9 +210,9 @@ def run_sklearn_classifiers(param):
     return summary_df
 
 
-def multi_class_pareto_run():
+def score_based_pareto_run():
     for data_set in ['wine', 'fish', 'robo', 'segm', 'vehi', 'wave']:
         param = {'data_set': data_set, 'sample_size': None, 'n_splits': 4, 'folds': None}
         run_sklearn_classifiers(param)
 
-multi_class_pareto_run()
+score_based_pareto_run()

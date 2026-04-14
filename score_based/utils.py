@@ -178,7 +178,7 @@ def extract_inner_values(d, values=None):
 
 def generate_data_info(X, y):
     """
-    Generate basic data indices and class information for multi-class classification
+    Generate basic data indices and class information for score_based multi-class classification
 
     Args:
         X (pd.DataFrame/np.ndarray): Feature matrix (samples x features)

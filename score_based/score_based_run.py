@@ -5,9 +5,9 @@ import pprint
 
 
 # =========== Settings to Solve Multi-class Classification Problem with Precision Constraint ==========
-def solve_multi_class_classification_prob(param, dataset_results_csv, dataset_dir):
+def solve_score_based_classification_prob(param, dataset_results_csv, dataset_dir):
     """
-    Solve multi-class classification with precision constraints for a single precision setting.
+    Solve score-based multi-class classification with precision constraints for a single precision setting.
     Results are appended to a shared dataset-level CSV, and LogFiles are stored in precision-specific subdirectories.
 
     Args:
@@ -35,7 +35,7 @@ def solve_multi_class_classification_prob(param, dataset_results_csv, dataset_di
     def run_algorithm(method, X_train, y_train, beta, epsilon, model_params, result_dir, W_start, b_start,
                       save_log=False, console_log=False):
         """
-        Execute specific multi-class classification algorithm and return solution object.
+        Execute specific score-based multi-class classification algorithm and return solution object.
 
         Args:
             method (str): Algorithm identifier ('Full MIP', 'PIP', 'ISA-PIP', 'IDSA-PIP')
@@ -225,19 +225,19 @@ def solve_multi_class_classification_prob(param, dataset_results_csv, dataset_di
                               precision_threshold=param['beta'], fold=i)
 
 
-def run_multi_class_classification_experiment():
+def run_score_based_classification_experiment():
     """
-    Organize multi-class classification experiment across datasets and precision thresholds.
+    Organize score-based multi-class classification experiment across datasets and precision thresholds.
 
     For each dataset:
-        - Creates one dataset-level directory with parameters.txt and multi_class_{dataset}_results.csv
+        - Creates one dataset-level directory with parameters.txt and score_based_{dataset}_results.csv
         - Iterates over precision threshold combinations
         - Each precision creates a subdirectory for LogFiles only
 
     Output structure per dataset:
-        results/our_results/multi_class_run/{data_set}/
+        results/our_results/score_based_run/{data_set}/
         ├── parameters.txt                          (all precision configurations)
-        ├── multi_class_{data_set}_results.csv      (all results with Precision_threshold column)
+        ├── score_based_{data_set}_results.csv      (all results with Precision_threshold column)
         ├── {data_set}_{precision_1}_{timestamp}/   (LogFile subdirectories)
         ├── {data_set}_{precision_2}_{timestamp}/
         └── ...
@@ -281,11 +281,11 @@ def run_multi_class_classification_experiment():
 
     for data_set in ['wine', 'fish', 'robo', 'segm', 'vehi', 'wave']:
         # Create dataset-level directory
-        dataset_dir = f"multi_class/results/multi_class_run/{data_set}"
+        dataset_dir = f"score_based/results/score_based_run/{data_set}"
         os.makedirs(dataset_dir, exist_ok=True)
 
         # Create shared results CSV at dataset level
-        dataset_results_csv = os.path.join(dataset_dir, f'multi_class_{data_set}_results.csv')
+        dataset_results_csv = os.path.join(dataset_dir, f'score_based_{data_set}_results.csv')
 
         # Get sample size for parameters.txt
         data_folds = split_folds(data_set, None, 4)
@@ -314,7 +314,7 @@ def run_multi_class_classification_experiment():
             param = {'data_set': data_set, 'sample_size': None, 'n_splits': 4, 'folds': None, 'method': method,
                      'start_sol': start_sol[data_set], 'model_param': MODEL_PARAM['Param_1'], 'beta': precision,
                      'save_log': False, 'console_log': False}
-            solve_multi_class_classification_prob(param, dataset_results_csv, dataset_dir)
+            solve_score_based_classification_prob(param, dataset_results_csv, dataset_dir)
 
 
-run_multi_class_classification_experiment()
+run_score_based_classification_experiment()
