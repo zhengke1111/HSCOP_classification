@@ -8,7 +8,7 @@ This project consists of two parts:
 ## Setup
 - **Python 3.11**
 
-    All computations are coded in **Python 3.11**, except `decisiontree/decisiontree_pareto/binoct-master/run_exp.py`, which needs **Python 3.10** to support the `cplex==22.1.2.0`.
+    All computations are coded in **Python 3.11**, except `tree/tree_pareto/binoct-master/run_exp.py`, which needs **Python 3.10** to support the `cplex==22.1.2.0`.
 
 - **Python packages**
 
@@ -30,6 +30,134 @@ This project consists of two parts:
 
 
     
+
+## Usage
+### Score-based multi-class classification `score_based`
+- `score_based_run.py`: Main entry point. **Run** this script to execute experiments.
+
+    - **Output structure per dataset:**
+        ```
+        results/our_results/score_based_run/{data_set}/
+        ├── parameters.txt                      # Experiment configurations
+        ├── score_based_{data_set}_results.csv  # Combined results CSV
+        └── {data_set}_{precision}_{timestamp}/ # Optional LogFile subdirectories (save_log=True only)
+        ```
+
+    - **CSV columns:** `Precision_threshold, Fold, method, obj, time, train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall`
+
+    - **Configuration in `run_score_based_classification_experiment()`:**
+        
+        - `dataset_list`: List of datasets to run. Available: `['wine', 'fish', 'robo', 'segm', 'vehi', 'wave']`
+
+        - `method`: Dictionary of algorithms to execute. Set to `True` to enable:
+            ```python
+            method = {'Full MIP': True, 'PIP': True, 'ISA-PIP': True, 'IDSA-PIP': True}
+            ```
+
+        - `precision_threshold`: Dictionary of precision configurations per dataset. Example:
+            ```python
+            precision_threshold = {
+                'wine': [{1: 0.85}, {1: 0.90}, {1: 0.85, 2: 0.65}, {1: 0.90, 2: 0.65}],
+                # ... other datasets
+            }
+            ```
+        - `n_splits`: Number of folds (default: 4)
+
+        - `folds`: Specific folds to run (`None` = run all folds)
+
+        - `save_log`: Whether to save Gurobi log files (default: `False`)
+
+        - `console_log`: Whether to output Gurobi logs to console (default: `False`)
+
+    - **Global parameters in `parameter.py`:**
+        - `EPSILON`: Approximation parameter (default: 1e-5) used in PIP
+
+        - `RHO`: Penalty coefficient for infeasibility
+
+        - `MODEL_PARAM`: Gurobi solver parameters
+
+        - `ALG_PARAM`: Algorithm control parameters (initial integer ratio $r^0$, maximal integer ratio $r_{\max}$, expansion ratio $r_{\Delta}$, maximal iteration number $\mu_{\max}$, maximal unchanged iteration number $\tilde{\mu}_{\max}$)
+
+        - `SHRINKAGE_MAX_OUT_ITER`: Maximum outer iterations for shrinkage algorithms
+
+        - `MIP_START_SOL`: Precomputed warm start solutions per dataset
+
+### Tree-based multi-class classification `tree`
+- `tree_run.py`: Main entry point. **Run** this script to execute experiments.
+
+    - **Output structure per dataset:**
+
+        ```
+        results/{data_set}/
+        ├── tree_{data_set}_results.csv        # Combined results CSV
+        └── {dataset}_depth-{depth}_run-{run}/ # Optional LogFile subdirectories (save_log=True only)
+        ```
+
+    - **CSV columns:** `dataset, depth, split, method, tau_0, key_beta, beta, objective_value, optimality_gap (Full MIP), time, actual_time (Full MIP), gamma, train_acc_margin, test_acc_margin, train_acc, test_acc, train_prec, test_prec`
+
+    - **Configuration in `run_tree_experiment(method_dict, depth_list, pareto = False)`:**
+
+        - `method_dict`: Dictionary of algorithms to execute. Set to `True` to enable:
+
+            ```python
+            method = {'Full MIP': True, 'PIP': False, 'ISA-PIP': False, 'IDSA-PIP': True}
+            ```
+
+        - `depth_list`: List of depth(s) of decision trees, e.g., `[2, 3, 4]`.
+
+        - `pareto`: Whether to run the Pareto comparison experiments. If `pareto = True`, `method_dict` should be set as 
+
+            ```python
+            method = {'IDSA-PIP': True, 'U-PIP': True}
+            ```
+
+            If `'IDSA-PIP': True`, a series of precision thresholds will be set for `IDSA-PIP`.
+            
+            If `'U-PIP': True`, it will run the tree-based classification model without precision constraints. 
+        
+        - `tau_0`: $\ell_0$ norm upper bound $\tau_0$ of each branching coefficient $a_k$ at branch nodes $k\in {\cal T}_{\cal B}$.
+
+        - `data_splits`: Split datasets.
+
+        - `beta`: Dictionary of precision configurations per dataset. `{key_beta: threshold}`. 
+
+            `key_beta` and `threshold` are chosen as **Appendix B.2, Model parameter**.
+
+        - `save_log`: Whether to save Gurobi log files (default: `False`)
+
+        - `console_log`: Whether to output Gurobi logs to console (default: `False`)
+
+    - **Global parameters in `parameters.py`:**
+
+        - `EPSILON`: Approximation parameter (default: 1e-4) used in PIP
+
+        - `RHO`: Penalty coefficient for infeasibility
+
+        - `MODEL_PARAM`: Gurobi solver parameters
+
+        - `ALG_PARAM`: Algorithm control parameters (initial integer ratio $r^0$, maximal integer ratio $r_{\max}$, expansion ratio $r_{\Delta}$, maximal iteration number $\mu_{\max}$, maximal unchanged iteration number $\tilde{\mu}_{\max}$)
+
+        - `SHRINKAGE_MAX_OUT_ITER`: Maximum outer iterations for shrinkage algorithms
+
+        - `THRESHOLD_GRID`: precision thresholds set for `IDSA-PIP`(i.e., `C-PIP`) for Pareto comparison 
+        
+
+
+    
+- `tree_pareto/binoct-master/run_exp.py`: run it to produce the results of `U-BinOCT` and `C-BinOCT`.
+
+- `tree_pareto/StrongTree-master/Code/StrongTree/run_exp.py`: run it to produce the results of `BendersOCT` and `FlowOCT`. 
+    ```Python
+    for dataset in ['blsc', 'ctmc']:
+        validation(dataset)                                 # For validate \lambda
+        run_strongOCT(result_dir, dataset, 'BendersOCT')    # With \lambda, run BendersOCT
+        run_strongOCT(result_dir, dataset, 'FlowOCT')       # With \lambda, run FlowOCT
+    ```
+
+- `CART_run.py`: run it to produce the results of `CART`. The results will be stored in `tree/results/CART_results.csv`. 
+
+
+
 ## Overview
 The content of this repository is as follows:
 - `score_based`
@@ -69,19 +197,19 @@ The content of this repository is as follows:
 
     - `utils.py`: Data loading, big-M computation, metric calculations, and result writing utilities.
 
-- `decisiontree`
+- `tree`
 
     - `dataset`: 8 datasets used in experiments.
 
     - `results`: Output results directory.
 
-        - `decisiontree_results.csv`: results of tree-based classification, 8 datasets, depth-2,3,4, method `Full MIP` and `IDSA-PIP`.
+        - `tree_results.csv`: results of tree-based classification, 8 datasets, depth-2,3,4, method `Full MIP` and `IDSA-PIP`.
 
-        - `decisiontree_pareto_blsc_results.csv`, `decisiontree_pareto_ctmc_results.csv`: combined results of `C-PIP`, `FlowOCT`, `C-BinOCT`, `U-PIP`, `BendersOCT`, `U-BinOCT`, `CART`, which we present in Pareto curves. For their raw output, see the folder `decisiontree_pareto_raw_output`.
+        - `tree_pareto_blsc_results.csv`, `tree_pareto_ctmc_results.csv`: combined results of `C-PIP`, `FlowOCT`, `C-BinOCT`, `U-PIP`, `BendersOCT`, `U-BinOCT`, `CART`, which we present in Pareto curves. For their raw output, see the folder `tree_pareto_raw_output`.
 
         - `depth2`, `depth3`, `depth4`: empty folders to store (future) detailed results.
 
-    - `decisiontree_pareto`: Existing methods in literature, including
+    - `tree_pareto`: Existing methods in literature, including
 
         - `binoct-master`: `BinOCT` [Learning optimal classification trees using a binary linear program formulation](https://ojs.aaai.org/index.php/AAAI/article/view/3978)
 
@@ -95,7 +223,7 @@ The content of this repository is as follows:
 
             - `Results`: store the results
 
-    - `decisiontree_run.py`: **run** this script to reproduce results of `Full MIP` and `IDSA-PIP`(`C-PIP`) and `U-PIP`.  
+    - `tree_run.py`: **run** this script to reproduce results of `Full MIP` and `IDSA-PIP`(`C-PIP`) and `U-PIP`.  
         
     - `CART_run.py`: **run** this script to reproduce results of `CART`.
 
@@ -107,108 +235,10 @@ The content of this repository is as follows:
 
     - `utils.py`: utility file to store some commonly used functions in this project. 
 
-## Usage
-### Multi-class classification `score_based`
-- `score_based_run.py`: Main entry point. Run this script to execute experiments.
-
-    **Output structure per dataset:**
-    ```
-    results/our_results/score_based_run/{data_set}/
-    ├── parameters.txt                      # Experiment configurations
-    ├── score_based_{data_set}_results.csv  # Combined results CSV
-    └── {data_set}_{precision}_{timestamp}/ # Optional LogFile subdirectories (save_log=True only)
-    ```
-
-    **CSV columns:** `Precision_threshold, Fold, method, obj, time, train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall`
-
-    **Configuration in `run_score_based_classification_experiment()`:**
-        - `dataset_list`: List of datasets to run. Available: `['wine', 'fish', 'robo', 'segm', 'vehi', 'wave']`
-        - `method`: Dictionary of algorithms to execute. Set to `True` to enable:
-            ```python
-            method = {'Full MIP': True, 'PIP': True, 'ISA-PIP': True, 'IDSA-PIP': True}
-            ```
-        - `precision_threshold`: Dictionary of precision configurations per dataset. Example:
-            ```python
-            precision_threshold = {
-                'wine': [{1: 0.85}, {1: 0.90}, {1: 0.85, 2: 0.65}, {1: 0.90, 2: 0.65}],
-                # ... other datasets
-            }
-            ```
-        - `n_splits`: Number of cross-validation folds (default: 4)
-        - `folds`: Specific folds to run (`None` = run all folds)
-        - `save_log`: Whether to save Gurobi log files (default: `False`)
-        - `console_log`: Whether to output Gurobi logs to console (default: `False`)
-
-    **Global parameters in `parameter.py`:**
-        - `EPSILON`: Approximation parameter (default: 1e-5) used in PIP
-        - `RHO`: Penalty coefficient for infeasibility
-        - `MODEL_PARAM`: Gurobi solver parameters
-        - `ALG_PARAM`: Algorithm control parameters (iteration limits, ratios, etc.)
-        - `SHRINKAGE_MAX_OUT_ITER`: Maximum outer iterations for shrinkage algorithms
-        - `MIP_START_SOL`: Precomputed warm start solutions per dataset
-
-    **Output path configuration:**
-        - Modify line 284 in `score_based_run.py` to change results directory:
-            ```python
-            dataset_dir = f"results/our_results/score_based_run/{data_set}"  # Default path
-            # Change to your custom path, e.g.:
-            # dataset_dir = f"my_results/{data_set}"
-            ```
-
-### Tree-based classification `decisiontree`
-- `decisiontree_run.py`: run it to produce the results of `Full MIP`,   `IDSA-PIP`(`C-PIP`) and `U-PIP`.
-
-    - At the bottom of this file, we can adjust the following parameters in the function `decisiontree_run`:
-        - `dataset_list`: a list of names of datasets to train decision tree classifier.
-        
-        - `method_list`: a list of methods. `1` for `Full MIP`, `7` for `IDSA-PIP`(`C-PIP`), `8` for `U-PIP`. `2~6` are not presented in article.  
-        
-        - `pareto`: `True` if run `C-PIP` with a series of precision thresholds, or run `U-PIP` without a precision threshold; `False` otherwise. 
-        
-        - `reuse_tau_0`: `True` if use $\tau_0$ read from existing files, `False` otherwise. Set as `True` when reproduce the results or run `C-PIP` to read the 
-        same $\tau_0$ as `U-PIP`. 
-
-    - In the function `decisiontree_constraint`, we can adjust the following dictionaries:
-        - `settings`: 
-            - `'epsilon'`: $\varepsilon$ used in `Full MIP` and `PIP with fixed` $\varepsilon$.
-            - `'epsilon_nu'`: initial $\varepsilon_{\nu}\mid_{\nu=0}$.
-            - `'rho'`: penality coefficient $\lambda$ for infeasbility.  
-        - `stop_rule`:
-            - `'timelimit'`: TimeLimit for `Full MIP`, we set as 3600s. 
-            - `'base_rate'`: initial integer ratio $r^0$. 
-            - `'pip_max_rate'`: maximal integer ratio $r_{\max}$. 
-            - `'expansion_rate'`: expansion ratio $r_{\Delta}$.
-            - `'unchanged_iters'`: maximal unchanged iteration number $\tilde{\mu}_{\max}$. 
-            - `'max_iteration'`: maximal iteration number $\mu_{\max}$. 
-            - `'max_outer_iter'`: maximal $\nu$ in `Algorithm II: Iterative decomposed shrinkage algorithm`.
-        - `file_path`: the path of input and output files.
-
-    - If you want to modify `Time limit` of `PIP`, please go to `callback_data_tree.py`, which is a separate file for `MIP_tree_callback.py` to call.
-        - `timelimit = 30`: when solving PIP partial problems, if the objective value remains unchanged for 30s, Gurobi procedure will be terminated. If you want to modify it for some method, for example, method `7`(`IDSA-PIP`), as `timelimit = 60`, please then go to `MIP_tree.py`, modify:
-            ```Python
-            if method == 7:  # 'IDSA-PIP'
-                callback_data_tree.timelimit = 60
-            ```
-        - `mip_timelimit = 300`: when solving PIP partial problems, if the running time exceeds 300s,  Gurobi procedure will be terminated. If you want to modify it for some method, for example, method `7`(`IDSA-PIP`), as `mip_timelimit = 600`, please then go to `MIP_tree.py`, modify:
-            ```Python
-            if method == 7:  # 'IDSA-PIP'
-                callback_data_tree.mip_timelimit = 600
-            ```
-- `decisiontree_pareto/binoct-master/run_exp.py`: run it to produce the results of `U-BinOCT` and `C-BinOCT`.
-
-- `decisiontree_pareto/StrongTree-master/Code/StrongTree/run_exp.py`: run it to produce the results of `BendersOCT` and `FlowOCT`. 
-    ```Python
-    for dataset in ['blsc', 'ctmc']:
-        validation(dataset)                                 # For validate \lambda
-        run_strongOCT(result_dir, dataset, 'BendersOCT')    # With \lambda, run BendersOCT
-        run_strongOCT(result_dir, dataset, 'FlowOCT')       # With \lambda, run FlowOCT
-    ```
-
-- `CART_run.py`: run it to produce the results of `CART`. The results will be stored in `decisiontree/results/CART_results.csv`. 
 
 
 ## Notes
-- For `C-PIP`, in `decisiontree_pareto_blsc_results.csv`, the column `restricted_class`=`0`, but in `decisiontree/results/decisiontree_pareto_raw_output/blsc/C-PIP.csv`, the column  `key_beta_p`=`1`, they are actually **the same** class, which is class `0` in the dataset `decisiontree/dataset/balance_scale.csv`, but in `decisiontree_run.py`, we shifted the class by 1 with 
+- For `C-PIP`, in `tree_pareto_blsc_results.csv`, the column `restricted_class`=`0`, but in `tree/results/tree_pareto_raw_output/blsc/C-PIP.csv`, the column  `key_beta_p`=`1`, they are actually **the same** class, which is class `0` in the dataset `tree/dataset/balance_scale.csv`, but in `tree_run.py`, we shifted the class by 1 with 
     ```Python
     y = y.values + 1
     ``` 
