@@ -1,4 +1,4 @@
-# Strong Optimal Classification Trees
+# Strong Optimal Classification Trees (Original)
 
 ![Screenshot](logo.png)
 
@@ -57,3 +57,30 @@ The result of each instance would get stored in a csv file in `./Results/`.
 
 Remember that in the replication files we assume that the name of the class label column is `target`. If you want to use a dataset of your own choice,
 change the hard-coded label name to the desired name.
+
+# Modification for precision constrained multi-class classification 
+
+In "Solving Constrained Affine Heaviside Composite Optimiation Problem by a Progressive IP Approach", we add the precision constraint in `FlowOCT.py`, see `FlowOCT Code Modification.pdf`. 
+
+- For running an instance of BendersOCT,
+
+    ```Python
+    BendersOCTReplication.main(["-f", dataset +'.csv', "-o", result_csv, "-d", depth, "-t", 3600, "-l", tuned_lambda, "-i", sample, "-c", 0, "-r", 0])
+    ```
+    
+    - f : name of the dataset
+    - o : output results file
+    - d : maximum depth of the tree
+    - t : time limit
+    - l : value of _lambda
+    - i : sample (for shuffling and splitting data)
+    - c : 1 if we do calibration; in this case we train our model on 50% of the data otherwise we train on 75% of the data 
+    - r : restricted class, i.e., the class that we add the precision constraint, although we didn't add the precision constraint in `BendersOCT`, we need to calculate the precision corresponding to this class
+
+- For running an instance of FlowOCT,
+
+    ```Python
+    FlowOCTReplication.main(["-f", dataset +'.csv', "-o", result_csv, "-d", depth, "-t", 3600, "-l", tuned_lambda, "-i", sample, "-c", 0, "-p", precision, "-r", 0])
+    ```
+
+    - p : the value of precision threshold.
