@@ -220,25 +220,27 @@ The content of this repository is as follows:
     └── utils.py         # Utility file to store some commonly used functions in this project writing utilities.
     ```
 
-    - `results`: Output results directory.
+    - `results/`: Output results directory.
 
         - `tree_results.csv`: results of tree-based classification, 8 datasets, depth-2,3,4, method `Full MIP` and `IDSA-PIP`.
 
         - `tree_pareto_blsc_results.csv`, `tree_pareto_ctmc_results.csv`: combined results of `C-PIP`, `FlowOCT`, `C-BinOCT`, `U-PIP`, `BendersOCT`, `U-BinOCT`, `CART`, which we present in Pareto curves. For their raw output, see the folder `tree_pareto_raw_output`.
 
-    - `tree_pareto`: Existing methods in literature, including
+    - `tree_pareto/`: Existing methods in literature, including
 
-        - `binoct-master`: `BinOCT` [Learning optimal classification trees using a binary linear program formulation](https://ojs.aaai.org/index.php/AAAI/article/view/3978)
+        - `binoct-master/`: `BinOCT` [Learning optimal classification trees using a binary linear program formulation](https://ojs.aaai.org/index.php/AAAI/article/view/3978)
 
             - `run_exp.py`: **run** this script to reproduce results of `U-BinOCT` and `C-BinOCT`.
 
-            - `results`: store the results.
+            - `results`: the output results.
 
-        - `StrongTree-master`: `BendersOCT` and `FlowOCT` [Strong Optimal Classification Trees](https://sites.google.com/view/sina-aghaei/home)
+        - `StrongTree-master/`: `BendersOCT` and `FlowOCT` adapted from [Strong Optimal Classification Trees](https://sites.google.com/view/sina-aghaei/home)
 
             - `Code/run_exp.py`: **run** this script to reproduce results of `BendersOCT` and `FlowOCT`.
 
-            - `Results`: store the results
+            - `Results`: the output results.
+
+            - For our modification, see `README.md` "Modification for precision constrained multi-class classification" and `FlowOCT Code Modification.pdf`: 
 
     - `tree_run.py`: **run** this script to reproduce results of `Full MIP` and `IDSA-PIP`(`C-PIP`) and `U-PIP`.  
         

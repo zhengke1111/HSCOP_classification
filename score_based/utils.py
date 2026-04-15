@@ -872,6 +872,7 @@ def write_single_integrated_result(integrated_csv, title, execution_time, model_
     """
     fieldnames = [
         'Precision_threshold', 'Fold', 'method', 'obj', 'time',
+        'train_acc_margined', 'test_acc_margined',
         'train_accuracy', 'test_accuracy',
         'train_precision', 'test_precision',
         'train_recall', 'test_recall',
@@ -893,6 +894,8 @@ def write_single_integrated_result(integrated_csv, title, execution_time, model_
             'method': title,
             'obj': np.round(obj_val, 3) if obj_val is not None else None,
             'time': time_,
+            'train_acc_margined': np.round(train_acc_margined, 3) if train_acc_margined is not None else None,
+            'test_acc_margined': np.round(test_acc_margined, 3) if test_acc_margined is not None else None,
             'train_accuracy': np.round(train_acc, 3) if train_acc is not None else None,
             'test_accuracy': np.round(test_acc, 3) if test_acc is not None else None,
             'train_precision': train_precision if train_precision is not None else None,
