@@ -194,7 +194,7 @@ def main(argv):
             mode = arg
 
     start_time = time.time()
-    data_path = os.getcwd() + '/decisiontree/decisiontree_pareto/StrongTree-master/DataSets/'
+    data_path = os.getcwd() + '/tree/tree_pareto/StrongTree-master/DataSets/'
     data = pd.read_csv(data_path + input_file)
     '''Name of the column in the dataset representing the class label.
     In the datasets we have, we assume the label is target. Please change this value at your need'''
@@ -210,7 +210,7 @@ def main(argv):
     out_put_name = input_file + '_' + str(input_sample) + '_' + approach_name + '_d_' + str(depth) + '_t_' + str(
         time_limit) + '_lambda_' + str(
         _lambda) + '_c_' + str(calibration)
-    out_put_path = os.getcwd() + '/decisiontree/decisiontree_pareto/StrongTree-master/Results/'
+    out_put_path = os.getcwd() + '/tree/tree_pareto/StrongTree-master/Results/'
     # Using logger we log the output of the console in a text file
     # sys.stdout = logger(out_put_path + out_put_name + '.txt')
     

@@ -63,8 +63,8 @@ def ensure_train_test_files(
     return train_file, test_file
 
 
-path1 = 'decisiontree/decisiontree_pareto/binoct-master/dataset/'
-path2 = 'decisiontree/decisiontree_pareto/binoct-master/results/'
+path1 = 'tree/tree_pareto/binoct-master/dataset/'
+path2 = 'tree/tree_pareto/binoct-master/results/'
 current_datetime = datetime.now()    
 output_filename = path2 + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
 with open(output_filename, mode='a', newline='') as all_result:

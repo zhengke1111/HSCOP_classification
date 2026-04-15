@@ -2054,8 +2054,8 @@ def print_tree(num_nodes, solution_values, num_features):
 def print_solution_to_file(num_nodes, solution_values, num_features, filename, ifile, tfile):
     f = open(filename, "w")
     f.write("import csv\nimport sys\nimport os\n\n")
-    f.write("train = \"/home/zhengke/AHC_max_accuracy/decisiontree_pareto/binoct-master/data_sets_aaaipaper/" + ifile + "\"\n")
-    f.write("test = \"/home/zhengke/AHC_max_accuracy/decisiontree_pareto/binoct-master/data_sets_aaaipaper/" + tfile + "\"\n")
+    f.write("train = \"/home/zhengke/AHC_max_accuracy/tree_pareto/binoct-master/data_sets_aaaipaper/" + ifile + "\"\n")
+    f.write("test = \"/home/zhengke/AHC_max_accuracy/tree_pareto/binoct-master/data_sets_aaaipaper/" + tfile + "\"\n")
     f.write("def predict(row,header):\n")
     diff = (num_nodes + 1) / 2
     print_nodes_to_file(int(diff-1), int(diff / 2), 1, solution_values, num_nodes, num_features, f)
@@ -2084,7 +2084,7 @@ def print_solution_to_file(num_nodes, solution_values, num_features, filename, i
     f.write("  print(\"num_correct\", num_correct)\n")
     f.write("  print(\"accuracy\", float(num_correct) / float(num_total))\n")
     f.write("  print(\"crosstable\", preds)\n")
-    f.write("  f = open(\"/home/zhengke/AHC_max_accuracy/decisiontree_pareto/binoct-master/data_sets_aaaipaper\" + \"/result.txt\",\"w\")\n")
+    f.write("  f = open(\"/home/zhengke/AHC_max_accuracy/tree_pareto/binoct-master/data_sets_aaaipaper\" + \"/result.txt\",\"w\")\n")
     f.write("  f.write(\"accuracy \" + str(num_correct / float(num_total)))\n")
     f.write("  f.write(\"crosstable \" + str(preds))\n")
     f.write("\n")
@@ -2187,7 +2187,7 @@ def evaluate_solution(
     num_nodes, solution_values, num_features,
     ifile, tfile,
     pos_label,
-    base_path= 'decisiontree/decisiontree_pareto/binoct-master/dataset/'
+    base_path= 'tree/tree_pareto/binoct-master/dataset/'
 ):
     train_path = base_path + ifile
     test_path  = base_path + tfile

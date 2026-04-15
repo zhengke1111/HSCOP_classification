@@ -13,7 +13,7 @@ _lambdas = [round(0.1 * k, 1) for k in range(10)]
 
 
 current_datetime = datetime.now()
-result_dir = os.getcwd() + '/decisiontree/decisiontree_pareto/StrongTree-master/Results'
+result_dir = os.getcwd() + '/tree/tree_pareto/StrongTree-master/Results'
 result_csv = f'{result_dir}/'+ f'results_' + current_datetime.strftime("%Y-%m-%d_%H-%M-%S")+'.csv'
 with open(result_csv, mode='a', newline='') as all_result:
     writer = csv.writer(all_result)

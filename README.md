@@ -160,13 +160,25 @@ This project consists of two parts:
 
 ## Overview
 The content of this repository is as follows:
+
 - `score_based`
 
-    - `dataset`: 6 datasets used in experiments.
+    ```
+    score_based/
+    ├── dataset/         # 6 datasets used in experiments.
+    ├── results/ 
+    ├── algorithm.py
+    ├── callback.py      # Gurobi callback for tracking optimality gap, improvement time, and early termination.
+    ├── model.py
+    ├── parameter.py     # Centrally configures Gurobi parameters, algorithm hyperparameters, dataset paths, and precomputed MIP warm start.
+    ├── score_based_pareto_run.py
+    ├── score_based_run.py
+    └── utils.py         # Data loading, big-M computation, metric calculations, and result writing utilities.
+    ```
 
-    - `results`: Output results directory.
+    - `results/`: Output results directory.
 
-        - `our_results/score_based_run/{data_set}`: Experiment results organized by dataset, each containing:
+        - `our_results/score_based_run/{data_set}/`: Experiment results organized by dataset, each containing:
 
             - `parameters.txt`: Precision configurations for the dataset. Records hyperparameters (epsilon, method, model_param) and all precision_threshold combinations used in experiments.
 
@@ -184,30 +196,35 @@ The content of this repository is as follows:
 
             - `IDSA-PIP`: Iterative Shrinkage Algorithm with PA-decomposition
 
-    - `callback.py`: Gurobi callback for tracking optimality gap, improvement time, and early termination.
 
     - `model.py`: `Model` class for constructing and solving full or partial $\varepsilon$-approximation MIP problems via Gurobi.
 
     - `score_based_run.py`: Main entry point. Configure datasets, algorithms, and precision thresholds in `run_score_based_classification_experiment()`, then run this file. Available methods:
         `Full MIP`, `PIP`, `ISA-PIP`, `IDSA-PIP`
 
-    - `score_based_pareto_run.py`: Trains baseline classifiers (LogisticRegression, LinearSVM, Perceptron, Ridge) via cross-validation. Can be used to generate Pareto curves comparing baseline methods against our algorithms (results not included in main text).
+    - `score_based_pareto_run.py`: Trains baseline classifiers (`LogisticRegression`, `LinearSVM`, `Perceptron`, `Ridge`) via cross-validation. Can be used to generate Pareto curves comparing baseline methods against our algorithms (results not included in main text).
 
-    - `parameter.py`: Centrally configures Gurobi parameters, algorithm hyperparameters, dataset paths, and precomputed MIP warm start values (`MIP_START_SOL`).
-
-    - `utils.py`: Data loading, big-M computation, metric calculations, and result writing utilities.
 
 - `tree`
 
-    - `dataset`: 8 datasets used in experiments.
+    ```
+    tree/
+    ├── dataset/         # 8 datasets used in experiments, and randomly chosen tau_0.
+    ├── results/ 
+    ├── tree_pareto/ 
+    ├── algorithm.py
+    ├── callback.py      # Gurobi callback for tracking optimality gap, improvement time, and early termination.
+    ├── model.py
+    ├── parameter.py     # Centrally configures Gurobi parameters, algorithm hyperparameters, dataset paths, and precomputed MIP warm start.
+    ├── tree_run.py
+    └── utils.py         # Utility file to store some commonly used functions in this project writing utilities.
+    ```
 
     - `results`: Output results directory.
 
         - `tree_results.csv`: results of tree-based classification, 8 datasets, depth-2,3,4, method `Full MIP` and `IDSA-PIP`.
 
         - `tree_pareto_blsc_results.csv`, `tree_pareto_ctmc_results.csv`: combined results of `C-PIP`, `FlowOCT`, `C-BinOCT`, `U-PIP`, `BendersOCT`, `U-BinOCT`, `CART`, which we present in Pareto curves. For their raw output, see the folder `tree_pareto_raw_output`.
-
-        - `depth2`, `depth3`, `depth4`: empty folders to store (future) detailed results.
 
     - `tree_pareto`: Existing methods in literature, including
 
@@ -230,11 +247,6 @@ The content of this repository is as follows:
     - `model.py`: build and solve an MIP for a single PIP partial problem in a tree-based classification problem. 
 
     - `algorithm.py`: determine whether to continue or stop, and, if continuing, decide whether to enlarge or shrink the in-between sets ${\cal J}$. 
-
-    - `callback.py`: `callback` mechanism for solving MIP problems. The parameter used in `MIP_tree_callback.py` are stored in `callback_data_tree.py`.
-
-    - `utils.py`: utility file to store some commonly used functions in this project. 
-
 
 
 ## Notes
