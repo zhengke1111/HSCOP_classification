@@ -21,8 +21,8 @@ class PIP:
         self.unchanged_iter = algorithm_params['iteration']['unchanged_iter']
         self.max_iter = algorithm_params['iteration']['max_iter']
 
-        self.initial_ratio_prime = algorithm_params['ratio']['initial_ratio_prime']
-        self.max_ratio = algorithm_params['ratio']['max_ratio']
+        self.initial_ratio_prime = algorithm_params['ratio']['initial_ratio_prime'][dataset]
+        self.max_ratio = algorithm_params['ratio']['max_ratio'][dataset]
         self.base_ratio = algorithm_params['ratio']['base_ratio'][dataset]
         self.min_ratio = self.base_ratio
         self.change_ratio = algorithm_params['ratio']['change_ratio']
@@ -98,7 +98,7 @@ class PIP:
         gamma_start, z_plus_0_start, z_plus_start, z_minus_start = calculate_gamma(self.X_train, self.y_train, w, b, self.beta, self.epsilon)
         obj_val = (
                 sum(z_plus_0 for z_plus_0 in z_plus_0_start.values()) / self.X_train.shape[0]
-                - RHO * (sum(gamma for gamma in gamma_start.values()))
+                - RHO * (gamma_start)
         )
 
         w_start = w
@@ -141,89 +141,123 @@ class PIP:
             self.output['b'] = final_model.var_val['b']
             self.output['gamma'] = final_model.var_val['gamma']
 
-    def write_integrated_results(self):
-        pass # TODO
+    def write_integrated_results(self, dataset_results_csv, split, method, beta, X_test, y_test): 
 
-
-class IterativeShrinkage:
-    def __init__(self, X_train, y_train, dataset, beta, model_params, pip_params, alg_dir, save_log=False, console_log=False):
-
-        self.X_train = X_train
-        self.y_train = y_train
-        self.dataset = dataset
-
-        self.beta = beta 
-        self.model_params = model_params
-
-        # Shrinkage control parameters
-        self.max_outer_iter = SHRINKAGE_MAX_OUT_ITER
-        self.pip_params = pip_params
-        self.alg_dir = alg_dir
-        self.save_log = save_log
-        self.console_log = console_log
-
-        # Initialize runtime tracking and PIP instance storage
-        self.execution_time_list = []
-        self.pip_alg_dict: Dict[int, Optional[Union[PIP, Dict[int, PIP]]]] = {
-            key: None for key in range(self.max_outer_iter)
-        }
-        self.algorithm_state = 0  # 0: initial
-
-        # Initialize final output container
-        self.output: Dict[str, Optional[Union[dict, float]]] = {
-            'obj_val': -np.inf,
-            'w': None,
-            'b': None,
-            'gamma': None
-        }
-
-    def outer_iteration_process(self, alg_name, epsilon, iteration, start, w_start, b_start):
-        # Create directory for current outer iteration's PIP outputs
-        pip_alg_dir = os.path.join(self.alg_dir, f"outer_iter_{iteration}")
-
-        pip = PIP(
-            self.X_train, self.y_train, self.dataset, epsilon[iteration], self.beta, 
-            self.model_params, self.pip_params, pip_alg_dir, self.save_log, self.console_log
-        )
-
-        # Create unique PIP algorithm name with outer iteration identifier
-        pip_alg_name = alg_name + f"_outer_iter_{iteration}"
-
-        pip.main_computation(pip.iteration_process, pip_alg_name, w_start, b_start)
-
-        self.execution_time_list.append(time.time() - start)
-        return pip
-    
-    def main_computation(self, iteration_process, alg_name, w, b):
-        epsilon = generate_epsilon(self.max_outer_iter)
-
-        w_start = w
-        b_start = b
-
-        # Execute outer shrinkage iterations
-        for iteration in range(self.max_outer_iter):
-
-            start = time.time()
-
-            solution = iteration_process(alg_name, epsilon, iteration, start, w_start, b_start)
-
-            if solution.algorithm_state >= 0:
-                # Store successful PIP instance
-                self.pip_alg_dict[iteration] = solution
-                # Update warm-start parameters with current PIP results
-                w_start = solution.output['w']
-                b_start = solution.output['b']
-            # Terminate iteration if PIP instance failed
-            else:
-                self.algorithm_state = - iteration - 1
-                break
-        
         if self.algorithm_state >= 0:
-            last_pip = self.pip_alg_dict[self.max_outer_iter - 1]
-            self.output['obj_val'] = last_pip.output['obj_val']
-            self.output['w'] = last_pip.output['w']
-            self.output['b'] = last_pip.output['b']
-            self.output['gamma'] = last_pip.output['gamma']
+            train_results = evaluate_binary(self.X_train, self.y_train, self.output['w'], self.output['b'])
+            test_results = evaluate_binary(X_test, y_test, self.output['w'], self.output['b'])
 
-    def write_integrated_results(self):
-        pass # TODO
+            execution_time = 0
+            for val in self.execution_time_list:
+                if isinstance(val, dict):
+                    execution_time += val['total']
+                else:
+                    execution_time += val
+
+            # Calculate total model solve time across all PIP instances
+            all_models = extract_inner_values(self.model_dict)
+            model_time = np.sum([model.model.Runtime for model in all_models if model is not None])
+            
+            write_single_integrated_result(
+                results_csv=dataset_results_csv,
+                dataset=self.dataset,
+                split=split,
+                method=method,
+                beta=beta,
+                objective_value=self.output['obj_val'], 
+                optimality_gap=None,     # Only record optimality gap for Full MIP
+                time=model_time, 
+                actual_time=None,       
+                gamma=self.output['gamma'] if self.output['gamma'] is not None else None, 
+                train_acc_margin=train_results['acc_margin'],
+                test_acc_margin=test_results['acc_margin'],
+                train_acc=train_results['accuracy'],
+                test_acc=test_results['accuracy'],
+                train_prec=train_results['precision'],
+                test_prec=test_results['precision'],
+                train_recall=train_results['recall'],
+                test_recall=test_results['recall']
+            )
+
+# class IterativeShrinkage:
+#     def __init__(self, X_train, y_train, dataset, beta, model_params, pip_params, alg_dir, save_log=False, console_log=False):
+
+#         self.X_train = X_train
+#         self.y_train = y_train
+#         self.dataset = dataset
+
+#         self.beta = beta 
+#         self.model_params = model_params
+
+#         # Shrinkage control parameters
+#         self.max_outer_iter = SHRINKAGE_MAX_OUT_ITER
+#         self.pip_params = pip_params
+#         self.alg_dir = alg_dir
+#         self.save_log = save_log
+#         self.console_log = console_log
+
+#         # Initialize runtime tracking and PIP instance storage
+#         self.execution_time_list = []
+#         self.pip_alg_dict: Dict[int, Optional[Union[PIP, Dict[int, PIP]]]] = {
+#             key: None for key in range(self.max_outer_iter)
+#         }
+#         self.algorithm_state = 0  # 0: initial
+
+#         # Initialize final output container
+#         self.output: Dict[str, Optional[Union[dict, float]]] = {
+#             'obj_val': -np.inf,
+#             'w': None,
+#             'b': None,
+#             'gamma': None
+#         }
+
+#     def outer_iteration_process(self, alg_name, epsilon, iteration, start, w_start, b_start):
+#         # Create directory for current outer iteration's PIP outputs
+#         pip_alg_dir = os.path.join(self.alg_dir, f"outer_iter_{iteration}")
+
+#         pip = PIP(
+#             self.X_train, self.y_train, self.dataset, epsilon[iteration], self.beta, 
+#             self.model_params, self.pip_params, pip_alg_dir, self.save_log, self.console_log
+#         )
+
+#         # Create unique PIP algorithm name with outer iteration identifier
+#         pip_alg_name = alg_name + f"_outer_iter_{iteration}"
+
+#         pip.main_computation(pip.iteration_process, pip_alg_name, w_start, b_start)
+
+#         self.execution_time_list.append(time.time() - start)
+#         return pip
+    
+#     def main_computation(self, iteration_process, alg_name, w, b):
+#         epsilon = generate_epsilon(self.max_outer_iter)
+
+#         w_start = w
+#         b_start = b
+
+#         # Execute outer shrinkage iterations
+#         for iteration in range(self.max_outer_iter):
+
+#             start = time.time()
+
+#             solution = iteration_process(alg_name, epsilon, iteration, start, w_start, b_start)
+
+#             if solution.algorithm_state >= 0:
+#                 # Store successful PIP instance
+#                 self.pip_alg_dict[iteration] = solution
+#                 # Update warm-start parameters with current PIP results
+#                 w_start = solution.output['w']
+#                 b_start = solution.output['b']
+#             # Terminate iteration if PIP instance failed
+#             else:
+#                 self.algorithm_state = - iteration - 1
+#                 break
+        
+#         if self.algorithm_state >= 0:
+#             last_pip = self.pip_alg_dict[self.max_outer_iter - 1]
+#             self.output['obj_val'] = last_pip.output['obj_val']
+#             self.output['w'] = last_pip.output['w']
+#             self.output['b'] = last_pip.output['b']
+#             self.output['gamma'] = last_pip.output['gamma']
+
+#     def write_integrated_results(self):
+#         pass # TODO

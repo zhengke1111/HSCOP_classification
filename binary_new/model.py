@@ -119,7 +119,7 @@ class Model:
 
     def add_partial_constr_z_plus_0(self, w_start, b_start):
         for s in self.positive_index:
-            phi_0_positive = np.dot(w_start, self.X[s]) + b_start - 1
+            phi_0_positive = sum(w_start[i]* self.X[s][i] for i in self.p) + b_start - 1
             if phi_0_positive >= self.delta_plus[0]:
                 self.z_plus_0_fixed_as_1.append(s)
                 self.model.remove(self.var['z_plus_0'][s])
@@ -132,7 +132,7 @@ class Model:
                 self.model.addConstr(gp.quicksum(self.var['w'][i] * self.X[s][i] for i in self.p) + self.var['b'] - 1 - FEASIBILITY_TOL >= - self.M * (1 - self.var['z_plus_0'][s]))
 
         for s in self.negative_index:
-            phi_0_negative = -np.dot(w_start, self.X[s]) - b_start - 1
+            phi_0_negative = -sum(w_start[i]* self.X[s][i] for i in self.p) - b_start - 1
             if phi_0_negative >= self.delta_plus[0]:  # Binary variables fixed as 1
                 self.z_plus_0_fixed_as_1.append(s)
                 self.model.remove(self.var['z_plus_0'][s])
@@ -149,7 +149,7 @@ class Model:
 
     def add_partial_constr_z_plus(self, w_start, b_start):
         for s in self.positive_index:
-            phi_1_positive = np.dot(w_start, self.X[s]) + b_start 
+            phi_1_positive = sum(w_start[i]*self.X[s][i] for i in self.p) + b_start 
             if phi_1_positive >= self.delta_plus[1]:
                 self.z_plus_fixed_as_1.append(s)
                 self.model.remove(self.var['z_plus'][s])
@@ -166,7 +166,7 @@ class Model:
 
     def add_partial_constr_z_minus(self, w_start, b_start):
         for s in self.negative_index:
-            phi_1_negative = - np.dot(w_start, self.X[s]) - b_start - self.epsilon
+            phi_1_negative = - sum(w_start[i]* self.X[s][i] for i in self.p) - b_start - self.epsilon
             if phi_1_negative >= self.delta_plus[1]:
                 self.z_minus_fixed_as_1.append(s)
                 self.model.remove(self.var['z_minus'][s])
@@ -195,7 +195,6 @@ class Model:
         self.model.setObjective(obj, GRB.MAXIMIZE) 
 
     def formulate_model(self, w_start, b_start):
-
         if self.model_type == 'full':
             self.add_basic_var(w_start, b_start)
             self.model.update()
@@ -206,7 +205,7 @@ class Model:
             self.add_full_acc_margin()
             self.model.update()
 
-        elif self.model == 'partial':
+        elif self.model_type == 'partial':
             self.add_basic_var(w_start, b_start)
             self.model.update()
             self.add_partial_constr_z_plus_0(w_start, b_start)
@@ -229,6 +228,7 @@ class Model:
             callback = full_model_callback
         elif self.model_type == 'partial':
             time_limit = PARTIAL_MODEL_TIME_LIMIT
+            self.model.__dict__['unchanged_tolerance'] = UNCHANGED_TOLERANCE
             self.model.__dict__['last_time'] = 0
             self.model.__dict__['last_obj'] = -np.inf
             self.model.__dict__['final_improvement_time'] = 0
@@ -250,13 +250,37 @@ class Model:
 
         if self.model_state > 0:
             if self.model_type == 'unconstrained_partial':
-                for key in ['w', 'b']:
-                    self.var_val[key] = {keys: self.var[key][keys].getAttr(GRB.Attr.X) for keys in self.var[key].keys()}
-            else:
-                for key in ['w', 'b', 'gamma']:
-                    self.var_val[key] = {keys: self.var[key][keys].getAttr(GRB.Attr.X) for keys in self.var[key].keys()}
+                self.var_val['w'] = {k: self.var['w'][k].X for k in self.var['w'].keys()}
+                self.var_val['b'] = self.var['b'].X
 
-    def write_integrated_results(self):
-        pass # TODO
+            else:
+                self.var_val['w'] = {k: self.var['w'][k].X for k in self.var['w'].keys()}
+                self.var_val['b'] = self.var['b'].X
+                self.var_val['gamma'] = self.var['gamma'].X
+
+    def write_integrated_results(self, dataset_results_csv, dataset, split, method, beta, X_test, y_test):
+        train_results = evaluate_binary(self.X, self.y, self.var_val['w'], self.var_val['b'])
+        test_results = evaluate_binary(X_test, y_test, self.var_val['w'], self.var_val['b'])
+
+        write_single_integrated_result(results_csv=dataset_results_csv,
+                                       dataset=dataset,
+                                       split=split,
+                                       method=method,
+                                       beta=beta,
+                                       objective_value=self.model.ObjVal,
+                                       optimality_gap=self.model.MIPGap,
+                                       time=self.model.__dict__['final_improvement_time'],
+                                       actual_time=self.model.Runtime,
+                                       gamma=self.var_val['gamma'],
+                                       train_acc_margin=train_results['acc_margin'],
+                                       test_acc_margin=test_results['acc_margin'],
+                                       train_acc=train_results['accuracy'],
+                                       test_acc=test_results['accuracy'],
+                                       train_prec=train_results['precision'],
+                                       test_prec=test_results['precision'],
+                                       train_recall=train_results['recall'],
+                                       test_recall=test_results['recall']
+                                       )
+
 
     

@@ -863,40 +863,40 @@ def get_class_distribution(y):
 
 def sample_data(dataset=None):
     if dataset == 'blsc':
-        df = pd.read_csv('decisiontree/dataset/balance_scale.csv', encoding='utf-8')
+        df = pd.read_csv('tree/dataset/balance_scale.csv', encoding='utf-8')
         X_sampled = df.drop('class', axis=1)
         y_sampled = df['class']
     if dataset == 'ceva':
-        df = pd.read_csv('decisiontree/dataset/car_evaluation.csv', encoding='utf-8')
+        df = pd.read_csv('tree/dataset/car_evaluation.csv', encoding='utf-8')
         X_sampled = df.drop('class', axis=1)
         y_sampled = df['class']
     if dataset == 'ctmc':
-        df = pd.read_csv('decisiontree/dataset/contraceptive_method_choice.csv', encoding='utf-8')
+        df = pd.read_csv('tree/dataset/contraceptive_method_choice.csv', encoding='utf-8')
         df.dropna(inplace=True)
         X_sampled = df.drop('contraceptive_method', axis=1)
         y_sampled = df['contraceptive_method']
     if dataset == 'dmtl':
-        df = pd.read_csv('decisiontree/dataset/dermatology.csv', encoding='utf-8')
+        df = pd.read_csv('tree/dataset/dermatology.csv', encoding='utf-8')
         df.dropna(inplace=True)
         X_sampled = df.drop('class', axis=1)
         y_sampled = df['class']
     if dataset == 'fish':
-        df = pd.read_csv('decisiontree/dataset/fish.csv', encoding='utf-8')
+        df = pd.read_csv('tree/dataset/fish.csv', encoding='utf-8')
         df.dropna(inplace=True)
         X_sampled = df.drop('class', axis=1)
         y_sampled = df['class']
     if dataset == 'htds':
-        df = pd.read_csv('decisiontree/dataset/heart_disease.csv', encoding='utf-8')
+        df = pd.read_csv('tree/dataset/heart_disease.csv', encoding='utf-8')
         df.dropna(inplace=True)
         X_sampled = df.drop('num', axis=1)
         y_sampled = df['num']
     if dataset == 'nwth':
-        df = pd.read_csv('decisiontree/dataset/new_thyroid.csv', encoding='utf-8')
+        df = pd.read_csv('tree/dataset/new_thyroid.csv', encoding='utf-8')
         df.dropna(inplace=True)
         X_sampled = df.drop('class', axis=1)
         y_sampled = df['class']
     if dataset == 'wine':
-        df = pd.read_csv('decisiontree/dataset/wine.csv', encoding='utf-8')
+        df = pd.read_csv('tree/dataset/wine.csv', encoding='utf-8')
         X_sampled = df.drop('class', axis=1)
         y_sampled = df['class']
 
