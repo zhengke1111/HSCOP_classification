@@ -43,7 +43,7 @@ This project consists of two parts:
         └── {data_set}_{precision}_{timestamp}/ # Optional LogFile subdirectories (save_log=True only)
         ```
 
-    - **CSV columns:** `Precision_threshold, Fold, method, obj, time, train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall`
+    - **CSV columns:** `Precision_threshold, Fold, method, obj, time,  train_acc_margined, test_acc_margined, train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall`
 
     - **Configuration in `run_score_based_classification_experiment()`:**
         
@@ -88,7 +88,7 @@ This project consists of two parts:
     - **Output structure per dataset:**
 
         ```
-        results/{data_set}/
+        results/our_results/{data_set}/
         ├── tree_{data_set}_results.csv        # Combined results CSV
         └── {dataset}_depth-{depth}_run-{run}/ # Optional LogFile subdirectories (save_log=True only)
         ```
@@ -157,7 +157,6 @@ This project consists of two parts:
 - `CART_run.py`: run it to produce the results of `CART`. The results will be stored in `tree/results/CART_results.csv`. 
 
 
-
 ## Overview
 The content of this repository is as follows:
 
@@ -220,11 +219,11 @@ The content of this repository is as follows:
     └── utils.py         # Utility file to store some commonly used functions in this project writing utilities.
     ```
 
-    - `results/`: Output results directory.
+    - `results/our_results/`: Output results directory.
 
-        - `tree_results.csv`: results of tree-based classification, 8 datasets, depth-2,3,4, method `Full MIP` and `IDSA-PIP`.
+        - `{dataset}/tree_{dataset}_results.csv`: results of tree-based classification, 8 datasets, depth-2,3,4, method `Full MIP` and `IDSA-PIP`.
 
-        - `tree_pareto_blsc_results.csv`, `tree_pareto_ctmc_results.csv`: combined results of `C-PIP`, `FlowOCT`, `C-BinOCT`, `U-PIP`, `BendersOCT`, `U-BinOCT`, `CART`, which we present in Pareto curves. For their raw output, see the folder `tree_pareto_raw_output`.
+        - `tree_pareto_{dataset}_results.csv`: combined results of `C-PIP`, `FlowOCT`, `C-BinOCT`, `U-PIP`, `BendersOCT`, `U-BinOCT`, `CART`, which we present in Pareto curves. For their raw output, see the folder `tree_pareto_raw_output/`.
 
     - `tree_pareto/`: Existing methods in literature, including
 
@@ -252,7 +251,7 @@ The content of this repository is as follows:
 
 
 ## Notes
-- For `C-PIP`, in `tree_pareto_blsc_results.csv`, the column `restricted_class`=`0`, but in `tree/results/tree_pareto_raw_output/blsc/C-PIP.csv`, the column  `key_beta_p`=`1`, they are actually **the same** class, which is class `0` in the dataset `tree/dataset/balance_scale.csv`, but in `tree_run.py`, we shifted the class by 1 with 
+- For `C-PIP`, in `tree_pareto_blsc_results.csv`, the column `restricted_class`=`0`, but in `tree/results/our_results/tree_pareto_raw_output/blsc/C-PIP.csv`, the column  `key_beta_p`=`1`, they are actually **the same** class, which is class `0` in the dataset `tree/dataset/balance_scale.csv`, but in `tree_run.py`, we shifted the class by 1 with 
     ```Python
     y = y.values + 1
     ``` 
