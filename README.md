@@ -233,13 +233,15 @@ The content of this repository is as follows:
 
             - `results`: the output results.
 
+            - For our modification, see `binoct-master/README.md` "Modification for precision constrained multi-class classification" and `BinOCT Code Modification.pdf`: 
+
         - `StrongTree-master/`: `BendersOCT` and `FlowOCT` adapted from [Strong Optimal Classification Trees](https://sites.google.com/view/sina-aghaei/home)
 
             - `Code/run_exp.py`: **run** this script to reproduce results of `BendersOCT` and `FlowOCT`.
 
             - `Results`: the output results.
 
-            - For our modification, see `README.md` "Modification for precision constrained multi-class classification" and `FlowOCT Code Modification.pdf`: 
+            - For our modification, see `StrongTree-master/README.md` "Modification for precision constrained multi-class classification" and `FlowOCT Code Modification.pdf`: 
 
     - `tree_run.py`: **run** this script to reproduce results of `Full MIP` and `IDSA-PIP`(`C-PIP`) and `U-PIP`.  
         
