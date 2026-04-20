@@ -84,8 +84,20 @@ def solve_binary_classification_prob(param, dataset_results_csv, dataset_dir):
                             solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, beta=beta, X_test=X_test, y_test=y_test)
 
                         if method == 'Shrinkage PIP':
-                            pip = solution[-1]
-                            pip.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, beta=beta, X_test=X_test, y_test=y_test)
+                            final_pip = solution[-1]
+
+                            train_results = evaluate_binary(X_train, y_train, final_pip.output['w'], final_pip.output['b'])
+                            test_results = evaluate_binary(X_test, y_test, final_pip.output['w'], final_pip.output['b'])
+
+                            total_model_time = 0
+                            for pip in solution:
+                                all_models = extract_inner_values(pip.model_dict)
+                                total_model_time += np.sum([model.model.Runtime for model in all_models if model is not None])
+
+                            write_single_integrated_result(results_csv=dataset_results_csv, dataset=param['dataset'], split=run, method=method, beta=beta, objective_value=final_pip.output['obj_val'],
+                                                            optimality_gap=None, time=total_model_time, actual_time=None, gamma=final_pip.output['gamma'] if final_pip.output['gamma'] is not None else None,
+                                                            train_acc_margin=train_results['acc_margin'], test_acc_margin=test_results['acc_margin'], train_acc=train_results['accuracy'], test_acc=test_results['accuracy'],
+                                                            train_prec=train_results['precision'], test_prec=test_results['precision'], train_recall=train_results['recall'], test_recall=test_results['recall'])
                 else:
                     solution = run_algorithm(method, X_train, y_train, param['dataset'], None, None, param['model_param'], result_dir_method, start_sol_copy['w'], start_sol_copy['b'], param['save_log'], param['console_log'])
                     solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, beta=None, X_test=X_test, y_test=y_test)
@@ -125,5 +137,5 @@ def run_binary_experiment(method_dict):
         }
         solve_binary_classification_prob(param, dataset_results_csv, dataset_dir)
 
-method_dict = {'Full MIP': True, 'Fixed PIP': True, 'Shrinkage PIP':True, 'U-PIP': True}
+method_dict = {'Full MIP': False, 'Fixed PIP': False, 'Shrinkage PIP':True, 'U-PIP': True}
 run_binary_experiment(method_dict)

@@ -157,8 +157,19 @@ def solve_tree_classification_prob(param, dataset_results_csv, dataset_dir, pare
                         solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
                     
                     if method == 'ISA-PIP':
-                        pip = solution[-1]
-                        pip.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
+                        final_pip = solution[-1]
+                        train_results = evaluate_tree(X_train, y_train, final_pip.output['a'], final_pip.output['b'], final_pip.output['c'], param['depth'])
+                        test_results = evaluate_tree(X_test, y_test, final_pip.output['a'], final_pip.output['b'], final_pip.output['c'], param['depth'])
+                        total_model_time = 0
+                        for pip in solution:
+                            all_models = extract_inner_values(pip.model_dict)
+                            total_model_time += np.sum([model.model.Runtime for model in all_models if model is not None])
+                        write_single_integrated_result(results_csv=dataset_results_csv, dataset=param['dataset'], depth=param['depth'], split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'],
+                                                       objective_value=final_pip.output['obj_val'], optimality_gap=None, time=total_model_time, actual_time=None, gamma=final_pip.output['gamma'] if final_pip.output['gamma'] is not None else None, 
+                                                       train_acc_margin=train_results['frac']['acc_margin'], test_acc_margin=test_results['frac']['acc_margin'], train_acc=train_results['frac']['acc'], test_acc=test_results['frac']['acc'],
+                                                       train_prec=train_results['frac'][f"prec{next(iter(param['beta'].keys()))}"], test_prec=test_results['frac'][f"prec{next(iter(param['beta'].keys()))}"])
+                        # pip = solution[-1]
+                        # pip.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
 
                     if method == 'D4-PIP':
                         solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, tau_0=param['tau_0'][run], beta=param['beta'], X_test=X_test, y_test=y_test)
