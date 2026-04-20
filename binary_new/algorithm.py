@@ -83,12 +83,42 @@ class PIP:
         partial_model.solve_model()
         return partial_model
     
+    def formulate_and_solve_unconstrained_partial_model(self, model_dir, delta_1, delta_2, iter_model_name, w_start, b_start):
+        partial_model = Model(
+            X=self.X_train,
+            y=self.y_train,
+            epsilon=self.epsilon,
+            beta=self.beta,
+            model_type='unconstrained_partial',
+            delta_plus=delta_1,
+            delta_minus=delta_2,
+            model_params=self.model_params,
+            model_dir=model_dir,
+            model_name=iter_model_name,
+            save_log=self.save_log,
+            console_log=self.console_log
+        )
+        partial_model.formulate_model(w_start, b_start)
+        partial_model.solve_model()
+        return partial_model
+
     def iteration_process(self, alg_name, iteration, start, ratio, w_start, b_start):
         delta_1, delta_2 = calculate_delta(self.X_train, self.y_train, w_start, b_start, self.epsilon, ratio)
 
         iter_model_name = alg_name + f"_iter_{iteration}"
 
         partial_model = self.formulate_and_solve_partial_model(self.alg_dir, delta_1, delta_2, iter_model_name, w_start, b_start)
+
+        # Record iteration execution time
+        self.execution_time_list.append(time.time() - start)
+        return partial_model
+    
+    def iteration_process_unconstrained(self, alg_name, iteration, start, ratio, w_start, b_start):
+        delta_1, delta_2 = calculate_delta(self.X_train, self.y_train, w_start, b_start, self.epsilon, ratio)
+
+        iter_model_name = alg_name + f"_iter_{iteration}"
+
+        partial_model = self.formulate_and_solve_unconstrained_partial_model(self.alg_dir, delta_1, delta_2, iter_model_name, w_start, b_start)
 
         # Record iteration execution time
         self.execution_time_list.append(time.time() - start)
@@ -140,6 +170,41 @@ class PIP:
             self.output['w'] = final_model.var_val['w']
             self.output['b'] = final_model.var_val['b']
             self.output['gamma'] = final_model.var_val['gamma']
+
+    def main_computation_unconstrained(self, iteration_process, alg_name, w, b):
+        z_plus_0_start = calculate_z_plus_0(self.X_train, self.y_train, w, b)
+        obj_val = (sum(z_plus_0 for z_plus_0 in z_plus_0_start.values()) / self.X_train.shape[0])
+        w_start = w
+        b_start = b
+        iter_unchanged = 0
+        ratio = self.base_ratio
+
+        for iteration in range(self.max_iter):
+            start = time.time()
+            obj_val_old = obj_val
+
+            solution = iteration_process(alg_name, iteration, start, ratio, w_start, b_start)
+            if solution.model_state == 1:  # Check if model solved successfully
+                # Update objective value and warm start parameters
+                obj_val = solution.model.objVal
+                w_start = solution.var_val['w']
+                b_start = solution.var_val['b']
+
+                # Update adaptive ratio and unchanged iteration counter
+                ratio, iter_unchanged = self.ratio_update_rule(ratio, obj_val, obj_val_old, iter_unchanged)
+                self.model_dict[iteration] = solution
+
+            else:
+                # Mark algorithm as failed if model solving failed
+                self.algorithm_state = - iteration - 1
+                break
+            
+        if self.algorithm_state >= 0:
+            final_model = self.model_dict[self.max_iter - 1]
+            self.output['obj_val'] = final_model.model.objVal
+            self.output['w'] = final_model.var_val['w']
+            self.output['b'] = final_model.var_val['b']
+
 
     def write_integrated_results(self, dataset_results_csv, split, method, beta, X_test, y_test): 
 

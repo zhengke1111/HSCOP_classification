@@ -113,6 +113,28 @@ class Model:
         for s in self.negative_index:
             self.var['z_minus'][s].setAttr(gp.GRB.Attr.Start, z_minus_start[s])
 
+    def add_unconstrained_basic_var(self, w_start, b_start):
+        self.var['w'] = self.model.addVars(self.p, lb=-TAU_1, ub=TAU_1, vtype=GRB.CONTINUOUS, name="w")
+        self.var['w_abs'] = self.model.addVars(self.p, lb=0, ub=TAU_1, vtype=GRB.CONTINUOUS, name="w_abs")
+        self.model.addConstrs((self.var['w'][i] <= self.var['w_abs'][i] for i in self.p), name = "w_l1_pos")
+        self.model.addConstrs((-self.var['w'][i] <= self.var['w_abs'][i] for i in self.p), name = "w_l1_neg")
+        self.model.addConstr(gp.quicksum(self.var['w_abs'][i] for i in self.p) <= TAU_1, name = "w_sum_l1")
+        
+        if w_start is not None:
+            for i in self.p:
+                self.var['w'][i].setAttr(gp.GRB.Attr.Start, w_start[i])
+
+        self.var['b'] = self.model.addVar(lb=-self.b_ub, ub=self.b_ub, vtype=GRB.CONTINUOUS, name="b")
+
+        if b_start is not None:
+            self.var['b'].setAttr(gp.GRB.Attr.Start, b_start)
+        
+        z_plus_0_start = calculate_z_plus_0(self.X, self.y, w_start, b_start)
+        self.var['z_plus_0'] = self.model.addVars(self.N, vtype=GRB.BINARY, name="z_plus_0")
+        for s in self.N:
+            self.var['z_plus_0'][s].setAttr(gp.GRB.Attr.Start, z_plus_0_start[s])
+
+
     def add_full_constr_z_plus_0(self):
         self.model.addConstrs((gp.quicksum(self.var['w'][i] * self.X[s][i] for i in self.p) + self.var['b'] - 1 - FEASIBILITY_TOL >= - self.M * (1 - self.var['z_plus_0'][s])) for s in self.positive_index)
         self.model.addConstrs((gp.quicksum(-self.var['w'][i] * self.X[s][i] for i in self.p) - self.var['b'] - 1 - FEASIBILITY_TOL >= - self.M * (1 - self.var['z_plus_0'][s])) for s in self.negative_index)
@@ -194,6 +216,11 @@ class Model:
         self.model.addConstr(obj <= 1, "manual_upper_bound")
         self.model.setObjective(obj, GRB.MAXIMIZE) 
 
+    def add_unconstrained_acc_margin(self):
+        obj = (1/self.sample_size)*(gp.quicksum(self.var['z_plus_0'][s] for s in list(set(self.z_plus_0_active) & set(self.positive_index))) + gp.quicksum(self.var['z_plus_0'][s] for s in list(set(self.z_plus_0_active) & set(self.negative_index))) + sum(1 for _ in list(set(self.z_plus_0_fixed_as_1) & set(self.positive_index))) + sum(1 for _ in list(set(self.z_plus_0_fixed_as_1) & set(self.negative_index))))
+        self.model.addConstr(obj <= 1, "manual_upper_bound")
+        self.model.setObjective(obj, GRB.MAXIMIZE) 
+
     def formulate_model(self, w_start, b_start):
         if self.model_type == 'full':
             self.add_basic_var(w_start, b_start)
@@ -215,6 +242,13 @@ class Model:
             self.add_partial_acc_margin()
             self.model.update()
 
+        elif self.model_type == 'unconstrained_partial':
+            self.add_unconstrained_basic_var(w_start, b_start)
+            self.model.update()
+            self.add_partial_constr_z_plus_0(w_start, b_start)
+            self.add_unconstrained_acc_margin()
+            self.model.update()
+
     def solve_model(self):
         if self.model_type == 'full':
             time_limit = FULL_MODEL_TIME_LIMIT
@@ -226,7 +260,7 @@ class Model:
             self.model.__dict__['time_for_feasible'] = 0
             self.model.__dict__['time_limit'] = time_limit
             callback = full_model_callback
-        elif self.model_type == 'partial':
+        elif self.model_type == 'partial' or 'unconstrained_partial':
             time_limit = PARTIAL_MODEL_TIME_LIMIT
             self.model.__dict__['unchanged_tolerance'] = UNCHANGED_TOLERANCE
             self.model.__dict__['last_time'] = 0

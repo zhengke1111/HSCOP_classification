@@ -24,5 +24,7 @@ ALG_PARAM = {'iteration': {'unchanged_iter': 3, 'max_iter': 10},
                  'change_ratio': 10}}
 
 DATASET_LIST = ['rice', 'hmeq', 'ospi']
+# DATASET_LIST = ['rice'] # For test
 
 THRESHOLD_GRID = {'rice': [0.96, 0.97, 0.98], 'hmeq': [0.80, 0.85, 0.90], 'ospi': [0.77, 0.79, 0.81]}
+# THRESHOLD_GRID = {'rice': [0.96]} # For test

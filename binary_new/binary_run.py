@@ -39,7 +39,13 @@ def solve_binary_classification_prob(param, dataset_results_csv, dataset_dir):
                 else:
                     break
             return shrinkage
+
+        elif method == "U-PIP":
+            unconstrained = PIP(X_train=X_train, y_train=y_train, dataset=dataset, epsilon=None, beta=None, model_params=model_params, algorithm_params=ALG_PARAM, alg_dir=result_dir, save_log=save_log, console_log=console_log)
+            unconstrained.main_computation_unconstrained(unconstrained.iteration_process_unconstrained, method, w_start, b_start)
+            return unconstrained
         
+
 
     # --------------------------
     # Main Execution Pipeline
@@ -64,21 +70,28 @@ def solve_binary_classification_prob(param, dataset_results_csv, dataset_dir):
                     os.makedirs(result_dir, exist_ok=True)
                     os.makedirs(result_dir_method, exist_ok=True)
 
-                for beta in THRESHOLD_GRID[param['dataset']]:
-                    beta_str = str(np.round(beta, 2))
-                    result_dir_method_beta = os.path.join(result_dir_method, f'beta-{beta_str}')
-                    solution = run_algorithm(method, X_train, y_train, param['dataset'], beta, epsilon, param['model_param'], result_dir_method, 
-                                         start_sol_copy['w'], start_sol_copy['b'], param['save_log'], param['console_log'])
+                if method != 'U-PIP':
+                    for beta in THRESHOLD_GRID[param['dataset']]:
+                        beta_str = str(np.round(beta, 2))
+                        result_dir_method_beta = os.path.join(result_dir_method, f'beta-{beta_str}')
+                        solution = run_algorithm(method, X_train, y_train, param['dataset'], beta, epsilon, param['model_param'], result_dir_method_beta, 
+                                            start_sol_copy['w'], start_sol_copy['b'], param['save_log'], param['console_log'])
 
-                    if method == 'Full MIP':
-                        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, dataset=param['dataset'], split=run, method=method, beta=beta, X_test=X_test, y_test=y_test)
+                        if method == 'Full MIP':
+                            solution.write_integrated_results(dataset_results_csv=dataset_results_csv, dataset=param['dataset'], split=run, method=method, beta=beta, X_test=X_test, y_test=y_test)
 
-                    if method == 'Fixed PIP':
-                        solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, beta=beta, X_test=X_test, y_test=y_test)
+                        if method == 'Fixed PIP':
+                            solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, beta=beta, X_test=X_test, y_test=y_test)
 
-                    if method == 'Shrinkage PIP':
-                        pip = solution[-1]
-                        pip.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, beta=beta, X_test=X_test, y_test=y_test)
+                        if method == 'Shrinkage PIP':
+                            pip = solution[-1]
+                            pip.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, beta=beta, X_test=X_test, y_test=y_test)
+                else:
+                    solution = run_algorithm(method, X_train, y_train, param['dataset'], None, None, param['model_param'], result_dir_method, start_sol_copy['w'], start_sol_copy['b'], param['save_log'], param['console_log'])
+                    solution.write_integrated_results(dataset_results_csv=dataset_results_csv, split=run, method=method, beta=None, X_test=X_test, y_test=y_test)
+
+                
+
 
 
 def run_binary_experiment(method_dict):
@@ -112,5 +125,5 @@ def run_binary_experiment(method_dict):
         }
         solve_binary_classification_prob(param, dataset_results_csv, dataset_dir)
 
-method_dict = {'Full MIP': False, 'Fixed PIP': True, 'Shrinkage PIP':True}
+method_dict = {'Full MIP': True, 'Fixed PIP': True, 'Shrinkage PIP':True, 'U-PIP': True}
 run_binary_experiment(method_dict)
