@@ -1,0 +1,47 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 04:10:02 2026
+
+Set parameter LogFile to value "tree/results/ceva/ceva_depth-3_run-2/IDSA-PIP/outer_iter_2/LogFile_IDSA-PIP_outer_iter_2_iter_0.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 23151 rows, 4414 columns and 377307 nonzeros
+Model fingerprint: 0x8266cb09
+Variable types: 242 continuous, 4172 integer (4172 binary)
+Coefficient statistics:
+  Matrix range     [8e-04, 1e+04]
+  Objective range  [8e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 2e+03]
+
+User MIP start produced solution with objective 0.85571 (0.06s)
+Loaded user MIP start with objective 0.85571
+
+Presolve removed 6149 rows and 7 columns
+Presolve time: 0.21s
+Presolved: 17002 rows, 4407 columns, 279398 nonzeros
+Variable types: 235 continuous, 4172 integer (4172 binary)
+
+Root relaxation: objective 1.000000e+00, 4791 iterations, 3.49 seconds (5.84 work units)
+Total elapsed time = 5.27s (DegenMoves)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0  162    0.85571    1.00000  16.9%     -    6s
+     0     2    1.00000    0  143    0.85571    1.00000  16.9%     -   11s
+     3     8    1.00000    2  179    0.85571    1.00000  16.9%  1968   22s
+     7    16    1.00000    3  317    0.85571    1.00000  16.9%  1735   28s
+    15    26    1.00000    4  337    0.85571    1.00000  16.9%  2369   44s
+
+Explored 31 nodes (110780 simplex iterations) in 44.16 seconds (76.87 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.85571 
+
+Solve interrupted
+Best objective 8.557098765432e-01, best bound 1.000000000000e+00, gap 16.8620%
+
+User-callback calls 26414, time in user-callback 0.17 sec

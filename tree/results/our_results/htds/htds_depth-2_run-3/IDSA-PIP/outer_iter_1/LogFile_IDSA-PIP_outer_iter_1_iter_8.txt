@@ -1,0 +1,45 @@
+
+Gurobi 11.0.3 (linux64) logging started Tue Apr 14 21:57:19 2026
+
+Set parameter LogFile to value "tree/results/htds/htds_depth-2_run-3/IDSA-PIP/outer_iter_1/LogFile_IDSA-PIP_outer_iter_1_iter_8.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 2356 rows, 741 columns and 41712 nonzeros
+Model fingerprint: 0xdc2b07c8
+Variable types: 124 continuous, 617 integer (617 binary)
+Coefficient statistics:
+  Matrix range     [4e-04, 1e+04]
+  Objective range  [4e-03, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 2e+03]
+
+User MIP start produced solution with objective 0.711111 (0.01s)
+Loaded user MIP start with objective 0.711111
+
+Presolve removed 739 rows and 1 columns
+Presolve time: 0.03s
+Presolved: 1617 rows, 740 columns, 27812 nonzeros
+Variable types: 123 continuous, 617 integer (617 binary)
+
+Root relaxation: objective 7.987375e-01, 942 iterations, 0.10 seconds (0.15 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    0.79874    0  103    0.71111    0.79874  12.3%     -    0s
+     0     2    0.79874    0  103    0.71111    0.79874  12.3%     -    0s
+H   92    41                       0.7155556    0.78408  9.58%   258    1s
+
+Explored 2120 nodes (100128 simplex iterations) in 3.47 seconds (5.33 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 2: 0.715556 0.711111 
+No other solutions better than 0.715556
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 7.155555555556e-01, best bound 7.155555555556e-01, gap 0.0000%
+
+User-callback calls 5050, time in user-callback 0.01 sec

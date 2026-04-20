@@ -1,0 +1,74 @@
+
+Gurobi 11.0.3 (linux64) logging started Tue Apr 14 04:49:36 2026
+
+Set parameter LogFile to value "tree/results/wine/wine_depth-3_run-3/Full MIP/LogFile_FullModel.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 11085 rows, 7777 columns and 149401 nonzeros
+Model fingerprint: 0x155b7ec3
+Model has 1064 general constraints
+Variable types: 4470 continuous, 3307 integer (3307 binary)
+Coefficient statistics:
+  Matrix range     [2e-03, 1e+04]
+  Objective range  [8e-03, 1e+04]
+  Bounds range     [1e+00, 4e+02]
+  RHS range        [1e-04, 8e+02]
+
+User MIP start produced solution with objective -14499 (0.08s)
+Loaded user MIP start with objective -14499
+
+Presolve added 1056 rows and 3192 columns
+Presolve time: 0.18s
+Presolved: 12141 rows, 10969 columns, 155761 nonzeros
+Presolved model has 3192 SOS constraint(s)
+Variable types: 4470 continuous, 6499 integer (6499 binary)
+Root relaxation presolved: 12133 rows, 10961 columns, 155761 nonzeros
+
+Deterministic concurrent LP optimizer: primal and dual simplex
+Showing primal log only...
+
+Concurrent spin time: 0.24s (can be avoided by choosing Method=3)
+
+Solved with primal simplex
+
+Root relaxation: objective 1.000000e+00, 2872 iterations, 1.98 seconds (1.27 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    9 -14499.015    1.00000   100%     -    2s
+     0     2    1.00000    0    9 -14499.015    1.00000   100%     -    7s
+     1     4    1.00000    1   12 -14499.015    1.00000   100%  19.0   10s
+     7    16    1.00000    3    9 -14499.015    1.00000   100%   219   35s
+    31    64    1.00000    5   10 -14499.015    1.00000   100%   785   45s
+H   32    64                    -4899.030075    1.00000   100%   760   45s
+    63    96    1.00000    6   14 -4899.0301    1.00000   100%   480   71s
+    95   128    1.00000    7   56 -4899.0301    1.00000   100%   365   82s
+H   98   128                       0.6466165    1.00000  54.7%   354   82s
+H  101   128                       0.6466165    1.00000  54.7%   345   82s
+H  116   128                       0.6541353    1.00000  52.9%   310   82s
+H  159   192                       0.6616541    1.00000  51.1%   243   96s
+   191   230    1.00000   10  675    0.66165    1.00000  51.1%   259  117s
+   229   270    1.00000   11  718    0.66165    1.00000  51.1%  1026  178s
+H  256   270                       0.6691729    1.00000  49.4%   979  178s
+   269   672    1.00000   12  740    0.66917    1.00000  49.4%  1034  212s
+   671  1373    1.00000   20  762    0.66917    1.00000  49.4%   997  366s
+  1372  3370    1.00000   25  770    0.66917    1.00000  49.4%   910  640s
+  3369  3974    1.00000   50  706    0.66917    1.00000  49.4%   909 1293s
+  3973  5378    1.00000   60  724    0.66917    1.00000  49.4%   949 1972s
+  5381  8194    1.00000   88  657    0.66917    1.00000  49.4%   966 2676s
+  8229 11427    1.00000  143  592    0.66917    1.00000  49.4%  1008 3382s
+ 11693 14577    1.00000  211  548    0.66917    1.00000  49.4%  1010 3600s
+
+Explored 15157 nodes (15097630 simplex iterations) in 3600.20 seconds (3752.69 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 7: 0.669173 0.661654 0.654135 ... -14499
+
+Time limit reached
+Best objective 6.691729323308e-01, best bound 1.000000000000e+00, gap 49.4382%
+
+User-callback calls 2349208, time in user-callback 20.58 sec

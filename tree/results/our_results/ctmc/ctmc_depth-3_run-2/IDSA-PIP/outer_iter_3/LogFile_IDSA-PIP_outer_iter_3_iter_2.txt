@@ -1,0 +1,48 @@
+
+Gurobi 11.0.3 (linux64) logging started Fri Apr 17 00:12:41 2026
+
+Set parameter LogFile to value "tree/results/ctmc/ctmc_depth-3_run-2/IDSA-PIP/outer_iter_3/LogFile_IDSA-PIP_outer_iter_3_iter_2.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 18996 rows, 2974 columns and 232701 nonzeros
+Model fingerprint: 0xcd3a2d3e
+Variable types: 186 continuous, 2788 integer (2788 binary)
+Coefficient statistics:
+  Matrix range     [9e-04, 1e+04]
+  Objective range  [9e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 2e+03]
+
+User MIP start produced solution with objective 0.592391 (0.04s)
+Loaded user MIP start with objective 0.592391
+
+Presolve removed 6922 rows and 5 columns
+Presolve time: 0.23s
+Presolved: 12074 rows, 2969 columns, 149794 nonzeros
+Variable types: 184 continuous, 2785 integer (2785 binary)
+
+Root relaxation: objective 1.000000e+00, 380 iterations, 0.10 seconds (0.13 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    3    0.59239    1.00000  68.8%     -    0s
+     0     2    1.00000    0    3    0.59239    1.00000  68.8%     -    1s
+    95   128    1.00000    7   12    0.59239    1.00000  68.8%  18.3    9s
+   159   184    1.00000    8   13    0.59239    1.00000  68.8%  76.6   20s
+   228   217    1.00000   10    4    0.59239    1.00000  68.8%   175   33s
+H  261   217                       0.5932971    1.00000  68.5%   235   33s
+
+Explored 263 nodes (63641 simplex iterations) in 33.43 seconds (45.15 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 2: 0.593297 0.592391 
+
+Solve interrupted
+Warning: max constraint violation (1.0000e-07) exceeds tolerance
+Best objective 5.932971014493e-01, best bound 1.000000000000e+00, gap 68.5496%
+
+User-callback calls 17901, time in user-callback 0.11 sec

@@ -1,0 +1,46 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 04:08:23 2026
+
+Set parameter LogFile to value "tree/results/ceva/ceva_depth-3_run-2/IDSA-PIP/outer_iter_1/LogFile_IDSA-PIP_outer_iter_1_iter_8.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 27661 rows, 7213 columns and 457573 nonzeros
+Model fingerprint: 0xeb331c81
+Variable types: 242 continuous, 6971 integer (6971 binary)
+Coefficient statistics:
+  Matrix range     [8e-04, 1e+04]
+  Objective range  [8e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 2e+03]
+
+User MIP start produced solution with objective 0.85571 (0.08s)
+Loaded user MIP start with objective 0.85571
+
+Presolve removed 5992 rows and 7 columns
+Presolve time: 0.24s
+Presolved: 21669 rows, 7206 columns, 362095 nonzeros
+Variable types: 235 continuous, 6971 integer (6971 binary)
+
+Root relaxation: objective 1.000000e+00, 429 iterations, 0.23 seconds (0.32 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    6    0.85571    1.00000  16.9%     -    1s
+     0     2    1.00000    0    6    0.85571    1.00000  16.9%     -    2s
+    15    32    1.00000    4   10    0.85571    1.00000  16.9%   351    5s
+    63    94    1.00000    6   41    0.85571    1.00000  16.9%   273   26s
+    95   123    1.00000    7   65    0.85571    1.00000  16.9%   387   42s
+
+Explored 127 nodes (62777 simplex iterations) in 42.74 seconds (63.45 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.85571 
+
+Solve interrupted
+Best objective 8.557098765432e-01, best bound 1.000000000000e+00, gap 16.8620%
+
+User-callback calls 25563, time in user-callback 0.17 sec

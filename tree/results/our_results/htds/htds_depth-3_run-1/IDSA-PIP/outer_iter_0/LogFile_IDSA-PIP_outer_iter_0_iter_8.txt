@@ -1,0 +1,49 @@
+
+Gurobi 11.0.3 (linux64) logging started Wed Apr 15 00:18:15 2026
+
+Set parameter LogFile to value "tree/results/htds/htds_depth-3_run-1/IDSA-PIP/outer_iter_0/LogFile_IDSA-PIP_outer_iter_0_iter_8.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 4359 rows, 1007 columns and 74656 nonzeros
+Model fingerprint: 0x01dc52af
+Variable types: 284 continuous, 723 integer (723 binary)
+Coefficient statistics:
+  Matrix range     [4e-03, 1e+04]
+  Objective range  [4e-03, 1e+04]
+  Bounds range     [1e+00, 7e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.733333 (0.01s)
+Loaded user MIP start with objective 0.733333
+
+Presolve removed 1423 rows and 2 columns
+Presolve time: 0.05s
+Presolved: 2936 rows, 1005 columns, 47911 nonzeros
+Variable types: 283 continuous, 722 integer (722 binary)
+
+Root relaxation: objective 9.890076e-01, 1459 iterations, 0.24 seconds (0.29 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    0.98901    0  138    0.73333    0.98901  34.9%     -    0s
+H    0     0                       0.7377778    0.98901  34.1%     -    1s
+     0     2    0.98901    0  134    0.73778    0.98901  34.1%     -    1s
+H  326   112                       0.7422222    0.90195  21.5%  41.8    3s
+  2296   449    0.85313   15  105    0.74222    0.87975  18.5%  16.1    5s
+ 11656  1277    0.79544   36   73    0.74222    0.81763  10.2%   7.5   10s
+ 16442  1196    0.79109   24   67    0.74222    0.80441  8.38%   8.2   15s
+
+Explored 18521 nodes (196246 simplex iterations) in 16.56 seconds (20.58 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 3: 0.742222 0.737778 0.733333 
+No other solutions better than 0.742222
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 7.422222222222e-01, best bound 7.422222222222e-01, gap 0.0000%
+
+User-callback calls 40334, time in user-callback 0.06 sec

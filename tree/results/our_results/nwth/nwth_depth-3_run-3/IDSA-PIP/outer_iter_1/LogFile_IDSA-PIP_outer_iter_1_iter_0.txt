@@ -1,0 +1,55 @@
+
+Gurobi 11.0.3 (linux64) logging started Tue Apr 14 12:36:28 2026
+
+Set parameter LogFile to value "tree/results/nwth/nwth_depth-3_run-3/IDSA-PIP/outer_iter_1/LogFile_IDSA-PIP_outer_iter_1_iter_0.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 3474 rows, 902 columns and 22861 nonzeros
+Model fingerprint: 0xf6b025ab
+Variable types: 102 continuous, 800 integer (800 binary)
+Coefficient statistics:
+  Matrix range     [4e-04, 1e+04]
+  Objective range  [6e-03, 1e+04]
+  Bounds range     [1e+00, 6e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.608696 (0.01s)
+Loaded user MIP start with objective 0.608696
+
+Presolve removed 748 rows and 5 columns
+Presolve time: 0.08s
+Presolved: 2726 rows, 897 columns, 18426 nonzeros
+Variable types: 100 continuous, 797 integer (797 binary)
+
+Root relaxation: objective 1.000000e+00, 149 iterations, 0.01 seconds (0.01 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    9    0.60870    1.00000  64.3%     -    0s
+     0     2    1.00000    0    9    0.60870    1.00000  64.3%     -    0s
+H  159   187                       0.6211180    1.00000  61.0%  23.9    2s
+H  166   187                       0.6273292    1.00000  59.4%  25.3    2s
+H  180   187                       0.6397516    1.00000  56.3%  30.8    2s
+H  813   359                       0.6459627    1.00000  54.8%  72.9    4s
+   913   380    0.84353   18  111    0.64596    1.00000  54.8%  72.0    5s
+  3717  1273    1.00000   22   98    0.64596    1.00000  54.8%  49.3   10s
+  6748  1723 infeasible   48         0.64596    1.00000  54.8%  40.8   16s
+  7592  1767 infeasible   64         0.64596    1.00000  54.8%  38.2   20s
+ 10468  2111    0.99320   37   47    0.64596    1.00000  54.8%  31.8   25s
+ 15896  4199    0.85093   91   45    0.64596    1.00000  54.8%  25.9   30s
+ 21049  6218    0.88820   62   16    0.64596    1.00000  54.8%  23.1   35s
+
+Explored 25375 nodes (546965 simplex iterations) in 36.95 seconds (48.97 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 5: 0.645963 0.639752 0.627329 ... 0.608696
+
+Solve interrupted
+Warning: max constraint violation (1.0000e-07) exceeds tolerance
+Best objective 6.459627329193e-01, best bound 1.000000000000e+00, gap 54.8077%
+
+User-callback calls 68179, time in user-callback 0.11 sec

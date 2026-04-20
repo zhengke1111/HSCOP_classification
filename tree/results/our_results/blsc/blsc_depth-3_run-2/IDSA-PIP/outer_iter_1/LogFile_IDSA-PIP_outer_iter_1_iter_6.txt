@@ -1,0 +1,49 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 07:01:40 2026
+
+Set parameter LogFile to value "tree/results/blsc/blsc_depth-3_run-2/IDSA-PIP/outer_iter_1/LogFile_IDSA-PIP_outer_iter_1_iter_6.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 7967 rows, 1238 columns and 43001 nonzeros
+Model fingerprint: 0xa97bd62c
+Variable types: 88 continuous, 1150 integer (1150 binary)
+Coefficient statistics:
+  Matrix range     [2e-03, 1e+04]
+  Objective range  [2e-03, 1e+04]
+  Bounds range     [1e+00, 5e+02]
+  RHS range        [1e-09, 6e+02]
+
+User MIP start produced solution with objective 0.903846 (0.01s)
+Loaded user MIP start with objective 0.903846
+
+Presolve removed 3199 rows and 5 columns
+Presolve time: 0.07s
+Presolved: 4768 rows, 1233 columns, 27043 nonzeros
+Variable types: 86 continuous, 1147 integer (1147 binary)
+
+Root relaxation: objective 1.000000e+00, 148 iterations, 0.02 seconds (0.02 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    7    0.90385    1.00000  10.6%     -    0s
+     0     2    1.00000    0    7    0.90385    1.00000  10.6%     -    0s
+   227   322    1.00000   11   21    0.90385    1.00000  10.6%  34.0    5s
+   695   380    1.00000   11   40    0.90385    1.00000  10.6%   118   10s
+  3424   622    1.00000   10   94    0.90385    1.00000  10.6%  92.6   15s
+  5695   489    0.91813   21   74    0.90385    1.00000  10.6%  91.3   20s
+  6987   471     cutoff   14         0.90385    1.00000  10.6%  94.3   25s
+  8849   425     cutoff   12         0.90385    1.00000  10.6%  95.1   30s
+
+Explored 9832 nodes (901195 simplex iterations) in 34.80 seconds (44.56 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.903846 
+
+Solve interrupted
+Best objective 9.038461538462e-01, best bound 1.000000000000e+00, gap 10.6383%
+
+User-callback calls 35940, time in user-callback 0.07 sec

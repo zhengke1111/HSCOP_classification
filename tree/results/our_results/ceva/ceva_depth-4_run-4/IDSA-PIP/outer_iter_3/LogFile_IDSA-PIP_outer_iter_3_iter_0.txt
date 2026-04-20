@@ -1,0 +1,49 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 13:02:59 2026
+
+Set parameter LogFile to value "tree/results/ceva/ceva_depth-4_run-4/IDSA-PIP/outer_iter_3/LogFile_IDSA-PIP_outer_iter_3_iter_0.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 38354 rows, 5212 columns and 617019 nonzeros
+Model fingerprint: 0x8a6c7797
+Variable types: 514 continuous, 4698 integer (4698 binary)
+Coefficient statistics:
+  Matrix range     [8e-04, 1e+04]
+  Objective range  [8e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.805556 (0.09s)
+Loaded user MIP start with objective 0.805556
+
+Presolve removed 10985 rows and 9 columns
+Presolve time: 0.34s
+Presolved: 27369 rows, 5203 columns, 442269 nonzeros
+Variable types: 505 continuous, 4698 integer (4698 binary)
+Root relaxation presolved: 27369 rows, 5203 columns, 442269 nonzeros
+
+
+Root relaxation: objective 1.000000e+00, 4744 iterations, 3.36 seconds (5.61 work units)
+Total elapsed time = 5.87s (DegenMoves)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0  258    0.80556    1.00000  24.1%     -    6s
+     0     2    1.00000    0  258    0.80556    1.00000  24.1%     -   21s
+     7    16    1.00000    3  278    0.80556    1.00000  24.1%  1242   27s
+    15    32    1.00000    4  286    0.80556    1.00000  24.1%   958   30s
+    63    94    1.00000    6  444    0.80556    1.00000  24.1%   550   64s
+
+Explored 95 nodes (46007 simplex iterations) in 64.68 seconds (115.50 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.805556 
+
+Solve interrupted
+Best objective 8.055555555556e-01, best bound 1.000000000000e+00, gap 24.1379%
+
+User-callback calls 17271, time in user-callback 0.13 sec

@@ -1,0 +1,47 @@
+
+Gurobi 11.0.3 (linux64) logging started Tue Apr 14 23:05:37 2026
+
+Set parameter LogFile to value "tree/results/htds/htds_depth-2_run-4/IDSA-PIP/outer_iter_1/LogFile_IDSA-PIP_outer_iter_1_iter_0.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 2386 rows, 739 columns and 42303 nonzeros
+Model fingerprint: 0xb7c987f9
+Variable types: 124 continuous, 615 integer (615 binary)
+Coefficient statistics:
+  Matrix range     [4e-03, 1e+04]
+  Objective range  [4e-03, 1e+04]
+  Bounds range     [1e+00, 7e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.68 (0.01s)
+Loaded user MIP start with objective 0.68
+
+Presolve removed 717 rows and 1 columns
+Presolve time: 0.02s
+Presolved: 1669 rows, 738 columns, 28819 nonzeros
+Variable types: 123 continuous, 615 integer (615 binary)
+
+Root relaxation: objective 8.760256e-01, 1285 iterations, 0.15 seconds (0.21 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    0.87603    0  165    0.68000    0.87603  28.8%     -    0s
+     0     2    0.87602    0  164    0.68000    0.87602  28.8%     -    1s
+  2823   650    0.71547   23   76    0.68000    0.81752  20.2%  41.0    5s
+ 12730  1059    0.71101   27   47    0.68000    0.72773  7.02%  21.9   10s
+ 37445  2927    0.68436   37   50    0.68000    0.68882  1.30%  13.6   15s
+
+Explored 47767 nodes (573957 simplex iterations) in 16.33 seconds (24.30 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.68 
+No other solutions better than 0.68
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 6.800000000000e-01, best bound 6.800000000000e-01, gap 0.0000%
+
+User-callback calls 98875, time in user-callback 0.11 sec

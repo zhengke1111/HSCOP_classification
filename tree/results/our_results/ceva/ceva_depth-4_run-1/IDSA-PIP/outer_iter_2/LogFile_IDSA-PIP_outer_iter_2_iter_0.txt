@@ -1,0 +1,48 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 08:42:03 2026
+
+Set parameter LogFile to value "tree/results/ceva/ceva_depth-4_run-1/IDSA-PIP/outer_iter_2/LogFile_IDSA-PIP_outer_iter_2_iter_0.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 38506 rows, 5375 columns and 620786 nonzeros
+Model fingerprint: 0x5334245e
+Variable types: 514 continuous, 4861 integer (4861 binary)
+Coefficient statistics:
+  Matrix range     [8e-04, 1e+04]
+  Objective range  [8e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.87963 (0.10s)
+Loaded user MIP start with objective 0.87963
+
+Presolve removed 11106 rows and 11 columns
+Presolve time: 0.40s
+Presolved: 27400 rows, 5364 columns, 444009 nonzeros
+Variable types: 503 continuous, 4861 integer (4861 binary)
+Root relaxation presolved: 27400 rows, 5364 columns, 444009 nonzeros
+
+
+Root relaxation: objective 1.000000e+00, 4684 iterations, 3.34 seconds (5.55 work units)
+Total elapsed time = 6.27s (DegenMoves)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0  214    0.87963    1.00000  13.7%     -    8s
+     0     2    1.00000    0  161    0.87963    1.00000  13.7%     -   21s
+     3     8    1.00000    2  959    0.87963    1.00000  13.7%  2579   30s
+    15    32    1.00000    4 1035    0.87963    1.00000  13.7%  1156   36s
+
+Explored 63 nodes (67074 simplex iterations) in 38.31 seconds (78.55 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.87963 
+
+Solve interrupted
+Best objective 8.796296296296e-01, best bound 1.000000000000e+00, gap 13.6842%
+
+User-callback calls 6926, time in user-callback 0.05 sec

@@ -1,0 +1,47 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 21:09:41 2026
+
+Set parameter LogFile to value "tree/results/ctmc/ctmc_depth-2_run-4/IDSA-PIP/outer_iter_1/LogFile_IDSA-PIP_outer_iter_1_iter_8.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 16187 rows, 8096 columns and 212264 nonzeros
+Model fingerprint: 0x45fad348
+Variable types: 82 continuous, 8014 integer (8014 binary)
+Coefficient statistics:
+  Matrix range     [9e-04, 1e+04]
+  Objective range  [9e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.52808 (0.05s)
+Loaded user MIP start with objective 0.52808
+
+Presolve removed 818 rows and 1 columns
+Presolve time: 0.12s
+Presolved: 15369 rows, 8095 columns, 202484 nonzeros
+Variable types: 81 continuous, 8014 integer (8014 binary)
+
+Root relaxation: objective 1.000000e+00, 211 iterations, 0.10 seconds (0.14 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    5    0.52808    1.00000  89.4%     -    0s
+     0     2    1.00000    0    5    0.52808    1.00000  89.4%     -    1s
+    15    32    1.00000    4   63    0.52808    1.00000  89.4%   302    6s
+    31    61    1.00000    5   72    0.52808    1.00000  89.4%   600   11s
+    63    80    1.00000    6  537    0.52808    1.00000  89.4%   629   25s
+    95   104    0.85695    7  901    0.52808    1.00000  89.4%   704   90s
+
+Explored 127 nodes (77183 simplex iterations) in 90.82 seconds (71.52 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.52808 
+
+Solve interrupted
+Best objective 5.280797101449e-01, best bound 1.000000000000e+00, gap 89.3654%
+
+User-callback calls 61242, time in user-callback 0.30 sec

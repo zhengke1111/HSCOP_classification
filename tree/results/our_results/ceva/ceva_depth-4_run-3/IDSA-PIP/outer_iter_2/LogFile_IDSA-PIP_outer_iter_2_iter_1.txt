@@ -1,0 +1,47 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 11:37:29 2026
+
+Set parameter LogFile to value "tree/results/ceva/ceva_depth-4_run-3/IDSA-PIP/outer_iter_2/LogFile_IDSA-PIP_outer_iter_2_iter_1.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 39328 rows, 6558 columns and 636357 nonzeros
+Model fingerprint: 0x7295f5a7
+Variable types: 514 continuous, 6044 integer (6044 binary)
+Coefficient statistics:
+  Matrix range     [8e-04, 1e+04]
+  Objective range  [8e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.820216 (0.12s)
+Loaded user MIP start with objective 0.820216
+
+Presolve removed 10476 rows and 13 columns
+Presolve time: 0.69s
+Presolved: 28852 rows, 6545 columns, 469634 nonzeros
+Variable types: 501 continuous, 6044 integer (6044 binary)
+
+Root relaxation: objective 1.000000e+00, 910 iterations, 0.47 seconds (0.69 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    8    0.82022    1.00000  21.9%     -    1s
+     0     2    1.00000    0    8    0.82022    1.00000  21.9%     -   10s
+    15    32    1.00000    4   11    0.82022    1.00000  21.9%   337   15s
+    63    96    1.00000    6   11    0.82022    1.00000  21.9%   255   29s
+    95   128    1.00000    7   71    0.82022    1.00000  21.9%   289   41s
+H  105   128                       0.8209877    1.00000  21.8%   267   41s
+
+Explored 127 nodes (30311 simplex iterations) in 41.72 seconds (56.57 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 2: 0.820988 0.820216 
+
+Solve interrupted
+Best objective 8.209876543210e-01, best bound 1.000000000000e+00, gap 21.8045%
+
+User-callback calls 24496, time in user-callback 0.15 sec

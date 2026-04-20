@@ -1,0 +1,46 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 09:45:32 2026
+
+Set parameter LogFile to value "tree/results/blsc/blsc_depth-3_run-4/IDSA-PIP/outer_iter_0/LogFile_IDSA-PIP_outer_iter_0_iter_9.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 11777 rows, 3483 columns and 69230 nonzeros
+Model fingerprint: 0x160ead14
+Variable types: 88 continuous, 3395 integer (3395 binary)
+Coefficient statistics:
+  Matrix range     [2e-03, 1e+04]
+  Objective range  [2e-03, 1e+04]
+  Bounds range     [1e+00, 5e+02]
+  RHS range        [1e-09, 6e+02]
+
+User MIP start produced solution with objective 0.886752 (0.02s)
+Loaded user MIP start with objective 0.886752
+
+Presolve removed 1871 rows and 1 columns
+Presolve time: 0.05s
+Presolved: 9906 rows, 3482 columns, 59891 nonzeros
+Variable types: 87 continuous, 3395 integer (3395 binary)
+
+Root relaxation: objective 1.000000e+00, 157 iterations, 0.03 seconds (0.04 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    6    0.88675    1.00000  12.8%     -    0s
+     0     2    1.00000    0    6    0.88675    1.00000  12.8%     -    0s
+   159   192    1.00000    9   35    0.88675    1.00000  12.8%  44.1    6s
+   191   222    1.00000   10   10    0.88675    1.00000  12.8%  59.8   36s
+   223   290    1.00000   11   15    0.88675    1.00000  12.8%   125   41s
+
+Explored 314 nodes (62343 simplex iterations) in 41.79 seconds (29.80 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.886752 
+
+Solve interrupted
+Best objective 8.867521367521e-01, best bound 1.000000000000e+00, gap 12.7711%
+
+User-callback calls 34032, time in user-callback 0.16 sec

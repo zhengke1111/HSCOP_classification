@@ -1,0 +1,54 @@
+
+Gurobi 11.0.3 (linux64) logging started Tue Apr 14 11:21:48 2026
+
+Set parameter LogFile to value "tree/results/nwth/nwth_depth-3_run-2/IDSA-PIP/outer_iter_1/LogFile_IDSA-PIP_outer_iter_1_iter_2.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 3425 rows, 900 columns and 22546 nonzeros
+Model fingerprint: 0x3b2a56a6
+Variable types: 102 continuous, 798 integer (798 binary)
+Coefficient statistics:
+  Matrix range     [3e-03, 1e+04]
+  Objective range  [6e-03, 1e+04]
+  Bounds range     [1e+00, 7e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.645963 (0.01s)
+Loaded user MIP start with objective 0.645963
+
+Presolve removed 650 rows and 10 columns
+Presolve time: 0.09s
+Presolved: 2775 rows, 890 columns, 18721 nonzeros
+Variable types: 99 continuous, 791 integer (791 binary)
+
+Root relaxation: objective 1.000000e+00, 136 iterations, 0.01 seconds (0.01 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    5    0.64596    1.00000  54.8%     -    0s
+     0     2    1.00000    0    5    0.64596    1.00000  54.8%     -    0s
+H  113    85                       0.6521739    1.00000  53.3%  76.6    1s
+H  152   120                       0.6645963    1.00000  50.5%  76.7    1s
+H  208   140                       0.6770186    1.00000  47.7%   103    2s
+H  218   164                       0.6832298    1.00000  46.4%   119    3s
+   367   379 infeasible   13         0.68323    1.00000  46.4%   119    5s
+  4291  3280    1.00000   36   27    0.68323    1.00000  46.4%  41.4   10s
+  7657  3322    1.00000   27   38    0.68323    1.00000  46.4%  32.5   15s
+ 10796  3546 infeasible   87         0.68323    1.00000  46.4%  27.7   20s
+ 17374  4104 infeasible   45         0.68323    1.00000  46.4%  23.5   25s
+ 24566  7249    0.88199  111   13    0.68323    1.00000  46.4%  21.5   30s
+ 31845 10304 infeasible  126         0.68323    1.00000  46.4%  20.4   35s
+
+Explored 35686 nodes (715315 simplex iterations) in 37.26 seconds (48.74 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 6: 0.68323 0.677019 0.664596 ... 0.645963
+
+Solve interrupted
+Best objective 6.832298136646e-01, best bound 1.000000000000e+00, gap 46.3636%
+
+User-callback calls 88429, time in user-callback 0.14 sec

@@ -1,0 +1,73 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 18:41:10 2026
+
+Set parameter LogFile to value "tree/results/fish/fish_depth-3_run-1/IDSA-PIP/outer_iter_0/LogFile_IDSA-PIP_outer_iter_0_iter_0.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 51405 rows, 7564 columns and 227803 nonzeros
+Model fingerprint: 0xe046db96
+Variable types: 74 continuous, 7490 integer (7490 binary)
+Coefficient statistics:
+  Matrix range     [2e-04, 1e+04]
+  Objective range  [3e-04, 1e+04]
+  Bounds range     [1e+00, 3e+03]
+  RHS range        [1e-09, 3e+03]
+
+User MIP start produced solution with objective -109999 (0.09s)
+Loaded user MIP start with objective -109999
+
+Presolve removed 20071 rows and 6 columns
+Presolve time: 0.41s
+Presolved: 31334 rows, 7558 columns, 147657 nonzeros
+Variable types: 68 continuous, 7490 integer (7490 binary)
+
+Root relaxation: objective 1.000000e+00, 102 iterations, 0.09 seconds (0.06 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    6 -109999.32    1.00000   100%     -    0s
+H    0     0                    -108799.7729    1.00000   100%     -    0s
+H    0     0                    -105999.6990    1.00000   100%     -    1s
+     0     2    1.00000    0    6 -105999.70    1.00000   100%     -    2s
+H    1     4                    -103199.6961    1.00000   100%   0.0    3s
+H    2     4                    -80399.69771    1.00000   100%   1.0    3s
+    31    64    1.00000    5    6 -80399.698    1.00000   100%   196    6s
+H   33    64                    -70399.69771    1.00000   100%   185    6s
+H   36    64                    -23199.69444    1.00000   100%   169    6s
+H   41    64                    -11999.69575    1.00000   100%   151    6s
+H   42    64                       0.3022876    1.00000   231%   149    6s
+H   52    64                       0.3026144    1.00000   230%   188    6s
+H   95   128                       0.3117647    1.00000   221%   149   15s
+H   96   128                       0.4153595    1.00000   141%   148   15s
+H   97   128                       0.5307190    1.00000  88.4%   146   15s
+H  110   128                       0.5405229    1.00000  85.0%   130   15s
+H  113   128                       0.6411765    1.00000  56.0%   127   15s
+H  159   192                       0.6506536    1.00000  53.7%  91.2   19s
+H  161   192                       0.6575163    1.00000  52.1%  90.1   19s
+H  191   223                       0.6624183    1.00000  51.0%  77.9   23s
+H  195   223                       0.6633987    1.00000  50.7%  81.5   23s
+H  199   223                       0.6640523    1.00000  50.6%  86.1   23s
+H  200   223                       0.6709150    1.00000  49.1%  87.8   23s
+H  214   223                       0.6732026    1.00000  48.5%   122   23s
+H  223   266                       0.6800654    1.00000  47.0%   139   25s
+H  271   573                       0.6807190    1.00000  46.9%   130   29s
+   609   849    1.00000   15  151    0.68072    1.00000  46.9%  92.1   36s
+H  627   849                       0.6810458    1.00000  46.8%  89.9   36s
+  1325  1229    1.00000   41  196    0.68105    1.00000  46.8%   169   45s
+  2272  1426     cutoff   25         0.68105    1.00000  46.8%   205   56s
+  3526  1433    0.84296   24  364    0.68105    1.00000  46.8%   267   70s
+  5333  1594     cutoff   36         0.68105    1.00000  46.8%   263   84s
+
+Explored 7402 nodes (1906488 simplex iterations) in 84.13 seconds (137.37 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 10: 0.681046 0.680719 0.680065 ... 0.650654
+
+Solve interrupted
+Best objective 6.810457516340e-01, best bound 1.000000000000e+00, gap 46.8330%
+
+User-callback calls 33686, time in user-callback 0.69 sec

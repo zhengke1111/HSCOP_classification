@@ -1,0 +1,65 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 20:52:37 2026
+
+Set parameter LogFile to value "tree/results/ctmc/ctmc_depth-2_run-4/IDSA-PIP/outer_iter_0/LogFile_IDSA-PIP_outer_iter_0_iter_1.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 10602 rows, 2846 columns and 132254 nonzeros
+Model fingerprint: 0x8dd1e8ed
+Variable types: 82 continuous, 2764 integer (2764 binary)
+Coefficient statistics:
+  Matrix range     [9e-04, 1e+04]
+  Objective range  [9e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.477355 (0.03s)
+Loaded user MIP start with objective 0.477355
+
+Presolve removed 3404 rows and 1 columns
+Presolve time: 0.09s
+Presolved: 7198 rows, 2845 columns, 91442 nonzeros
+Variable types: 81 continuous, 2764 integer (2764 binary)
+
+Root relaxation: objective 1.000000e+00, 182 iterations, 0.05 seconds (0.05 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    5    0.47736    1.00000   109%     -    0s
+     0     2    1.00000    0    5    0.47736    1.00000   109%     -    0s
+H   66    62                       0.4782609    1.00000   109%   466    3s
+H   85    79                       0.4791667    1.00000   109%   535    6s
+H   98    79                       0.4800725    1.00000   108%   599    6s
+   149   102    0.68447    8  389    0.48007    1.00000   108%   547   24s
+   237   126    0.68261   11  390    0.48007    1.00000   108%   425   29s
+H  238   126                       0.4827899    1.00000   107%   423   29s
+H  250   126                       0.4836957    1.00000   107%   409   29s
+   275   134 infeasible   12         0.48370    1.00000   107%   377   30s
+H  350   134                       0.4855072    1.00000   106%   314   31s
+H  464   156                       0.4891304    1.00000   104%   278   32s
+   499   163    0.67448   16  381    0.48913    1.00000   104%   264   45s
+H  504   163                       0.4900362    1.00000   104%   261   45s
+H  529   163                       0.4909420    1.00000   104%   257   45s
+H  590   170                       0.4918478    1.00000   103%   250   46s
+   952   225 infeasible   24         0.49185    1.00000   103%   218   50s
+H 1387   270                       0.4927536    1.00000   103%   195   52s
+H 1612   316                       0.4936594    1.00000   103%   183   58s
+  1878   367    0.63833   38  360    0.49366    1.00000   103%   178   60s
+  2510   461    0.62115   47  348    0.49366    1.00000   103%   166   73s
+  2833   518    0.61662   50  355    0.49366    1.00000   103%   164   79s
+  2878   603    0.61751   50  357    0.49366    1.00000   103%   166   80s
+  3778   786    0.59854   54  320    0.49366    1.00000   103%   151   91s
+
+Explored 4315 nodes (622809 simplex iterations) in 92.74 seconds (128.23 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 10: 0.493659 0.492754 0.491848 ... 0.480072
+
+Solve interrupted
+Best objective 4.936594202899e-01, best bound 1.000000000000e+00, gap 102.5688%
+
+User-callback calls 62792, time in user-callback 0.53 sec

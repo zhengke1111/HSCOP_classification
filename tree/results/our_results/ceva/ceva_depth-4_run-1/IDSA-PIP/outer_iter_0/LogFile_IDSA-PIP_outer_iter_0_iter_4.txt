@@ -1,0 +1,46 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 08:19:50 2026
+
+Set parameter LogFile to value "tree/results/ceva/ceva_depth-4_run-1/IDSA-PIP/outer_iter_0/LogFile_IDSA-PIP_outer_iter_0_iter_4.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 38325 rows, 4640 columns and 613715 nonzeros
+Model fingerprint: 0xa4abe444
+Variable types: 514 continuous, 4126 integer (4126 binary)
+Coefficient statistics:
+  Matrix range     [8e-04, 1e+04]
+  Objective range  [8e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.814815 (0.11s)
+Loaded user MIP start with objective 0.814815
+
+Presolve removed 16181 rows and 10 columns
+Presolve time: 0.42s
+Presolved: 22144 rows, 4630 columns, 355717 nonzeros
+Variable types: 505 continuous, 4125 integer (4125 binary)
+
+Root relaxation: objective 1.000000e+00, 3206 iterations, 1.59 seconds (2.65 work units)
+Total elapsed time = 5.05s (DegenMoves)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0  217    0.81481    1.00000  22.7%     -    5s
+     0     2    1.00000    0  205    0.81481    1.00000  22.7%     -   10s
+    15    32    1.00000    4  261    0.81481    1.00000  22.7%  1059   18s
+    63    96    1.00000    6  278    0.81481    1.00000  22.7%   705   35s
+
+Explored 95 nodes (126026 simplex iterations) in 35.38 seconds (56.25 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.814815 
+
+Solve interrupted
+Best objective 8.148148148148e-01, best bound 1.000000000000e+00, gap 22.7273%
+
+User-callback calls 16948, time in user-callback 0.10 sec

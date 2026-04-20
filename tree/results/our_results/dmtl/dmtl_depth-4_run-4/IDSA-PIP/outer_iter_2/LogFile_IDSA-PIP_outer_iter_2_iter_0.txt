@@ -1,0 +1,46 @@
+
+Gurobi 11.0.3 (linux64) logging started Wed Apr 15 23:18:35 2026
+
+Set parameter LogFile to value "tree/results/dmtl/dmtl_depth-4_run-4/IDSA-PIP/outer_iter_2/LogFile_IDSA-PIP_outer_iter_2_iter_0.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 12505 rows, 3800 columns and 372261 nonzeros
+Model fingerprint: 0x7298ba48
+Variable types: 1084 continuous, 2716 integer (2716 binary)
+Coefficient statistics:
+  Matrix range     [4e-03, 1e+04]
+  Objective range  [4e-03, 1e+04]
+  Bounds range     [1e+00, 6e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.910448 (0.10s)
+Loaded user MIP start with objective 0.910448
+
+Presolve removed 2777 rows and 12 columns
+Presolve time: 0.79s
+Presolved: 9728 rows, 3788 columns, 278167 nonzeros
+Variable types: 1072 continuous, 2716 integer (2716 binary)
+
+Root relaxation: objective 1.000000e+00, 1751 iterations, 0.64 seconds (0.85 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0   32    0.91045    1.00000  9.84%     -    3s
+     0     2    1.00000    0   10    0.91045    1.00000  9.84%     -   10s
+     3     8    1.00000    2  153    0.91045    1.00000  9.84%   423   15s
+    31    64    1.00000    5  145    0.91045    1.00000  9.84%   654   21s
+    95   128    1.00000    7  147    0.91045    1.00000  9.84%   252   33s
+
+Explored 127 nodes (29102 simplex iterations) in 33.74 seconds (51.74 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.910448 
+
+Solve interrupted
+Best objective 9.104477611940e-01, best bound 1.000000000000e+00, gap 9.8361%
+
+User-callback calls 9658, time in user-callback 0.09 sec
