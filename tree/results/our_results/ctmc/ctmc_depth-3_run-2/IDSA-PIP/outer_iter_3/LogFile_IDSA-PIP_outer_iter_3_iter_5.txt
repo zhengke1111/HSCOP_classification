@@ -1,0 +1,49 @@
+
+Gurobi 11.0.3 (linux64) logging started Fri Apr 17 00:14:39 2026
+
+Set parameter LogFile to value "tree/results/ctmc/ctmc_depth-3_run-2/IDSA-PIP/outer_iter_3/LogFile_IDSA-PIP_outer_iter_3_iter_5.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 28594 rows, 8400 columns and 365156 nonzeros
+Model fingerprint: 0xa78f234d
+Variable types: 186 continuous, 8214 integer (8214 binary)
+Coefficient statistics:
+  Matrix range     [9e-04, 1e+04]
+  Objective range  [9e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 2e+03]
+
+User MIP start produced solution with objective 0.593297 (0.07s)
+Loaded user MIP start with objective 0.593297
+
+Presolve removed 4735 rows and 7 columns
+Presolve time: 0.27s
+Presolved: 23859 rows, 8393 columns, 308515 nonzeros
+Variable types: 184 continuous, 8209 integer (8209 binary)
+
+Root relaxation: objective 1.000000e+00, 346 iterations, 0.22 seconds (0.27 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    4    0.59330    1.00000  68.5%     -    1s
+H    0     0                       0.5942029    1.00000  68.3%     -    2s
+     0     2    1.00000    0    4    0.59420    1.00000  68.3%     -    6s
+     3     8    1.00000    2  124    0.59420    1.00000  68.3%   175   12s
+    31    64    1.00000    5  325    0.59420    1.00000  68.3%  91.0   16s
+    63    96    1.00000    6  342    0.59420    1.00000  68.3%  93.4   20s
+    95   128    1.00000    7  325    0.59420    1.00000  68.3%  82.3   38s
+
+Explored 127 nodes (14504 simplex iterations) in 38.62 seconds (60.59 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 2: 0.594203 0.593297 
+
+Solve interrupted
+Warning: max constraint violation (1.0000e-07) exceeds tolerance
+Best objective 5.942028985507e-01, best bound 1.000000000000e+00, gap 68.2927%
+
+User-callback calls 21930, time in user-callback 0.14 sec

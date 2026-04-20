@@ -1,0 +1,46 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 18:31:19 2026
+
+Set parameter LogFile to value "tree/results/ctmc/ctmc_depth-2_run-2/IDSA-PIP/outer_iter_3/LogFile_IDSA-PIP_outer_iter_3_iter_4.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 13381 rows, 5429 columns and 172029 nonzeros
+Model fingerprint: 0xd4c99887
+Variable types: 82 continuous, 5347 integer (5347 binary)
+Coefficient statistics:
+  Matrix range     [9e-04, 1e+04]
+  Objective range  [9e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 2e+03]
+
+User MIP start produced solution with objective 0.544384 (0.04s)
+Loaded user MIP start with objective 0.544384
+
+Presolve removed 2343 rows and 1 columns
+Presolve time: 0.10s
+Presolved: 11038 rows, 5428 columns, 143949 nonzeros
+Variable types: 81 continuous, 5347 integer (5347 binary)
+
+Root relaxation: objective 1.000000e+00, 180 iterations, 0.11 seconds (0.09 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    5    0.54438    1.00000  83.7%     -    0s
+     0     2    1.00000    0    5    0.54438    1.00000  83.7%     -    1s
+    15    30    1.00000    4   60    0.54438    1.00000  83.7%   242    5s
+    93    93    0.70874    7  651    0.54438    1.00000  83.7%   529   11s
+   157   121 infeasible    8         0.54438    1.00000  83.7%   506   42s
+
+Explored 189 nodes (91807 simplex iterations) in 42.98 seconds (54.53 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.544384 
+
+Solve interrupted
+Best objective 5.443840579710e-01, best bound 1.000000000000e+00, gap 83.6938%
+
+User-callback calls 31718, time in user-callback 0.16 sec

@@ -1,0 +1,42 @@
+
+Gurobi 11.0.3 (linux64) logging started Tue Apr 14 04:49:30 2026
+
+Set parameter LogFile to value "tree/results/wine/wine_depth-3_run-2/IDSA-PIP/outer_iter_2/LogFile_IDSA-PIP_outer_iter_2_iter_1.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 3781 rows, 1287 columns and 50849 nonzeros
+Model fingerprint: 0x81ca9c7d
+Variable types: 214 continuous, 1073 integer (1073 binary)
+Coefficient statistics:
+  Matrix range     [2e-03, 1e+04]
+  Objective range  [8e-03, 1e+04]
+  Bounds range     [1e+00, 5e+02]
+  RHS range        [1e-09, 9e+02]
+
+User MIP start produced solution with objective 1 (0.01s)
+Loaded user MIP start with objective 1
+
+Presolve removed 504 rows and 7 columns
+Presolve time: 0.05s
+Presolved: 3277 rows, 1280 columns, 44001 nonzeros
+Variable types: 213 continuous, 1067 integer (1067 binary)
+
+Root relaxation: cutoff, 323 iterations, 0.04 seconds (0.03 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0     cutoff    0         1.00000    1.00000  0.00%     -    0s
+
+Explored 1 nodes (323 simplex iterations) in 0.14 seconds (0.09 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 1 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 1.000000000000e+00, best bound 1.000000000000e+00, gap 0.0000%
+
+User-callback calls 315, time in user-callback 0.01 sec

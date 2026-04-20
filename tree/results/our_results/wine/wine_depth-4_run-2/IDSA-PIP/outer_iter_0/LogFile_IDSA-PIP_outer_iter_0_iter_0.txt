@@ -1,0 +1,46 @@
+
+Gurobi 11.0.3 (linux64) logging started Tue Apr 14 07:12:12 2026
+
+Set parameter LogFile to value "tree/results/wine/wine_depth-4_run-2/IDSA-PIP/outer_iter_0/LogFile_IDSA-PIP_outer_iter_0_iter_0.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 5432 rows, 1340 columns and 67625 nonzeros
+Model fingerprint: 0x0b1c974f
+Variable types: 454 continuous, 886 integer (886 binary)
+Coefficient statistics:
+  Matrix range     [2e-03, 1e+04]
+  Objective range  [8e-03, 1e+04]
+  Bounds range     [1e+00, 5e+02]
+  RHS range        [1e-09, 9e+02]
+
+User MIP start produced solution with objective 0.969925 (0.01s)
+Loaded user MIP start with objective 0.969925
+
+Presolve removed 1651 rows and 21 columns
+Presolve time: 0.21s
+Presolved: 3781 rows, 1319 columns, 44962 nonzeros
+Variable types: 451 continuous, 868 integer (868 binary)
+
+Root relaxation: objective 1.000000e+00, 746 iterations, 0.14 seconds (0.07 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0   16    0.96992    1.00000  3.10%     -    0s
+H    0     0                       0.9849624    1.00000  1.53%     -    0s
+H    0     0                       0.9924812    1.00000  0.76%     -    1s
+     0     2    1.00000    0   12    0.99248    1.00000  0.76%     -    1s
+H   44    52                       1.0000000    1.00000  0.00%  88.0    1s
+
+Explored 63 nodes (5980 simplex iterations) in 1.91 seconds (1.16 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 4: 1 0.992481 0.984962 0.969925 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 1.000000000000e+00, best bound 1.000000000000e+00, gap 0.0000%
+
+User-callback calls 1002, time in user-callback 0.04 sec

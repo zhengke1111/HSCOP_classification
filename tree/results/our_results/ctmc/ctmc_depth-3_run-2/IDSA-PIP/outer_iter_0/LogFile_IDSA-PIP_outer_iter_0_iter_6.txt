@@ -1,0 +1,46 @@
+
+Gurobi 11.0.3 (linux64) logging started Fri Apr 17 00:01:32 2026
+
+Set parameter LogFile to value "tree/results/ctmc/ctmc_depth-3_run-2/IDSA-PIP/outer_iter_0/LogFile_IDSA-PIP_outer_iter_0_iter_6.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 23318 rows, 5610 columns and 292436 nonzeros
+Model fingerprint: 0x920c8427
+Variable types: 186 continuous, 5424 integer (5424 binary)
+Coefficient statistics:
+  Matrix range     [9e-04, 1e+04]
+  Objective range  [9e-04, 1e+04]
+  Bounds range     [1e+00, 1e+03]
+  RHS range        [1e-09, 2e+03]
+
+User MIP start produced solution with objective 0.580616 (0.06s)
+Loaded user MIP start with objective 0.580616
+
+Presolve removed 6958 rows and 6 columns
+Presolve time: 0.19s
+Presolved: 16360 rows, 5604 columns, 209097 nonzeros
+Variable types: 183 continuous, 5421 integer (5421 binary)
+
+Root relaxation: objective 1.000000e+00, 367 iterations, 0.13 seconds (0.19 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    7    0.58062    1.00000  72.2%     -    0s
+     0     2    1.00000    0    7    0.58062    1.00000  72.2%     -    1s
+    63    96    1.00000    6  122    0.58062    1.00000  72.2%   144    5s
+    95   128    1.00000    7  104    0.58062    1.00000  72.2%   136   10s
+   159   189    1.00000    9  164    0.58062    1.00000  72.2%   150   42s
+
+Explored 191 nodes (33472 simplex iterations) in 42.29 seconds (75.01 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.580616 
+
+Solve interrupted
+Best objective 5.806159420290e-01, best bound 1.000000000000e+00, gap 72.2309%
+
+User-callback calls 17084, time in user-callback 0.11 sec

@@ -1,0 +1,49 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 07:03:08 2026
+
+Set parameter LogFile to value "tree/results/blsc/blsc_depth-3_run-2/IDSA-PIP/outer_iter_1/LogFile_IDSA-PIP_outer_iter_1_iter_8.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 7972 rows, 1240 columns and 43017 nonzeros
+Model fingerprint: 0x9e4ac954
+Variable types: 88 continuous, 1152 integer (1152 binary)
+Coefficient statistics:
+  Matrix range     [2e-03, 1e+04]
+  Objective range  [2e-03, 1e+04]
+  Bounds range     [1e+00, 5e+02]
+  RHS range        [1e-09, 6e+02]
+
+User MIP start produced solution with objective 0.90812 (0.01s)
+Loaded user MIP start with objective 0.90812
+
+Presolve removed 3214 rows and 7 columns
+Presolve time: 0.12s
+Presolved: 4758 rows, 1233 columns, 26978 nonzeros
+Variable types: 86 continuous, 1147 integer (1147 binary)
+
+Root relaxation: objective 1.000000e+00, 140 iterations, 0.02 seconds (0.01 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    9    0.90812    1.00000  10.1%     -    0s
+     0     2    1.00000    0    7    0.90812    1.00000  10.1%     -    0s
+   191   218    1.00000   10   16    0.90812    1.00000  10.1%  27.1    5s
+  1390   469    1.00000   21   86    0.90812    1.00000  10.1%   131   10s
+  3527   512 infeasible   61         0.90812    1.00000  10.1%   123   15s
+  5917   473     cutoff   13         0.90812    1.00000  10.1%   107   20s
+  6811   473    0.98657   13   69    0.90812    1.00000  10.1%   105   26s
+  7882   496    0.95047   31   49    0.90812    1.00000  10.1%   104   30s
+
+Explored 10074 nodes (961590 simplex iterations) in 34.62 seconds (43.10 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.90812 
+
+Solve interrupted
+Best objective 9.081196581197e-01, best bound 1.000000000000e+00, gap 10.1176%
+
+User-callback calls 33381, time in user-callback 0.07 sec

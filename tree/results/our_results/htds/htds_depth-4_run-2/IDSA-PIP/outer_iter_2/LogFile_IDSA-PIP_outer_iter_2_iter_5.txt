@@ -1,0 +1,48 @@
+
+Gurobi 11.0.3 (linux64) logging started Wed Apr 15 06:45:30 2026
+
+Set parameter LogFile to value "tree/results/htds/htds_depth-4_run-2/IDSA-PIP/outer_iter_2/LogFile_IDSA-PIP_outer_iter_2_iter_5.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 8874 rows, 2078 columns and 151881 nonzeros
+Model fingerprint: 0x08fc5cd4
+Variable types: 604 continuous, 1474 integer (1474 binary)
+Coefficient statistics:
+  Matrix range     [2e-03, 1e+04]
+  Objective range  [4e-03, 1e+04]
+  Bounds range     [1e+00, 6e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.862222 (0.02s)
+Loaded user MIP start with objective 0.862222
+
+Presolve removed 2476 rows and 34 columns
+Presolve time: 0.21s
+Presolved: 6398 rows, 2044 columns, 105282 nonzeros
+Variable types: 603 continuous, 1441 integer (1441 binary)
+
+Root relaxation: objective 1.000000e+00, 1693 iterations, 0.26 seconds (0.32 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0   71    0.86222    1.00000  16.0%     -    1s
+     0     2    1.00000    0   61    0.86222    1.00000  16.0%     -    2s
+   157   166    1.00000    9   92    0.86222    1.00000  16.0%   188    8s
+   239   247    1.00000   12   88    0.86222    1.00000  16.0%   342   15s
+   272   279    1.00000   13   90    0.86222    1.00000  16.0%   306   20s
+   825   797    1.00000   29   98    0.86222    1.00000  16.0%   135   26s
+   870  1362    1.00000   30   96    0.86222    1.00000  16.0%   137   34s
+
+Explored 1620 nodes (175973 simplex iterations) in 34.43 seconds (48.46 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.862222 
+
+Solve interrupted
+Best objective 8.622222222222e-01, best bound 1.000000000000e+00, gap 15.9794%
+
+User-callback calls 17412, time in user-callback 0.10 sec

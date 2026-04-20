@@ -1,0 +1,52 @@
+
+Gurobi 11.0.3 (linux64) logging started Tue Apr 14 18:30:08 2026
+
+Set parameter LogFile to value "tree/results/nwth/nwth_depth-4_run-4/IDSA-PIP/outer_iter_1/LogFile_IDSA-PIP_outer_iter_1_iter_5.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 5720 rows, 1038 columns and 36297 nonzeros
+Model fingerprint: 0x6b295df2
+Variable types: 214 continuous, 824 integer (824 binary)
+Coefficient statistics:
+  Matrix range     [5e-03, 1e+04]
+  Objective range  [6e-03, 1e+04]
+  Bounds range     [1e+00, 7e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.931677 (0.01s)
+Loaded user MIP start with objective 0.931677
+
+Presolve removed 1880 rows and 33 columns
+Presolve time: 0.13s
+Presolved: 3840 rows, 1005 columns, 25142 nonzeros
+Variable types: 205 continuous, 800 integer (800 binary)
+
+Root relaxation: objective 1.000000e+00, 242 iterations, 0.01 seconds (0.02 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    8    0.93168    1.00000  7.33%     -    0s
+     0     2    1.00000    0    8    0.93168    1.00000  7.33%     -    0s
+H  114    89                       0.9378882    1.00000  6.62%  95.4    1s
+H  162   121                       0.9440994    1.00000  5.92%  98.3    3s
+   322   214    1.00000   13  107    0.94410    1.00000  5.92%   136    5s
+  5434   305     cutoff   42         0.94410    1.00000  5.92%  44.8   10s
+  8536   678    0.96273   47   11    0.94410    1.00000  5.92%  36.2   15s
+ 12557  2214    0.95031   53    8    0.94410    1.00000  5.92%  26.8   20s
+ 53589 12968    0.96270   50    7    0.94410    0.96273  1.97%  12.8   25s
+ 99177 20732    0.95652   51    5    0.94410    0.96271  1.97%  11.6   30s
+ 146902 21135    0.95031   51    5    0.94410    0.95652  1.32%  11.2   35s
+
+Explored 172084 nodes (1884499 simplex iterations) in 37.18 seconds (58.41 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 3: 0.944099 0.937888 0.931677 
+
+Solve interrupted
+Best objective 9.440993788820e-01, best bound 9.565217391304e-01, gap 1.3158%
+
+User-callback calls 349779, time in user-callback 0.39 sec

@@ -1,0 +1,96 @@
+
+Gurobi 11.0.3 (linux64) logging started Thu Apr 16 22:27:15 2026
+
+Set parameter LogFile to value "tree/results/fish/fish_depth-4_run-1/Full MIP/LogFile_FullModel.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 636812 rows, 391978 columns and 3140052 nonzeros
+Model fingerprint: 0x147a3841
+Model has 48960 general constraints
+Variable types: 244954 continuous, 147024 integer (147024 binary)
+Coefficient statistics:
+  Matrix range     [2e-04, 1e+04]
+  Objective range  [3e-04, 1e+04]
+  Bounds range     [1e+00, 3e+03]
+  RHS range        [1e-04, 3e+03]
+
+User MIP start produced solution with objective -57599.2 (1.52s)
+Loaded user MIP start with objective -57599.2
+Processed MIP start in 2.19 seconds (0.35 work units)
+
+Presolve removed 195856 rows and 195840 columns (presolve time = 5s) ...
+Presolve added 48944 rows and 195840 columns
+Presolve time: 8.55s
+Presolved: 685756 rows, 587818 columns, 3532980 nonzeros
+Presolved model has 195840 SOS constraint(s)
+Variable types: 244954 continuous, 342864 integer (342864 binary)
+
+Deterministic concurrent LP optimizer: primal simplex, dual simplex, and barrier
+Showing barrier log only...
+
+Root relaxation presolved: 685756 rows, 587818 columns, 3532980 nonzeros
+
+Root barrier log...
+
+Ordering time: 0.33s
+
+Barrier statistics:
+ Dense cols : 60
+ AA' NZ     : 3.697e+06
+ Factor NZ  : 1.244e+07 (roughly 600 MB of memory)
+ Factor Ops : 2.452e+08 (less than 1 second per iteration)
+ Threads    : 30
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0  -1.02070169e+05  4.70881524e+09  9.00e+03 5.68e-14  7.72e+05    20s
+   1  -6.04218932e+04  7.95544526e+09  3.59e+03 2.03e+01  2.54e+05    21s
+   2  -3.16261581e+04  7.88681466e+09  3.57e+02 5.33e+00  3.03e+04    22s
+   3  -1.98687868e+04  4.55394600e+09  3.54e+01 6.32e-01  5.14e+03    23s
+   4  -2.24267670e+03  7.04783003e+08  3.50e+00 6.31e-02  6.15e+02    25s
+   5  -2.24004692e+02  8.45042780e+07  3.47e-01 6.31e-03  6.81e+01    26s
+   6  -2.20618934e+01  8.72405137e+06  3.51e-02 6.31e-04  6.83e+00    27s
+   7  -1.86699762e+00  8.80127123e+05  3.85e-03 6.36e-05  6.87e-01    28s
+   8   1.59103955e-01  9.66048208e+04  6.39e-04 6.98e-06  7.54e-02    29s
+   9   5.07373594e-01  1.85209054e+04  6.33e-05 1.33e-06  1.44e-02    30s
+  10   9.50854393e-01  5.06402104e+03  2.73e-05 3.05e-07  3.94e-03    31s
+  11   7.50735093e-01  5.63741347e+02  2.71e-06 3.35e-08  4.39e-04    32s
+  12   9.75073515e-01  5.94240303e+01  2.72e-07 3.35e-09  4.55e-05    33s
+  13   9.97506646e-01  6.89568936e+00  2.69e-08 3.35e-10  4.59e-06    35s
+  14   9.99750665e-01  1.58957016e+00  2.69e-09 3.35e-11  4.59e-07    36s
+  15   9.99975066e-01  1.05895702e+00  2.69e-10 3.35e-12  4.59e-08    38s
+
+Barrier performed 15 iterations in 38.01 seconds (22.12 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+Concurrent spin time: 13.47s (can be avoided by choosing Method=3)
+
+Solved with primal simplex
+
+Root relaxation: objective 1.000000e+00, 49770 iterations, 24.23 seconds (9.70 work units)
+Total elapsed time = 91.05s (DegenMoves)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0 42900 -57599.217    1.00000   100%     -   92s
+     0     2    1.00000    0 42900 -57599.217    1.00000   100%     -  343s
+     1     4    1.00000    1 39336 -57599.217    1.00000   100% 20156  666s
+     3     8    1.00000    2 36377 -57599.217    1.00000   100%  9540 1033s
+     7    16    1.00000    3 36377 -57599.217    1.00000   100%  4350 1109s
+    15    32    1.00000    4 36376 -57599.217    1.00000   100%  2865 2303s
+    31    64    1.00000    5 35907 -57599.217    1.00000   100%  3481 3085s
+    63    84    1.00000    6 35909 -57599.217    1.00000   100%  1963 3604s
+
+Explored 83 nodes (217407 simplex iterations) in 3607.08 seconds (3063.41 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: -57599.2 
+
+Time limit reached
+Best objective -5.759921666667e+04, best bound 1.000000000000e+00, gap 100.0017%
+
+User-callback calls 1649497, time in user-callback 9.28 sec

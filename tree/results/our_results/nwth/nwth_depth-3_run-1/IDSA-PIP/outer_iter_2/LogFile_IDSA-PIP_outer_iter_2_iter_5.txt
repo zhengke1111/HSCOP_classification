@@ -1,0 +1,56 @@
+
+Gurobi 11.0.3 (linux64) logging started Tue Apr 14 10:08:13 2026
+
+Set parameter LogFile to value "tree/results/nwth/nwth_depth-3_run-1/IDSA-PIP/outer_iter_2/LogFile_IDSA-PIP_outer_iter_2_iter_5.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 4136 rows, 1286 columns and 28108 nonzeros
+Model fingerprint: 0xf20519d3
+Variable types: 102 continuous, 1184 integer (1184 binary)
+Coefficient statistics:
+  Matrix range     [6e-03, 1e+04]
+  Objective range  [6e-03, 1e+04]
+  Bounds range     [1e+00, 7e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.720497 (0.01s)
+Loaded user MIP start with objective 0.720497
+
+Presolve removed 423 rows and 10 columns
+Presolve time: 0.09s
+Presolved: 3713 rows, 1276 columns, 25670 nonzeros
+Variable types: 99 continuous, 1177 integer (1177 binary)
+
+Root relaxation: objective 1.000000e+00, 122 iterations, 0.01 seconds (0.01 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    1.00000    0    8    0.72050    1.00000  38.8%     -    0s
+     0     2    1.00000    0    6    0.72050    1.00000  38.8%     -    0s
+   680   342    0.97366   19  162    0.72050    1.00000  38.8%  94.1    6s
+  3251   892     cutoff   10         0.72050    1.00000  38.8%  59.3   11s
+H 3273   892                       0.7267081    1.00000  37.6%  59.8   11s
+H 5996  1213                       0.7329193    1.00000  36.4%  47.5   12s
+H 6166  1425                       0.7391304    1.00000  35.3%  47.5   13s
+  7154  1451    1.00000   19  107    0.73913    1.00000  35.3%  46.2   15s
+  7400  1479    1.00000   23   54    0.73913    1.00000  35.3%  47.7   20s
+ 10098  1338 infeasible   84         0.73913    1.00000  35.3%  41.5   25s
+ 14016  2970    0.78261  171   17    0.73913    1.00000  35.3%  38.7   31s
+ 19541  5568    0.85093  148   32    0.73913    1.00000  35.3%  36.9   35s
+ 24613  8079    1.00000   86   53    0.73913    1.00000  35.3%  34.9   40s
+ 29020 12270    0.75126  218   45    0.73913    1.00000  35.3%  33.7   45s
+
+Explored 39504 nodes (1221538 simplex iterations) in 45.68 seconds (68.58 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 4: 0.73913 0.732919 0.726708 0.720497 
+
+Solve interrupted
+Warning: max constraint violation (1.0000e-07) exceeds tolerance
+Best objective 7.391304347826e-01, best bound 1.000000000000e+00, gap 35.2941%
+
+User-callback calls 79793, time in user-callback 0.15 sec

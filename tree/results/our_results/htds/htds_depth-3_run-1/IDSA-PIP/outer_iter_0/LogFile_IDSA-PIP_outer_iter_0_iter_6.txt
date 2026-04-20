@@ -1,0 +1,48 @@
+
+Gurobi 11.0.3 (linux64) logging started Wed Apr 15 00:17:42 2026
+
+Set parameter LogFile to value "tree/results/htds/htds_depth-3_run-1/IDSA-PIP/outer_iter_0/LogFile_IDSA-PIP_outer_iter_0_iter_6.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 4345 rows, 1015 columns and 74415 nonzeros
+Model fingerprint: 0xda8f0635
+Variable types: 284 continuous, 731 integer (731 binary)
+Coefficient statistics:
+  Matrix range     [4e-03, 1e+04]
+  Objective range  [4e-03, 1e+04]
+  Bounds range     [1e+00, 7e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.706667 (0.02s)
+Loaded user MIP start with objective 0.706667
+
+Presolve removed 1394 rows and 1 columns
+Presolve time: 0.04s
+Presolved: 2951 rows, 1014 columns, 48243 nonzeros
+Variable types: 283 continuous, 731 integer (731 binary)
+
+Root relaxation: objective 9.514036e-01, 1421 iterations, 0.18 seconds (0.24 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    0.95140    0  134    0.70667    0.95140  34.6%     -    0s
+H    0     0                       0.7244444    0.95140  31.3%     -    1s
+     0     2    0.95140    0  133    0.72444    0.95140  31.3%     -    1s
+H  429   116                       0.7288889    0.92549  27.0%  42.2    3s
+  1476   397    0.82205   10   95    0.72889    0.92137  26.4%  24.3    6s
+  7230  1755    0.77323   35   65    0.72889    0.81453  11.7%  12.4   10s
+
+Explored 15664 nodes (172260 simplex iterations) in 14.07 seconds (19.07 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 3: 0.728889 0.724444 0.706667 
+No other solutions better than 0.728889
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 7.288888888889e-01, best bound 7.288888888889e-01, gap 0.0000%
+
+User-callback calls 35007, time in user-callback 0.06 sec

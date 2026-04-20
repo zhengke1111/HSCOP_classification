@@ -1,0 +1,46 @@
+
+Gurobi 11.0.3 (linux64) logging started Wed Apr 15 03:56:33 2026
+
+Set parameter LogFile to value "tree/results/htds/htds_depth-3_run-4/IDSA-PIP/outer_iter_0/LogFile_IDSA-PIP_outer_iter_0_iter_7.txt"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (linux64 - "CentOS Linux 7 (Core)")
+
+CPU model: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz, instruction set [SSE2|AVX|AVX2|AVX512]
+Thread count: 96 physical cores, 192 logical processors, using up to 32 threads
+
+Optimize a model with 4346 rows, 1010 columns and 74422 nonzeros
+Model fingerprint: 0xf826c505
+Variable types: 284 continuous, 726 integer (726 binary)
+Coefficient statistics:
+  Matrix range     [4e-03, 1e+04]
+  Objective range  [4e-03, 1e+04]
+  Bounds range     [1e+00, 7e+02]
+  RHS range        [1e-09, 1e+03]
+
+User MIP start produced solution with objective 0.777778 (0.01s)
+Loaded user MIP start with objective 0.777778
+
+Presolve removed 1276 rows and 1 columns
+Presolve time: 0.04s
+Presolved: 3070 rows, 1009 columns, 50468 nonzeros
+Variable types: 283 continuous, 726 integer (726 binary)
+
+Root relaxation: objective 9.577614e-01, 1675 iterations, 0.27 seconds (0.37 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    0.95776    0  147    0.77778    0.95776  23.1%     -    0s
+     0     2    0.95776    0  138    0.77778    0.95776  23.1%     -    1s
+   749   236    0.81320   21  105    0.77778    0.95007  22.2%  71.8    5s
+ 10914   830    0.78658   22   61    0.77778    0.79543  2.27%  21.4   10s
+
+Explored 16057 nodes (286461 simplex iterations) in 12.42 seconds (19.42 work units)
+Thread count was 32 (of 192 available processors)
+
+Solution count 1: 0.777778 
+No other solutions better than 0.777778
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 7.777777777778e-01, best bound 7.777777777778e-01, gap 0.0000%
+
+User-callback calls 34388, time in user-callback 0.04 sec
