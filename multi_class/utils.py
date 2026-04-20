@@ -942,6 +942,18 @@ def write_results(method: str, solution: Union[Model, PIP, IterativeShrinkage, l
         solution.write_integrated_results(integrated_csv, method, X_test, y_test, precision_threshold=precision_threshold, fold=fold)
     elif method == "ISA-PIP":
         pip = solution[-1]
+        # Merge model_dicts from all outer iterations with offset keys
+        offset = len(pip.model_dict)
+        for prev_pip in solution[:-1]:
+            for key, value in prev_pip.model_dict.items():
+                if value is not None:
+                    pip.model_dict[offset + key] = value
+            offset += len(prev_pip.model_dict)
+        # Prepend execution times from all previous outer iterations
+        prev_times = []
+        for prev_pip in solution[:-1]:
+            prev_times.extend(prev_pip.execution_time_list)
+        pip.execution_time_list = prev_times + pip.execution_time_list
         pip.write_integrated_results(integrated_csv, method, X_test, y_test, precision_threshold=precision_threshold, fold=fold)
     elif method == "D4-PIP":
         solution.write_integrated_results(integrated_csv, method, X_test, y_test, precision_threshold=precision_threshold, fold=fold)
