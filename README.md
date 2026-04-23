@@ -221,9 +221,9 @@ The content of this repository is as follows:
 
     - `results/our_results/`: Output results directory.
 
-        - `{dataset}/tree_{dataset}_results.csv`: results of tree-based classification, 8 datasets, depth-2,3,4, method `Full MIP` and `IDSA-PIP`.
+        - `tree_run/{dataset}/tree_{dataset}_results.csv`: results of tree-based classification, 8 datasets, depth-2,3,4, method `Full MIP` and `IDSA-PIP`.
 
-        - `tree_pareto_{dataset}_results.csv`: combined results of `C-PIP`, `FlowOCT`, `C-BinOCT`, `U-PIP`, `BendersOCT`, `U-BinOCT`, `CART`, which we present in Pareto curves. For their raw output, see the folder `tree_pareto_raw_output/`.
+        - `tree_pareto/tree_pareto_{dataset}_results.csv`: combined results of `C-PIP`, `FlowOCT`, `C-BinOCT`, `U-PIP`, `BendersOCT`, `U-BinOCT`, `CART`, which we present in Pareto curves. For their raw output, see the folder `tree_pareto_raw_output/`.
 
     - `tree_pareto/`: Existing methods in literature, including
 
