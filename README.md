@@ -142,7 +142,6 @@ This project consists of two parts:
         - `THRESHOLD_GRID`: precision thresholds set for `IDSA-PIP`(i.e., `C-PIP`) for Pareto comparison 
         
 
-
     
 - `tree_pareto/binoct-master/run_exp.py`: run it to produce the results of `U-BinOCT` and `C-BinOCT`.
 
@@ -211,9 +210,9 @@ The content of this repository is as follows:
     ├── dataset/         # 8 datasets used in experiments, and randomly chosen tau_0.
     ├── results/ 
     ├── tree_pareto/ 
-    ├── algorithm.py
+    ├── algorithm.py     # Similar to score-based 
     ├── callback.py      # Gurobi callback for tracking optimality gap, improvement time, and early termination.
-    ├── model.py
+    ├── model.py         # Similar to score-based 
     ├── parameter.py     # Centrally configures Gurobi parameters, algorithm hyperparameters, dataset paths, and precomputed MIP warm start.
     ├── tree_run.py
     └── utils.py         # Utility file to store some commonly used functions in this project writing utilities.
@@ -243,13 +242,10 @@ The content of this repository is as follows:
 
             - For our modification, see `StrongTree-master/README.md` "Modification for precision constrained multi-class classification" and `FlowOCT Code Modification.pdf`: 
 
-    - `tree_run.py`: **run** this script to reproduce results of `Full MIP` and `IDSA-PIP`(`C-PIP`) and `U-PIP`.  
+    - `tree_run.py`: Main entry point. Configure datasets, algorithms, and precision thresholds in `run_score_based_classification_experiment()`, then run this file. Available methods: 
+        `Full MIP`, `IDSA-PIP`, `U-PIP`.
         
     - `CART_run.py`: **run** this script to reproduce results of `CART`.
-
-    - `model.py`: build and solve an MIP for a single PIP partial problem in a tree-based classification problem. 
-
-    - `algorithm.py`: determine whether to continue or stop, and, if continuing, decide whether to enlarge or shrink the in-between sets ${\cal J}$. 
 
 
 ## Notes

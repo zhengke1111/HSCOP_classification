@@ -3,7 +3,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, classification_report, precision_score
 import numpy as np
-import utils
+from utils import *
 import pandas as pd
 import time
 
@@ -112,7 +112,7 @@ def cart_run():
                 # start timing (tuning + final training)
                 t0 = time.perf_counter()
 
-                X, y = utils.sample_data(dataset=dataset)
+                X, y = sample_data(dataset=dataset)
                 y = y.values + 1  # your label shift
 
                 data_splits = split_data(X, y, random_state=42 + run)
