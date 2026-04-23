@@ -222,7 +222,7 @@ class Model:
         self.model.setObjective(obj, GRB.MAXIMIZE) 
 
     def formulate_model(self, w_start, b_start):
-        if self.model_type == 'full':
+        if self.model_type == 'full' or 'full_early_termination':
             self.add_basic_var(w_start, b_start)
             self.model.update()
             self.add_full_constr_z_plus_0()
@@ -260,6 +260,15 @@ class Model:
             self.model.__dict__['time_for_feasible'] = 0
             self.model.__dict__['time_limit'] = time_limit
             callback = full_model_callback
+        elif self.model_type == 'full_early_termination':
+            time_limit = FULL_MODEL_TIME_LIMIT
+            self.model.__dict__['unchanged_tolerance'] = FULL_EARLY_TERMINATION_UNCHANGED_TOLERANCE
+            self.model.__dict__['last_time'] = 0
+            self.model.__dict__['last_obj'] = -np.inf
+            self.model.__dict__['final_improvement_time'] = 0
+            self.model.__dict__['time_for_feasible'] = 0
+            self.model.__dict__['time_limit'] = time_limit
+            callback = full_model_early_termination_callback
         elif self.model_type == 'partial' or 'unconstrained_partial':
             time_limit = PARTIAL_MODEL_TIME_LIMIT
             self.model.__dict__['unchanged_tolerance'] = UNCHANGED_TOLERANCE
@@ -303,8 +312,8 @@ class Model:
                                        beta=beta,
                                        objective_value=self.model.ObjVal,
                                        optimality_gap=self.model.MIPGap,
-                                       time=self.model.__dict__['final_improvement_time'],
-                                       actual_time=self.model.Runtime,
+                                       time=self.model.__dict__['final_improvement_time'] if self.model_type == 'full' else self.model.Runtime,
+                                       actual_time=self.model.Runtime if self.model_type == 'full' else None,
                                        gamma=self.var_val['gamma'],
                                        train_acc_margin=train_results['acc_margin'],
                                        test_acc_margin=test_results['acc_margin'],

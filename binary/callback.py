@@ -68,25 +68,63 @@ def partial_model_callback(model, where):
         if run_time - model.__dict__['last_time'] > 3:
             obj_bst = model.cbGet(GRB.Callback.MIP_OBJBST)
             obj_variation = abs(obj_bst - model.__dict__['last_obj'])
+            
+            if obj_variation < 1e-4:
+                if run_time - model.__dict__['final_improvement_time'] > model.__dict__['unchanged_tolerance']:
+                    model.terminate()
+            else:
+                # Reset the time record if objective value changes
+                model.__dict__['last_time'] = run_time
+                model.__dict__['last_obj'] = obj_bst
+                model.__dict__['final_improvement_time'] = run_time
+            
 
-            if obj_bst > 0:
-                if obj_variation < 1e-4:
-                    if run_time - model.__dict__['final_improvement_time'] > model.__dict__['unchanged_tolerance']:
-                        model.terminate()
-                else:
-                    # Reset the time record if objective value changes
-                    model.__dict__['last_time'] = run_time
-                    model.__dict__['last_obj'] = obj_bst
-                    model.__dict__['final_improvement_time'] = run_time
-            else:   
-                if obj_variation < 1e4:
-                    if run_time - model.__dict__['final_improvement_time'] > model.__dict__['unchanged_tolerance']:
-                        model.terminate()
-                else:
-                    # Reset the time record if objective value changes
-                    model.__dict__['last_time'] = run_time
-                    model.__dict__['last_obj'] = obj_bst
-                    model.__dict__['final_improvement_time'] = run_time
 
-    
+def full_model_early_termination_callback(model, where):
+    """
+    Gurobi callback for full MIP with early termination.
 
+    Keeps records from full_model_callback:
+        - optimality_gap
+        - final_improvement_time
+        - last_time
+        - last_obj
+
+    Adds early termination logic similar to partial_model_callback:
+        - check every 3 seconds
+        - if objective does not improve for longer than unchanged_tolerance (300s or 600s),
+          terminate the model
+    """
+    if where == GRB.Callback.MIP:
+        run_time = model.cbGet(GRB.Callback.RUNTIME)
+
+        # Stop if time limit is reached
+        if run_time > model.__dict__['time_limit']:
+            model.terminate()
+            return
+
+        # Check every 3 seconds
+        if run_time - model.__dict__['last_time'] > 3:
+            obj_bst = model.cbGet(GRB.Callback.MIP_OBJBST)
+            obj_bnd = model.cbGet(GRB.Callback.MIP_OBJBND)
+            obj_variation = abs(obj_bst - model.__dict__['last_obj'])
+            
+            if obj_bst <= 0:
+                model.__dict__['time_for_feasible'] = run_time
+
+            # Compute optimality gap
+            obj_gap = (abs(obj_bst - obj_bnd) / abs(obj_bst)) if abs(obj_bst) != 0 else -1
+
+            # Update full-model records
+            model.__dict__['optimality_gap'] = obj_gap
+            model.__dict__['last_time'] = run_time
+            model.__dict__['last_obj'] = obj_bst
+
+            if obj_variation < 1e-4:
+                if run_time - model.__dict__['final_improvement_time'] > model.__dict__['unchanged_tolerance']:
+                    model.terminate()
+            else:
+                # Reset the time record if objective value changes
+                model.__dict__['last_time'] = run_time
+                model.__dict__['last_obj'] = obj_bst
+                model.__dict__['final_improvement_time'] = run_time
