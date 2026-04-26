@@ -1,24 +1,31 @@
+# Gurobi feasibility tolerance
 FEASIBILITYTOL = 1e-09
 
+# Gurobi model parameters
 MODEL_PARAM = {'MIPFocus': 1,
                'IntegralityFocus': 1,
                'NumericFocus': 3,
                'FeasibilityTol': FEASIBILITYTOL,
                'Threads': 32,
                }
+
+# Penalty parameter for gamma in precision constraints
 RHO = 1e04
+
+# \ell_1 norm constraint for a_k
 TAU_1 = 100
 
+# Time limits for model optimization (seconds)
 FULL_MODEL_TIME_LIMIT = 3600
-
 UNPA_PARTIAL_MODEL_TIME_LIMIT = 600
 UNPA_UNCHANGED_TOLERANCE = 100
-
 PARTIAL_MODEL_TIME_LIMIT = 300
 UNCHANGED_TOLERANCE = 30
 
+# For D4-PIP, IDSA4-PIP, the "4" refers to "ENHANCED_SIZE=4"
 ENHANCED_SIZE = 4
 
+# IterativeShrinkage maximum outer iterations
 SHRINKAGE_MAX_OUT_ITER = 4
 
 ALG_PARAM = {'iteration': {'unchanged_iter': 3, 'max_iter': 10},
@@ -29,6 +36,7 @@ ALG_PARAM = {'iteration': {'unchanged_iter': 3, 'max_iter': 10},
                                 4: {'wine': 10, 'nwth': 10, 'htds': 10, 'dmtl': 10, 'blsc': 10, 'ctmc': 5, 'ceva': 5, 'fish': 5}}, 
                  'change_ratio': 10}}
 
+# Approximation parameter for PIP/IterativeShrinkage
 EPSILON = 1e-4
 
 DATASET_LIST = ['wine', 'nwth', 'htds', 'dmtl', 'blsc', 'ctmc', 'ceva', 'fish']
@@ -42,5 +50,5 @@ THRESHOLD_GRID = {'blsc': {2: [0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0
                         3: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82], 
                         4: [0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80, 0.82]}}
 
-
+# Reuse our randomly selected TAU_0.
 REUSE_TAU_0 = True

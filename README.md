@@ -45,6 +45,12 @@ This project consists of two parts:
 
     - **CSV columns:** `Precision_threshold, Fold, method, obj, time,  train_acc_margined, test_acc_margined, train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall`
 
+        - `obj`: for `Full MIP`, it is the objective value reported by `Gurobi`; for PIP methods, it is the objective value of the last iteration of the partial problem, and it may be strictly less than the objective value of the original problem, i.e., the out-of-margin accuracy. Hence, the `Obj` column in the paper is **NOT** this `obj` column, rather, it is the `train_acc_margined` we mentioned below.
+
+        - `time`: the `Time(s)` column in the paper. For `Full MIP`, it is not the actual running time, but **the first time that the best solution is obtained** within the time limit. For PIP methods, it is the summation of actual running time of all iterations.
+
+        - `train_acc_margined`: it is the `Obj` column in the Tables in paper, the out-of-margin accuracy calculated by trained $(W,b)$ on the training set.
+
     - **Configuration in `run_score_based_classification_experiment()`:**
         
         - `dataset_list`: List of datasets to run. Available: `['wine', 'fish', 'robo', 'segm', 'vehi', 'wave']`
@@ -90,10 +96,18 @@ This project consists of two parts:
         ```
         results/our_results/{data_set}/
         ├── tree_{data_set}_results.csv        # Combined results CSV
-        └── {dataset}_depth-{depth}_run-{run}/ # Optional LogFile subdirectories (save_log=True only)
+        └── {dataset}_depth-{depth}_run-{run}/ # Optional LogFile subdirectories (save_log=True only, here we omitted to reduce the size of this repository)
         ```
 
     - **CSV columns:** `dataset, depth, split, method, tau_0, key_beta, beta, objective_value, optimality_gap (Full MIP), time, actual_time (Full MIP), gamma, train_acc_margin, test_acc_margin, train_acc, test_acc, train_prec, test_prec`
+
+        - `obj`: for `Full MIP`, it is the objective value reported by `Gurobi`; for PIP methods, it is the objective value of the last iteration of the partial problem, and it may be strictly less than the objective value of the original problem, i.e., the out-of-margin accuracy. Hence, the `Obj` column in the paper is **NOT** this `obj` column, rather, it is the `train_acc_margin` we mentioned below.
+
+        - `time`: the `Time(s)` column in the paper. For `Full MIP`, it is not the actual running time, but **the first time that the best solution is obtained** within the time limit. For PIP methods, it is the summation of actual running time of all iterations.
+
+        - `actual_time (Full MIP)`: only record for Full MIP, the actual running time.
+
+        - `train_acc_margin`: it is the `Obj` column in the Tables in paper, the out-of-margin accuracy calculated by trained $(a,b,c)$ on the training set.
 
     - **Configuration in `run_tree_experiment(method_dict, depth_list, pareto = False)`:**
 
@@ -121,7 +135,7 @@ This project consists of two parts:
 
         - `beta`: Dictionary of precision configurations per dataset. `{key_beta: threshold}`. 
 
-            `key_beta` and `threshold` are chosen as **Appendix B.2, Model parameter**.
+            `key_beta` and `threshold` are chosen as **Appendix A.2, Model parameter**.
 
         - `save_log`: Whether to save Gurobi log files (default: `False`)
 
